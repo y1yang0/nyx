@@ -1,2 +1,4 @@
 # nyx
-a dynamic typed scripting language
+Let's build a dynamic typed scripting language from scratch
+
+
