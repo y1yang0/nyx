@@ -1,0 +1,18 @@
+a = 1
+b = 1.11
+c = a+b
+
+if(c==2){
+    print("the result of c is",c)
+}
+
+func test(a,b,c){ 
+    a =0
+    while(a<10){
+        print("hi")
+        a=a+1
+    }
+}
+func test1(){
+    print("hello wo rld")
+}
