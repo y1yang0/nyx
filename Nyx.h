@@ -1,8 +1,11 @@
 #pragma once
 
+#include <stdio.h>
 #include <any>
 #include <string>
+#include <unordered_map>
 #include <vector>
+
 using namespace std;
 struct Block;
 struct Statement;
@@ -16,7 +19,7 @@ struct Function {
 
     string name;
     vector<string> params;
-    shared_ptr<Block> block;
+    Block* block;
 };
 
 struct Value {
@@ -35,14 +38,15 @@ struct Variable {
     Value value;
 };
 
-struct GlobalContext {
-    explicit GlobalContext() {}
-
-    vector<shared_ptr<Variable>> vars;
-    vector<shared_ptr<Function>> funcs;
-    vector<shared_ptr<Statement>> stmts;
-};
-
 struct LocalContext {
-    vector<shared_ptr<Variable>> vars;
+    explicit LocalContext() {}
+
+    vector<Variable*> vars;
+};
+struct GlobalContext : public LocalContext {
+    explicit GlobalContext();
+
+    vector<Function*> funcs;
+    vector<Statement*> stmts;
+    unordered_map<string, Value (*)(GlobalContext*, vector<Value>)> builtin;
 };

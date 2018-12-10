@@ -1,11 +1,9 @@
-#include "Debug.h"
-#include "NyxInterpreter.h"
-#include "Parser.h"
+#include "Interpreter.h"
 
 int main() {
-    shared_ptr<NyxInterpreter> nyx(new NyxInterpreter);
-    Parser parser("source.nyx");
-    parser.parse(nyx);
+    // Parser::printLex("source.nyx");
+    NyxInterpreter nyx("hello.nyx");
+    nyx.execute();
     system("pause");
     return 0;
 }

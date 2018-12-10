@@ -46,6 +46,7 @@ enum Token {
 using namespace std;
 
 struct GlobalContext;
+struct LocalContext;
 struct Expression;
 struct Statement;
 struct Value;
@@ -53,83 +54,83 @@ struct Value;
 // Expression
 struct Expression {
     virtual ~Expression() {}
-    virtual Value eval(LocalContext ctx) {}
+    virtual Value eval(LocalContext* ctx) { return Value(nyx::NyxNull); }
 };
 
 struct BoolExpr : public Expression {
     explicit BoolExpr(bool literal) : literal(literal) {}
     bool literal;
-    Value eval(LocalContext ctx) override;
+    Value eval(LocalContext* ctx) override;
 };
 
 struct IntExpr : public Expression {
     explicit IntExpr(int literal) : literal(literal) {}
     int literal;
-    Value eval(LocalContext ctx) override;
+    Value eval(LocalContext* ctx) override;
 };
 
 struct DoubleExpr : public Expression {
     explicit DoubleExpr(double literal) : literal(literal) {}
     double literal;
-    Value eval(LocalContext ctx) override;
+    Value eval(LocalContext* ctx) override;
 };
 
 struct StringExpr : public Expression {
     explicit StringExpr(const string& literal) : literal(literal) {}
     string literal;
-    Value eval(LocalContext ctx) override;
+    Value eval(LocalContext* ctx) override;
 };
 
 struct IdentExpr : public Expression {
     explicit IdentExpr(const string& identName) : identName(identName) {}
     string identName;
-    Value eval(LocalContext ctx) override;
+    Value eval(LocalContext* ctx) override;
 };
 
 struct BinaryExpr : public Expression {
-    shared_ptr<Expression> lhs;
+    Expression* lhs;
     Token opt;
-    shared_ptr<Expression> rhs;
-    Value eval(LocalContext ctx) override;
+    Expression* rhs;
+    Value eval(LocalContext* ctx) override;
 };
 
 struct FunCallExpr : public Expression {
     string funcName;
-    vector<shared_ptr<Expression>> args;
-    Value eval(LocalContext ctx) override;
+    vector<Expression*> args;
+    Value eval(LocalContext* ctx) override;
 };
 
 struct AssignExpr : public Expression {
-    explicit AssignExpr(const string& identName, shared_ptr<Expression> expr)
+    explicit AssignExpr(const string& identName, Expression* expr)
         : identName(identName), expr(expr) {}
     string identName;
-    shared_ptr<Expression> expr;
-    Value eval(LocalContext ctx) override;
+    Expression* expr;
+    Value eval(LocalContext* ctx) override;
 };
 
 // Statement
 struct Statement {
     virtual ~Statement() {}
-    virtual void interpret(shared_ptr<GlobalContext> ctx) {}
+    virtual void interpret(GlobalContext* ctx) {}
 };
 struct Block {
     explicit Block() {}
-    vector<shared_ptr<Statement>> stmts;
+    vector<Statement*> stmts;
 };
 struct ExpressionStmt : public Statement {
-    explicit ExpressionStmt(shared_ptr<Expression> expr) : expr(expr) {}
-    shared_ptr<Expression> expr;
-    void interpret(shared_ptr<GlobalContext> ctx) override;
+    explicit ExpressionStmt(Expression* expr) : expr(expr) {}
+    Expression* expr;
+    void interpret(GlobalContext* ctx) override;
 };
 
 struct IfStmt : public Statement {
-    shared_ptr<Expression> cond;
-    shared_ptr<Block> block;
-    void interpret(shared_ptr<GlobalContext> ctx) override;
+    Expression* cond;
+    Block* block;
+    void interpret(GlobalContext* ctx) override;
 };
 
 struct WhileStmt : public Statement {
-    shared_ptr<Expression> cond;
-    shared_ptr<Block> block;
-    void interpret(shared_ptr<GlobalContext> ctx) override;
+    Expression* cond;
+    Block* block;
+    void interpret(GlobalContext* ctx) override;
 };

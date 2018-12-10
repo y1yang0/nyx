@@ -13,21 +13,21 @@
 class Parser {
 public:
     explicit Parser(const string& fileName);
-    shared_ptr<GlobalContext> parse();
+    GlobalContext* parse();
     static void printLex(const string& fileName);
 
 private:
-    shared_ptr<Expression> parsePrimaryExpr();
-    shared_ptr<Expression> parseUnaryExpr();
-    shared_ptr<BinaryExpr> parseExpression();
-    shared_ptr<ExpressionStmt> parseExpressionStmt();
-    shared_ptr<IfStmt> parseIfStmt();
-    shared_ptr<WhileStmt> parseWhileStmt();
-    shared_ptr<Statement> parseStatement();
-    vector<shared_ptr<Statement>> parseStatementList();
-    shared_ptr<Block> parseBlock();
+    Expression* parsePrimaryExpr();
+    Expression* parseUnaryExpr();
+    BinaryExpr* parseExpression();
+    ExpressionStmt* parseExpressionStmt();
+    IfStmt* parseIfStmt();
+    WhileStmt* parseWhileStmt();
+    Statement* parseStatement();
+    vector<Statement*> parseStatementList();
+    Block* parseBlock();
     vector<string> parseParameterList();
-    shared_ptr<Function> parseFuncDef();
+    Function* parseFuncDef();
 
 private:
     tuple<Token, string> next();
@@ -44,7 +44,7 @@ private:
 
     tuple<Token, string> currentToken;
 
-    shared_ptr<GlobalContext> context;
+    GlobalContext* context;
 
     fstream fs;
 };

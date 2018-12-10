@@ -16,13 +16,13 @@ Parser::Parser(const string& fileName) : context(new GlobalContext) {
     }
 }
 
-shared_ptr<Expression> Parser::parsePrimaryExpr() {
+Expression* Parser::parsePrimaryExpr() {
     if (getCurrentToken() == TK_IDENT) {
         auto ident = getCurrentLexeme();
         currentToken = next();
         if (getCurrentToken() == TK_ASSIGN) {
             currentToken = next();
-            return make_shared<AssignExpr>(ident, parseExpression());
+            return new AssignExpr(ident, parseExpression());
         } else if (getCurrentToken() == TK_LPAREN) {
             currentToken = next();
             auto val = new FunCallExpr;
@@ -35,25 +35,25 @@ shared_ptr<Expression> Parser::parsePrimaryExpr() {
             }
             assert(getCurrentToken() == TK_RPAREN);
             currentToken = next();
-            return make_shared<FunCallExpr>(*val);
+            return val;
         }
-        return make_shared<IdentExpr>(ident);
+        return new IdentExpr(ident);
     } else if (getCurrentToken() == LIT_INT) {
         auto val = atoi(getCurrentLexeme().c_str());
         currentToken = next();
-        return make_shared<IntExpr>(val);
+        return new IntExpr(val);
     } else if (getCurrentToken() == LIT_DOUBLE) {
         auto val = atof(getCurrentLexeme().c_str());
         currentToken = next();
-        return make_shared<DoubleExpr>(val);
+        return new DoubleExpr(val);
     } else if (getCurrentToken() == LIT_STR) {
         auto val = getCurrentLexeme();
         currentToken = next();
-        return make_shared<StringExpr>(val);
+        return new StringExpr(val);
     } else if (getCurrentToken() == KW_TRUE || getCurrentToken() == KW_FALSE) {
         auto val = KW_TRUE == getCurrentToken() ? true : false;
         currentToken = next();
-        return make_shared<BoolExpr>(val);
+        return new BoolExpr(val);
     } else if (getCurrentToken() == TK_LPAREN) {
         currentToken = next();
         auto val = parseExpression();
@@ -63,13 +63,13 @@ shared_ptr<Expression> Parser::parsePrimaryExpr() {
     return nullptr;
 }
 
-shared_ptr<Expression> Parser::parseUnaryExpr() {
+Expression* Parser::parseUnaryExpr() {
     if (getCurrentToken() == TK_MINUS) {
         auto val = new BinaryExpr;
         val->opt = getCurrentToken();
         currentToken = next();
         val->lhs = parseUnaryExpr();
-        return shared_ptr<BinaryExpr>(val);
+        return val;
     } else if (getCurrentToken() == LIT_DOUBLE ||
                getCurrentToken() == LIT_INT || getCurrentToken() == LIT_STR ||
                getCurrentToken() == TK_IDENT ||
@@ -80,10 +80,10 @@ shared_ptr<Expression> Parser::parseUnaryExpr() {
     return nullptr;
 }
 
-shared_ptr<BinaryExpr> Parser::parseExpression() {
-    shared_ptr<BinaryExpr> node;
+BinaryExpr* Parser::parseExpression() {
+    BinaryExpr* node;
     if (auto p = parseUnaryExpr(); p != nullptr) {
-        node = make_shared<BinaryExpr>();
+        node = new BinaryExpr();
         node->lhs = p;
         if (getCurrentToken() == TK_LOGOR || getCurrentToken() == TK_LOGAND ||
             getCurrentToken() == TK_EQ || getCurrentToken() == TK_NE ||
@@ -100,16 +100,16 @@ shared_ptr<BinaryExpr> Parser::parseExpression() {
     return node;
 }
 
-shared_ptr<ExpressionStmt> Parser::parseExpressionStmt() {
-    shared_ptr<ExpressionStmt> node;
+ExpressionStmt* Parser::parseExpressionStmt() {
+    ExpressionStmt* node;
     if (auto p = parseExpression(); p != nullptr) {
-        node = make_shared<ExpressionStmt>(p);
+        node = new ExpressionStmt(p);
     }
     return node;
 }
 
-shared_ptr<IfStmt> Parser::parseIfStmt() {
-    shared_ptr<IfStmt> node{new IfStmt};
+IfStmt* Parser::parseIfStmt() {
+    IfStmt* node{new IfStmt};
     currentToken = next();
     node->cond = parseExpression();
     assert(getCurrentToken() == TK_RPAREN);
@@ -118,8 +118,8 @@ shared_ptr<IfStmt> Parser::parseIfStmt() {
     return node;
 }
 
-shared_ptr<WhileStmt> Parser::parseWhileStmt() {
-    shared_ptr<WhileStmt> node{new WhileStmt};
+WhileStmt* Parser::parseWhileStmt() {
+    WhileStmt* node{new WhileStmt};
     currentToken = next();
     node->cond = parseExpression();
     assert(getCurrentToken() == TK_RPAREN);
@@ -128,8 +128,8 @@ shared_ptr<WhileStmt> Parser::parseWhileStmt() {
     return node;
 }
 
-shared_ptr<Statement> Parser::parseStatement() {
-    shared_ptr<Statement> node;
+Statement* Parser::parseStatement() {
+    Statement* node;
     switch (getCurrentToken()) {
         case KW_IF:
             currentToken = next();
@@ -146,17 +146,17 @@ shared_ptr<Statement> Parser::parseStatement() {
     return node;
 }
 
-vector<shared_ptr<Statement>> Parser::parseStatementList() {
-    vector<shared_ptr<Statement>> node;
-    shared_ptr<Statement> p;
+vector<Statement*> Parser::parseStatementList() {
+    vector<Statement*> node;
+    Statement* p;
     while ((p = parseStatement()) != nullptr) {
         node.push_back(p);
     }
     return node;
 }
 
-shared_ptr<Block> Parser::parseBlock() {
-    shared_ptr<Block> node{new Block};
+Block* Parser::parseBlock() {
+    Block* node{new Block};
     currentToken = next();
     node->stmts = parseStatementList();
     assert(getCurrentToken() == TK_RBRACE);
@@ -185,10 +185,10 @@ vector<string> Parser::parseParameterList() {
     return move(node);
 }
 
-shared_ptr<Function> Parser::parseFuncDef() {
+Function* Parser::parseFuncDef() {
     assert(getCurrentToken() == KW_FUNC);
     currentToken = next();
-    shared_ptr<Function> node{new Function};
+    Function* node{new Function};
     node->name = getCurrentLexeme();
     currentToken = next();
     assert(getCurrentToken() == TK_LPAREN);
@@ -198,7 +198,7 @@ shared_ptr<Function> Parser::parseFuncDef() {
     return node;
 }
 
-shared_ptr<GlobalContext> Parser::parse() {
+GlobalContext* Parser::parse() {
     currentToken = next();
     do {
         if (getCurrentToken() == KW_FUNC) {
