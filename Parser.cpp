@@ -1,13 +1,22 @@
 #include "Parser.h"
 
-inline Parser::Parser(const string& fileName) : context(new Context) {
+void Parser::printLex(const string& fileName) {
+    Parser p(fileName);
+    std::tuple<Token, std::string> tk;
+    do {
+        tk = p.next();
+        std::cout << "[" << std::get<0>(tk) << "," << std::get<1>(tk) << "]\n";
+    } while (get<0>(tk) != TK_EOF);
+}
+
+Parser::Parser(const string& fileName) : context(new GlobalContext) {
     fs.open(fileName);
     if (!fs.is_open()) {
         cout << "[error] can not open source file\n";
     }
 }
 
-inline shared_ptr<Expression> Parser::parsePrimaryExpr() {
+shared_ptr<Expression> Parser::parsePrimaryExpr() {
     if (getCurrentToken() == TK_IDENT) {
         auto ident = getCurrentLexeme();
         currentToken = next();
@@ -54,7 +63,7 @@ inline shared_ptr<Expression> Parser::parsePrimaryExpr() {
     return nullptr;
 }
 
-inline shared_ptr<Expression> Parser::parseUnaryExpr() {
+shared_ptr<Expression> Parser::parseUnaryExpr() {
     if (getCurrentToken() == TK_MINUS) {
         auto val = new BinaryExpr;
         val->opt = getCurrentToken();
@@ -71,7 +80,7 @@ inline shared_ptr<Expression> Parser::parseUnaryExpr() {
     return nullptr;
 }
 
-inline shared_ptr<BinaryExpr> Parser::parseExpression() {
+shared_ptr<BinaryExpr> Parser::parseExpression() {
     shared_ptr<BinaryExpr> node;
     if (auto p = parseUnaryExpr(); p != nullptr) {
         node = make_shared<BinaryExpr>();
@@ -91,7 +100,7 @@ inline shared_ptr<BinaryExpr> Parser::parseExpression() {
     return node;
 }
 
-inline shared_ptr<ExpressionStmt> Parser::parseExpressionStmt() {
+shared_ptr<ExpressionStmt> Parser::parseExpressionStmt() {
     shared_ptr<ExpressionStmt> node;
     if (auto p = parseExpression(); p != nullptr) {
         node = make_shared<ExpressionStmt>(p);
@@ -99,7 +108,7 @@ inline shared_ptr<ExpressionStmt> Parser::parseExpressionStmt() {
     return node;
 }
 
-inline shared_ptr<IfStmt> Parser::parseIfStmt() {
+shared_ptr<IfStmt> Parser::parseIfStmt() {
     shared_ptr<IfStmt> node{new IfStmt};
     currentToken = next();
     node->cond = parseExpression();
@@ -109,7 +118,7 @@ inline shared_ptr<IfStmt> Parser::parseIfStmt() {
     return node;
 }
 
-inline shared_ptr<WhileStmt> Parser::parseWhileStmt() {
+shared_ptr<WhileStmt> Parser::parseWhileStmt() {
     shared_ptr<WhileStmt> node{new WhileStmt};
     currentToken = next();
     node->cond = parseExpression();
@@ -119,7 +128,7 @@ inline shared_ptr<WhileStmt> Parser::parseWhileStmt() {
     return node;
 }
 
-inline shared_ptr<Statement> Parser::parseStatement() {
+shared_ptr<Statement> Parser::parseStatement() {
     shared_ptr<Statement> node;
     switch (getCurrentToken()) {
         case KW_IF:
@@ -137,7 +146,7 @@ inline shared_ptr<Statement> Parser::parseStatement() {
     return node;
 }
 
-inline vector<shared_ptr<Statement>> Parser::parseStatementList() {
+vector<shared_ptr<Statement>> Parser::parseStatementList() {
     vector<shared_ptr<Statement>> node;
     shared_ptr<Statement> p;
     while ((p = parseStatement()) != nullptr) {
@@ -146,7 +155,7 @@ inline vector<shared_ptr<Statement>> Parser::parseStatementList() {
     return node;
 }
 
-inline shared_ptr<Block> Parser::parseBlock() {
+shared_ptr<Block> Parser::parseBlock() {
     shared_ptr<Block> node{new Block};
     currentToken = next();
     node->stmts = parseStatementList();
@@ -155,7 +164,7 @@ inline shared_ptr<Block> Parser::parseBlock() {
     return node;
 }
 
-inline vector<string> Parser::parseParameterList() {
+vector<string> Parser::parseParameterList() {
     vector<string> node;
     currentToken = next();
     if (getCurrentToken() == TK_RPAREN) {
@@ -176,7 +185,7 @@ inline vector<string> Parser::parseParameterList() {
     return move(node);
 }
 
-inline shared_ptr<Function> Parser::parseFuncDef() {
+shared_ptr<Function> Parser::parseFuncDef() {
     assert(getCurrentToken() == KW_FUNC);
     currentToken = next();
     shared_ptr<Function> node{new Function};
@@ -189,7 +198,7 @@ inline shared_ptr<Function> Parser::parseFuncDef() {
     return node;
 }
 
-shared_ptr<Context> Parser::parse() {
+shared_ptr<GlobalContext> Parser::parse() {
     currentToken = next();
     do {
         if (getCurrentToken() == KW_FUNC) {
@@ -201,7 +210,7 @@ shared_ptr<Context> Parser::parse() {
     return this->context;
 }
 
-tuple<NyxToken, string> Parser::next() {
+tuple<Token, string> Parser::next() {
     char c = fs.get();
 
     if (c == EOF) {
@@ -339,7 +348,7 @@ tuple<NyxToken, string> Parser::next() {
     return make_tuple(INVALID, "invalid"s);
 }
 
-tuple<NyxToken, string> Parser::expect(NyxToken tk) {
+tuple<Token, string> Parser::expect(Token tk) {
     auto res = next();
     if (get<0>(res) != tk) {
         throw runtime_error("unexpected token " + get<1>(res));

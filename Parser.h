@@ -7,14 +7,16 @@
 #include <memory>
 #include <string>
 #include <tuple>
+#include "Ast.h"
 #include "Nyx.h"
 
 class Parser {
-    friend void printLex(Parser& fs);
-
 public:
     explicit Parser(const string& fileName);
+    shared_ptr<GlobalContext> parse();
+    static void printLex(const string& fileName);
 
+private:
     shared_ptr<Expression> parsePrimaryExpr();
     shared_ptr<Expression> parseUnaryExpr();
     shared_ptr<BinaryExpr> parseExpression();
@@ -26,24 +28,23 @@ public:
     shared_ptr<Block> parseBlock();
     vector<string> parseParameterList();
     shared_ptr<Function> parseFuncDef();
-    shared_ptr<Context> parse();
 
 private:
-    tuple<NyxToken, string> next();
-    tuple<NyxToken, string> expect(NyxToken tk);
+    tuple<Token, string> next();
+    tuple<Token, string> expect(Token tk);
 
-    inline NyxToken getCurrentToken() const { return get<0>(currentToken); }
+    inline Token getCurrentToken() const { return get<0>(currentToken); }
     inline string getCurrentLexeme() const { return get<1>(currentToken); }
 
 private:
-    const map<string, NyxToken> keywords{
-        {"if", KW_IF},     {"while", KW_WHILE}, {"null", KW_NULL},
-        {"true", KW_TRUE}, {"false", KW_FALSE}, {"for", KW_FALSE},
-        {"func", KW_FUNC}};
+    const map<string, Token> keywords{{"if", KW_IF},       {"while", KW_WHILE},
+                                      {"null", KW_NULL},   {"true", KW_TRUE},
+                                      {"false", KW_FALSE}, {"for", KW_FALSE},
+                                      {"func", KW_FUNC}};
 
-    tuple<NyxToken, string> currentToken;
+    tuple<Token, string> currentToken;
 
-    shared_ptr<Context> context;
+    shared_ptr<GlobalContext> context;
 
     fstream fs;
 };
