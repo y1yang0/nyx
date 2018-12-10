@@ -28,5 +28,6 @@ Value print(GlobalContext* ctx, std::vector<Value> args) {
                 break;
         }
     }
-    return Value(nyx::NyxNull);
+    if (!args.empty()) cout << "\n";
+    return Value(nyx::NyxInt, (int)args.size());
 }

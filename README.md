@@ -1,7 +1,8 @@
 # nyx
-[![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
+[![Build Status](https://travis-ci.org/racaljk/nyx.svg?branch=master)](https://travis-ci.org/racaljk/nyx) | 
+[![Build status](https://ci.appveyor.com/api/projects/status/ptqln5210xp6gupc?svg=true)](https://ci.appveyor.com/project/racaljk/nyx)
 
-Let's build a dynamic typed scripting language from scratch
+A dynamic typed scripting language :0
 
 # structure
 + [Ast](nyx/Ast.h) as it name described, it contains AST definitions of **nyx**

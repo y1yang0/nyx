@@ -12,7 +12,8 @@ void Parser::printLex(const string& fileName) {
 Parser::Parser(const string& fileName) : context(new GlobalContext) {
     fs.open(fileName);
     if (!fs.is_open()) {
-        cout << "[error] can not open source file\n";
+        cerr << "[error] can not open source file\n";
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -54,6 +55,9 @@ Expression* Parser::parsePrimaryExpr() {
         auto val = KW_TRUE == getCurrentToken() ? true : false;
         currentToken = next();
         return new BoolExpr(val);
+    } else if (getCurrentToken() == KW_NULL) {
+        currentToken = next();
+        return new NullExpr();
     } else if (getCurrentToken() == TK_LPAREN) {
         currentToken = next();
         auto val = parseExpression();
@@ -74,7 +78,7 @@ Expression* Parser::parseUnaryExpr() {
                getCurrentToken() == LIT_INT || getCurrentToken() == LIT_STR ||
                getCurrentToken() == TK_IDENT ||
                getCurrentToken() == TK_LPAREN || getCurrentToken() == KW_TRUE ||
-               getCurrentToken() == KW_FALSE) {
+               getCurrentToken() == KW_FALSE || getCurrentToken() == KW_NULL) {
         return parsePrimaryExpr();
     }
     return nullptr;

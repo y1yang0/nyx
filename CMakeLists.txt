@@ -10,5 +10,6 @@ enable_testing()
 file(GLOB test_file_name ${PROJECT_SOURCE_DIR}/nyx_demo/*.nyx)
 
 foreach(each_file ${test_file_name})
+ string(REGEX REPLACE ".*/(.*)\.nyx" "\\1" curated_name ${each_file})
     add_test(NAME test_${curated_name} COMMAND nyx ${each_file})
 endforeach(each_file ${test_file_name})

@@ -19,46 +19,41 @@ void IfStmt::interpret(GlobalContext* ctx) {}
 void WhileStmt::interpret(GlobalContext* ctx) {}
 
 void ExpressionStmt::interpret(GlobalContext* ctx) {
-    LocalContext* lctx = new LocalContext;
-    if (typeid(*(this->expr)) == typeid(BinaryExpr)) {
-        if (typeid(*((BinaryExpr*)(this->expr))->lhs) == typeid(FunCallExpr)) {
-            this->expr->eval(ctx);
-            return;
-        }
-    }
-
-    this->expr->eval(lctx);
-
-    // delete localCtx;
+    auto lctx = new LocalContext;
+    this->expr->eval(ctx, lctx);
+    delete lctx;
 }
 
-Value BoolExpr::eval(LocalContext* ctx) {
+Value BoolExpr::eval(GlobalContext* gctx, LocalContext* lctx) {
     Value val;
     val.type = nyx::ValueType::NyxBool;
     val.data = this->literal;
     return val;
 }
-Value IntExpr::eval(LocalContext* ctx) {
+Value NullExpr::eval(GlobalContext* gctx, LocalContext* lctx) {
+    return Value(nyx::NyxNull);
+}
+Value IntExpr::eval(GlobalContext* gctx, LocalContext* lctx) {
     Value val;
     val.type = nyx::ValueType::NyxInt;
     val.data = this->literal;
     return val;
 }
-Value DoubleExpr::eval(LocalContext* ctx) {
+Value DoubleExpr::eval(GlobalContext* gctx, LocalContext* lctx) {
     Value val;
     val.type = nyx::ValueType::NyxDouble;
     val.data = this->literal;
     return val;
 }
-Value StringExpr::eval(LocalContext* ctx) {
+Value StringExpr::eval(GlobalContext* gctx, LocalContext* lctx) {
     Value val;
     val.type = nyx::ValueType::NyxString;
     val.data = this->literal;
     return val;
 }
-Value IdentExpr::eval(LocalContext* ctx) {
+Value IdentExpr::eval(GlobalContext* gctx, LocalContext* lctx) {
     Value result;
-    for (auto& v : ctx->vars) {
+    for (auto& v : gctx->vars) {
         if (v->name == this->identName) {
             result.type = v->value.type;
             result.data = v->value.data;
@@ -67,11 +62,9 @@ Value IdentExpr::eval(LocalContext* ctx) {
     }
     return Value(nyx::NyxNull);
 }
-Value BinaryExpr::eval(LocalContext* ctx) {
-    Value lhs =
-        this->lhs != nullptr ? this->lhs->eval(ctx) : Value(nyx::NyxNull);
-    Value rhs =
-        this->rhs != nullptr ? this->rhs->eval(ctx) : Value(nyx::NyxNull);
+Value BinaryExpr::eval(GlobalContext* gctx, LocalContext* lctx) {
+    Value lhs = this->lhs ? this->lhs->eval(gctx, lctx) : Value(nyx::NyxNull);
+    Value rhs = this->rhs ? this->rhs->eval(gctx, lctx) : Value(nyx::NyxNull);
     Token opt = this->opt;
     if (lhs.type != nyx::NyxNull) {
         return lhs;
@@ -190,27 +183,26 @@ Value BinaryExpr::eval(LocalContext* ctx) {
     */
     return Value(nyx::NyxNull);
 }
-Value FunCallExpr::eval(LocalContext* ctx) {
-    GlobalContext* gctx = (GlobalContext*)ctx;
+Value FunCallExpr::eval(GlobalContext* gctx, LocalContext* lctx) {
     Value result;
     auto func = gctx->builtin[this->funcName];
     vector<Value> arguments;
     for (auto e : this->args) {
-        arguments.push_back(e->eval(ctx));
+        arguments.push_back(e->eval(gctx, lctx));
     }
     result = func(gctx, arguments);
 
     return result;
 }
 
-Value AssignExpr::eval(LocalContext* ctx) {
-    Value lhs = this->expr->eval(ctx);
+Value AssignExpr::eval(GlobalContext* gctx, LocalContext* lctx) {
+    Value lhs = this->expr->eval(gctx, lctx);
 
     Variable* var = new Variable;
 
     var->name = this->identName;
-    var->value = any_cast<Value>(lhs.data);
-    ctx->vars.push_back(var);
+    var->value = lhs;
+    gctx->vars.push_back(var);
 
     return lhs;
 }

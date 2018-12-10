@@ -54,50 +54,56 @@ struct Value;
 // Expression
 struct Expression {
     virtual ~Expression() {}
-    virtual Value eval(LocalContext* ctx) { return Value(nyx::NyxNull); }
+    virtual Value eval(GlobalContext* gctx, LocalContext* lctx) {
+        return Value(nyx::NyxNull);
+    }
 };
 
 struct BoolExpr : public Expression {
     explicit BoolExpr(bool literal) : literal(literal) {}
     bool literal;
-    Value eval(LocalContext* ctx) override;
+    Value eval(GlobalContext* gctx, LocalContext* lctx) override;
 };
+struct NullExpr : public Expression {
+    explicit NullExpr() {}
 
+    Value eval(GlobalContext* gctx, LocalContext* lctx) override;
+};
 struct IntExpr : public Expression {
     explicit IntExpr(int literal) : literal(literal) {}
     int literal;
-    Value eval(LocalContext* ctx) override;
+    Value eval(GlobalContext* gctx, LocalContext* lctx) override;
 };
 
 struct DoubleExpr : public Expression {
     explicit DoubleExpr(double literal) : literal(literal) {}
     double literal;
-    Value eval(LocalContext* ctx) override;
+    Value eval(GlobalContext* gctx, LocalContext* lctx) override;
 };
 
 struct StringExpr : public Expression {
     explicit StringExpr(const string& literal) : literal(literal) {}
     string literal;
-    Value eval(LocalContext* ctx) override;
+    Value eval(GlobalContext* gctx, LocalContext* lctx) override;
 };
 
 struct IdentExpr : public Expression {
     explicit IdentExpr(const string& identName) : identName(identName) {}
     string identName;
-    Value eval(LocalContext* ctx) override;
+    Value eval(GlobalContext* gctx, LocalContext* lctx) override;
 };
 
 struct BinaryExpr : public Expression {
     Expression* lhs;
     Token opt;
     Expression* rhs;
-    Value eval(LocalContext* ctx) override;
+    Value eval(GlobalContext* gctx, LocalContext* lctx) override;
 };
 
 struct FunCallExpr : public Expression {
     string funcName;
     vector<Expression*> args;
-    Value eval(LocalContext* ctx) override;
+    Value eval(GlobalContext* gctx, LocalContext* lctx) override;
 };
 
 struct AssignExpr : public Expression {
@@ -105,7 +111,7 @@ struct AssignExpr : public Expression {
         : identName(identName), expr(expr) {}
     string identName;
     Expression* expr;
-    Value eval(LocalContext* ctx) override;
+    Value eval(GlobalContext* gctx, LocalContext* lctx) override;
 };
 
 // Statement

@@ -1,3 +1,6 @@
-print("hello world",
-3.14,true,
-"another")
+a = "hello world"
+b = 32.1234
+c =235423
+
+d = print("hello world",3.14,true,"another",a,b,c,null)
+print(d)
