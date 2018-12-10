@@ -4,7 +4,7 @@
 Let's build a dynamic typed scripting language from scratch
 
 # structure
-+ [Ast](Ast.h) as it name described, it contains AST definitions of **nyx**
-+ [Nyx](Nyx.h) definitions of **nyx** runtime structures
-+ [Parser](Parser.h) syntax parser and lexer
-+ [Interpreter](Interpreter.h) interpret statements and eval expressions
++ [Ast](nyx/Ast.h) as it name described, it contains AST definitions of **nyx**
++ [Nyx](nyx/Nyx.h) definitions of **nyx** runtime structures
++ [Parser](nyx/Parser.h) syntax parser and lexer
++ [Interpreter](nyx/Interpreter.h) interpret statements and eval expressions
