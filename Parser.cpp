@@ -1,5 +1,206 @@
 #include "Parser.h"
 
+inline Parser::Parser(const string& fileName) : context(new Context) {
+    fs.open(fileName);
+    if (!fs.is_open()) {
+        cout << "[error] can not open source file\n";
+    }
+}
+
+inline shared_ptr<Expression> Parser::parsePrimaryExpr() {
+    if (getCurrentToken() == TK_IDENT) {
+        auto ident = getCurrentLexeme();
+        currentToken = next();
+        if (getCurrentToken() == TK_ASSIGN) {
+            currentToken = next();
+            return make_shared<AssignExpr>(ident, parseExpression());
+        } else if (getCurrentToken() == TK_LPAREN) {
+            currentToken = next();
+            auto val = new FunCallExpr;
+            val->funcName = ident;
+            while (getCurrentToken() != TK_RPAREN) {
+                val->args.push_back(parseExpression());
+                if (getCurrentToken() == TK_COMMA) {
+                    currentToken = next();
+                }
+            }
+            assert(getCurrentToken() == TK_RPAREN);
+            currentToken = next();
+            return make_shared<FunCallExpr>(*val);
+        }
+        return make_shared<IdentExpr>(ident);
+    } else if (getCurrentToken() == LIT_INT) {
+        auto val = atoi(getCurrentLexeme().c_str());
+        currentToken = next();
+        return make_shared<IntExpr>(val);
+    } else if (getCurrentToken() == LIT_DOUBLE) {
+        auto val = atof(getCurrentLexeme().c_str());
+        currentToken = next();
+        return make_shared<DoubleExpr>(val);
+    } else if (getCurrentToken() == LIT_STR) {
+        auto val = getCurrentLexeme();
+        currentToken = next();
+        return make_shared<StringExpr>(val);
+    } else if (getCurrentToken() == KW_TRUE || getCurrentToken() == KW_FALSE) {
+        auto val = KW_TRUE == getCurrentToken() ? true : false;
+        currentToken = next();
+        return make_shared<BoolExpr>(val);
+    } else if (getCurrentToken() == TK_LPAREN) {
+        currentToken = next();
+        auto val = parseExpression();
+        expect(TK_RPAREN);
+        return val;
+    }
+    return nullptr;
+}
+
+inline shared_ptr<Expression> Parser::parseUnaryExpr() {
+    if (getCurrentToken() == TK_MINUS) {
+        auto val = new BinaryExpr;
+        val->opt = getCurrentToken();
+        currentToken = next();
+        val->lhs = parseUnaryExpr();
+        return shared_ptr<BinaryExpr>(val);
+    } else if (getCurrentToken() == LIT_DOUBLE ||
+               getCurrentToken() == LIT_INT || getCurrentToken() == LIT_STR ||
+               getCurrentToken() == TK_IDENT ||
+               getCurrentToken() == TK_LPAREN || getCurrentToken() == KW_TRUE ||
+               getCurrentToken() == KW_FALSE) {
+        return parsePrimaryExpr();
+    }
+    return nullptr;
+}
+
+inline shared_ptr<BinaryExpr> Parser::parseExpression() {
+    shared_ptr<BinaryExpr> node;
+    if (auto p = parseUnaryExpr(); p != nullptr) {
+        node = make_shared<BinaryExpr>();
+        node->lhs = p;
+        if (getCurrentToken() == TK_LOGOR || getCurrentToken() == TK_LOGAND ||
+            getCurrentToken() == TK_EQ || getCurrentToken() == TK_NE ||
+            getCurrentToken() == TK_GT || getCurrentToken() == TK_GE ||
+            getCurrentToken() == TK_LT || getCurrentToken() == TK_LE ||
+            getCurrentToken() == TK_PLUS || getCurrentToken() == TK_MINUS ||
+            getCurrentToken() == TK_MOD || getCurrentToken() == TK_TIMES ||
+            getCurrentToken() == TK_DIV) {
+            node->opt = getCurrentToken();
+            currentToken = next();
+            node->rhs = parseExpression();
+        }
+    }
+    return node;
+}
+
+inline shared_ptr<ExpressionStmt> Parser::parseExpressionStmt() {
+    shared_ptr<ExpressionStmt> node;
+    if (auto p = parseExpression(); p != nullptr) {
+        node = make_shared<ExpressionStmt>(p);
+    }
+    return node;
+}
+
+inline shared_ptr<IfStmt> Parser::parseIfStmt() {
+    shared_ptr<IfStmt> node{new IfStmt};
+    currentToken = next();
+    node->cond = parseExpression();
+    assert(getCurrentToken() == TK_RPAREN);
+    currentToken = next();
+    node->block = parseBlock();
+    return node;
+}
+
+inline shared_ptr<WhileStmt> Parser::parseWhileStmt() {
+    shared_ptr<WhileStmt> node{new WhileStmt};
+    currentToken = next();
+    node->cond = parseExpression();
+    assert(getCurrentToken() == TK_RPAREN);
+    currentToken = next();
+    node->block = parseBlock();
+    return node;
+}
+
+inline shared_ptr<Statement> Parser::parseStatement() {
+    shared_ptr<Statement> node;
+    switch (getCurrentToken()) {
+        case KW_IF:
+            currentToken = next();
+            node = parseIfStmt();
+            break;
+        case KW_WHILE:
+            currentToken = next();
+            node = parseWhileStmt();
+
+        default:
+            node = parseExpressionStmt();
+            break;
+    }
+    return node;
+}
+
+inline vector<shared_ptr<Statement>> Parser::parseStatementList() {
+    vector<shared_ptr<Statement>> node;
+    shared_ptr<Statement> p;
+    while ((p = parseStatement()) != nullptr) {
+        node.push_back(p);
+    }
+    return node;
+}
+
+inline shared_ptr<Block> Parser::parseBlock() {
+    shared_ptr<Block> node{new Block};
+    currentToken = next();
+    node->stmts = parseStatementList();
+    assert(getCurrentToken() == TK_RBRACE);
+    currentToken = next();
+    return node;
+}
+
+inline vector<string> Parser::parseParameterList() {
+    vector<string> node;
+    currentToken = next();
+    if (getCurrentToken() == TK_RPAREN) {
+        currentToken = next();
+        return move(node);
+    }
+
+    while (getCurrentToken() != TK_RPAREN) {
+        if (getCurrentToken() == TK_IDENT) {
+            node.push_back(getCurrentLexeme());
+        } else {
+            assert(getCurrentToken() == TK_COMMA);
+        }
+        currentToken = next();
+    }
+    assert(getCurrentToken() == TK_RPAREN);
+    currentToken = next();
+    return move(node);
+}
+
+inline shared_ptr<Function> Parser::parseFuncDef() {
+    assert(getCurrentToken() == KW_FUNC);
+    currentToken = next();
+    shared_ptr<Function> node{new Function};
+    node->name = getCurrentLexeme();
+    currentToken = next();
+    assert(getCurrentToken() == TK_LPAREN);
+    node->params = parseParameterList();
+    node->block = parseBlock();
+
+    return node;
+}
+
+shared_ptr<Context> Parser::parse() {
+    currentToken = next();
+    do {
+        if (getCurrentToken() == KW_FUNC) {
+            context->funcs.push_back(parseFuncDef());
+        } else {
+            context->stmts.push_back(parseStatement());
+        }
+    } while (getCurrentToken() != TK_EOF);
+    return this->context;
+}
+
 tuple<NyxToken, string> Parser::next() {
     char c = fs.get();
 
@@ -41,7 +242,8 @@ tuple<NyxToken, string> Parser::next() {
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
         string lexeme{c};
         char cn = fs.peek();
-        while ((cn >= 'a' && cn <= 'z') || (cn >= 'A' && cn <= 'Z')) {
+        while ((cn >= 'a' && cn <= 'z') || (cn >= 'A' && cn <= 'Z') ||
+               (cn >= '0' && cn <= '9')) {
             c = fs.get();
             lexeme += c;
             cn = fs.peek();
@@ -142,5 +344,6 @@ tuple<NyxToken, string> Parser::expect(NyxToken tk) {
     if (get<0>(res) != tk) {
         throw runtime_error("unexpected token " + get<1>(res));
     }
+    this->currentToken = res;
     return res;
 }

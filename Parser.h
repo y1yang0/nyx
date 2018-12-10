@@ -2,78 +2,31 @@
 
 #include <cassert>
 #include <fstream>
-#include <iostream>s
+#include <iostream>
 #include <map>
 #include <memory>
 #include <string>
 #include <tuple>
-#include "NyxInterpreter.h"
+#include "Nyx.h"
 
 class Parser {
     friend void printLex(Parser& fs);
 
 public:
-    explicit Parser(const string fileName) { fs.open(fileName); }
+    explicit Parser(const string& fileName);
 
-    vector<shared_ptr<Statement>> parseStatementList() {
-        vector<shared_ptr<Statement>> node;
-        return node;
-    }
-
-    shared_ptr<Block> parseBlock() {
-        shared_ptr<Block> node;
-        expect(TK_LBRACE);
-        node->stmts = parseStatementList();
-        return node;
-    }
-
-    vector<string> parseParameterList() {
-        vector<string> node;
-        next();
-        if (getCurrentToken() == TK_RPAREN) {
-            return move(node);
-        }
-
-        while (getCurrentToken() != TK_RPAREN) {
-            if (getCurrentToken() == TK_IDENT) {
-                node.push_back(getCurrentLexeme());
-            } else {
-                assert(getCurrentToken() == TK_COMMA);
-            }
-            next();
-        }
-        return move(node);
-    }
-
-    shared_ptr<Function> parseFuncDef() {
-        assert(getCurrentToken() == KW_FUNC);
-
-        shared_ptr<Function> node;
-        auto [t, id] = expect(TK_IDENT);
-        node->name = id;
-        expect(TK_LPAREN);
-        node->params = parseParameterList();
-        node->block = parseBlock();
-
-        return node;
-    }
-
-    shared_ptr<Statement> parseStatement() {}
-
-    void parse(shared_ptr<NyxInterpreter>& context) {
-        // Set up parsing context
-        this->context = context;
-
-        // Do parsing
-        do {
-            currentToken = next();
-            if (getCurrentToken() == KW_FUNC) {
-                context->funcs.push_back(parseFuncDef());
-            } else {
-                context->stmts.push_back(parseStatement());
-            }
-        } while (getCurrentToken() != TK_EOF);
-    }
+    shared_ptr<Expression> parsePrimaryExpr();
+    shared_ptr<Expression> parseUnaryExpr();
+    shared_ptr<BinaryExpr> parseExpression();
+    shared_ptr<ExpressionStmt> parseExpressionStmt();
+    shared_ptr<IfStmt> parseIfStmt();
+    shared_ptr<WhileStmt> parseWhileStmt();
+    shared_ptr<Statement> parseStatement();
+    vector<shared_ptr<Statement>> parseStatementList();
+    shared_ptr<Block> parseBlock();
+    vector<string> parseParameterList();
+    shared_ptr<Function> parseFuncDef();
+    shared_ptr<Context> parse();
 
 private:
     tuple<NyxToken, string> next();
@@ -90,7 +43,7 @@ private:
 
     tuple<NyxToken, string> currentToken;
 
-    shared_ptr<NyxInterpreter> context;
+    shared_ptr<Context> context;
 
     fstream fs;
 };
