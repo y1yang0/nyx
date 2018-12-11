@@ -19,7 +19,7 @@ public:
 private:
     Expression* parsePrimaryExpr();
     Expression* parseUnaryExpr();
-    BinaryExpr* parseExpression();
+    Expression* parseExpression();
     ExpressionStmt* parseExpressionStmt();
     IfStmt* parseIfStmt();
     WhileStmt* parseWhileStmt();
@@ -32,6 +32,7 @@ private:
 private:
     tuple<Token, string> next();
 
+    inline short precedence(Token op);
     inline Token getCurrentToken() const { return get<0>(currentToken); }
     inline string getCurrentLexeme() const { return get<1>(currentToken); }
 

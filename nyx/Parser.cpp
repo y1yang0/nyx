@@ -85,24 +85,24 @@ Expression* Parser::parseUnaryExpr() {
     return nullptr;
 }
 
-BinaryExpr* Parser::parseExpression() {
-    BinaryExpr* node;
-    if (auto p = parseUnaryExpr(); p != nullptr) {
-        node = new BinaryExpr();
-        node->lhs = p;
-        if (getCurrentToken() == TK_LOGOR || getCurrentToken() == TK_LOGAND ||
-            getCurrentToken() == TK_EQ || getCurrentToken() == TK_NE ||
-            getCurrentToken() == TK_GT || getCurrentToken() == TK_GE ||
-            getCurrentToken() == TK_LT || getCurrentToken() == TK_LE ||
-            getCurrentToken() == TK_PLUS || getCurrentToken() == TK_MINUS ||
-            getCurrentToken() == TK_MOD || getCurrentToken() == TK_TIMES ||
-            getCurrentToken() == TK_DIV) {
-            node->opt = getCurrentToken();
-            currentToken = next();
-            node->rhs = parseExpression();
-        }
+Expression* Parser::parseExpression() {
+    auto p = parseUnaryExpr();
+
+    while (getCurrentToken() == TK_LOGOR || getCurrentToken() == TK_LOGAND ||
+        getCurrentToken() == TK_EQ || getCurrentToken() == TK_NE ||
+        getCurrentToken() == TK_GT || getCurrentToken() == TK_GE ||
+        getCurrentToken() == TK_LT || getCurrentToken() == TK_LE ||
+        getCurrentToken() == TK_PLUS || getCurrentToken() == TK_MINUS ||
+        getCurrentToken() == TK_MOD || getCurrentToken() == TK_TIMES ||
+        getCurrentToken() == TK_DIV) {
+        auto tmp = new BinaryExpr;
+        tmp->lhs = p;
+        tmp->opt = getCurrentToken();
+        currentToken = next();
+        tmp->rhs = parseExpression();
+        p = tmp;  
     }
-    return node;
+    return p;
 }
 
 ExpressionStmt* Parser::parseExpressionStmt() {
@@ -351,4 +351,21 @@ tuple<Token, string> Parser::next() {
     }
     cerr << "[error] unknow token fed\n";
     return make_tuple(INVALID, "invalid"s);
+}
+
+inline short Parser::precedence(Token op) {
+    switch (op) {
+    case TK_LOGOR:
+        return 1;
+    case TK_LOGAND:
+        return 2;
+    case TK_EQ:case TK_NE:case TK_GT:case TK_GE:case TK_LT:case TK_LE:
+        return 3;
+    case TK_PLUS:case TK_MINUS:
+        return 4;
+    case TK_TIMES:case TK_MOD:case TK_DIV:
+        return 5;
+    default:
+        return 0;
+    }
 }

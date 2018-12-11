@@ -5,32 +5,32 @@
 using namespace std;
 
 enum Token {
-    INVALID,
-    TK_COMMA,
-    TK_LOGAND,
-    TK_LOGOR,
-    TK_LOGNOT,
-    TK_EQ,
-    TK_ASSIGN,
-    TK_NE,
-    TK_GT,
-    TK_GE,
-    TK_LT,
-    TK_LE,
-    TK_PLUS,
-    TK_MINUS,
-    TK_TIMES,
-    TK_DIV,
-    TK_MOD,
-    TK_LPAREN,
-    TK_RPAREN,
-    TK_LBRACE,
-    TK_RBRACE,
-    TK_LBRACKET,
-    TK_RBRACKET,
-    TK_IDENT,
-    TK_EOF,
-    KW_IF,
+    INVALID,        // <invalid>
+    TK_COMMA,       // ,
+    TK_LOGAND,      // &&
+    TK_LOGOR,       // ||
+    TK_LOGNOT,      // !
+    TK_EQ,          // ==
+    TK_ASSIGN,      // =
+    TK_NE,          // !=
+    TK_GT,          // >
+    TK_GE,          // >=
+    TK_LT,          // <
+    TK_LE,          // <=
+    TK_PLUS,        // +
+    TK_MINUS,       // -
+    TK_TIMES,       // *
+    TK_DIV,         // /
+    TK_MOD,         // %
+    TK_LPAREN,      // (
+    TK_RPAREN,      // )
+    TK_LBRACE,      // {
+    TK_RBRACE,      // }
+    TK_LBRACKET,    // [
+    TK_RBRACKET,    // ]
+    TK_IDENT,       // <identifier>
+    TK_EOF,         // <eof>
+    KW_IF,          
     KW_TRUE,
     KW_FALSE,
     KW_WHILE,
@@ -40,7 +40,6 @@ enum Token {
     LIT_INT,
     LIT_STR,
     LIT_DOUBLE,
-
 };
 
 using namespace std;
