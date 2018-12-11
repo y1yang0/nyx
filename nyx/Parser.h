@@ -31,7 +31,6 @@ private:
 
 private:
     tuple<Token, string> next();
-    tuple<Token, string> expect(Token tk);
 
     inline Token getCurrentToken() const { return get<0>(currentToken); }
     inline string getCurrentLexeme() const { return get<1>(currentToken); }

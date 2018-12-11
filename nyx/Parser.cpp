@@ -61,7 +61,8 @@ Expression* Parser::parsePrimaryExpr() {
     } else if (getCurrentToken() == TK_LPAREN) {
         currentToken = next();
         auto val = parseExpression();
-        expect(TK_RPAREN);
+        assert(getCurrentToken() == TK_RPAREN);
+        currentToken = next();
         return val;
     }
     return nullptr;
@@ -304,7 +305,7 @@ tuple<Token, string> Parser::next() {
         return make_tuple(TK_MINUS, "-");
     }
     if (c == '*') {
-        return make_tuple(TK_PLUS, "*");
+        return make_tuple(TK_TIMES, "*");
     }
     if (c == '/') {
         return make_tuple(TK_DIV, "/");
@@ -348,15 +349,6 @@ tuple<Token, string> Parser::next() {
         }
         return make_tuple(TK_LT, "<");
     }
-    cout << "[error] unknow token fed\n";
+    cerr << "[error] unknow token fed\n";
     return make_tuple(INVALID, "invalid"s);
-}
-
-tuple<Token, string> Parser::expect(Token tk) {
-    auto res = next();
-    if (get<0>(res) != tk) {
-        throw runtime_error("unexpected token " + get<1>(res));
-    }
-    this->currentToken = res;
-    return res;
 }

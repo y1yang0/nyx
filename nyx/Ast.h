@@ -94,9 +94,9 @@ struct IdentExpr : public Expression {
 };
 
 struct BinaryExpr : public Expression {
-    Expression* lhs;
-    Token opt;
-    Expression* rhs;
+    Expression* lhs{};
+    Token opt{};
+    Expression* rhs{};
     Value eval(GlobalContext* gctx, LocalContext* lctx) override;
 };
 
@@ -110,7 +110,7 @@ struct AssignExpr : public Expression {
     explicit AssignExpr(const string& identName, Expression* expr)
         : identName(identName), expr(expr) {}
     string identName;
-    Expression* expr;
+    Expression* expr{};
     Value eval(GlobalContext* gctx, LocalContext* lctx) override;
 };
 
@@ -125,18 +125,18 @@ struct Block {
 };
 struct ExpressionStmt : public Statement {
     explicit ExpressionStmt(Expression* expr) : expr(expr) {}
-    Expression* expr;
+    Expression* expr{};
     void interpret(GlobalContext* ctx) override;
 };
 
 struct IfStmt : public Statement {
-    Expression* cond;
-    Block* block;
+    Expression* cond{};
+    Block* block{};
     void interpret(GlobalContext* ctx) override;
 };
 
 struct WhileStmt : public Statement {
-    Expression* cond;
-    Block* block;
+    Expression* cond{};
+    Block* block{};
     void interpret(GlobalContext* ctx) override;
 };

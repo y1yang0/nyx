@@ -9,25 +9,24 @@ Value print(GlobalContext* ctx, std::vector<Value> args) {
     for (auto arg : args) {
         switch (arg.type) {
             case nyx::NyxBool:
-                cout << boolalpha << any_cast<bool>(arg.data);
+                cout << boolalpha << any_cast<bool>(arg.data) << "\n";
                 break;
             case nyx::NyxDouble:
-                cout << any_cast<double>(arg.data);
+                cout << any_cast<double>(arg.data) << "\n";
                 break;
             case nyx::NyxInt:
-                cout << any_cast<int>(arg.data);
+                cout << any_cast<int>(arg.data) << "\n";
                 break;
             case nyx::NyxString:
-                cout << any_cast<string>(arg.data);
+                cout << any_cast<string>(arg.data) << "\n";
                 break;
             case nyx::NyxNull:
-                cout << "null";
+                cout << "null\n";
                 break;
             default:
-                cout << "<addr " << &arg.data << ">";
+                cout << "<untyped " << &arg.data << ">\n";
                 break;
         }
     }
-    if (!args.empty()) cout << "\n";
     return Value(nyx::NyxInt, (int)args.size());
 }

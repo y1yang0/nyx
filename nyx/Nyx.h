@@ -27,6 +27,8 @@ struct Value {
     explicit Value(nyx::ValueType type) : type(type) {}
     explicit Value(nyx::ValueType type, any data) : type(type), data(data) {}
 
+    inline bool isNyxNull()const { return type == nyx::NyxNull; }
+
     nyx::ValueType type;
     any data;
 };
