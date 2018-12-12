@@ -9,12 +9,25 @@ void Parser::printLex(const std::string& fileName) {
     } while (std::get<0>(tk) != TK_EOF);
 }
 
-Parser::Parser(const std::string& fileName) : context(new GlobalContext) {
+Parser::Parser(const std::string& fileName)
+    : context(new GlobalContext),
+      keywords({{"if", KW_IF},
+                {"while", KW_WHILE},
+                {"null", KW_NULL},
+                {"true", KW_TRUE},
+                {"false", KW_FALSE},
+                {"for", KW_FALSE},
+                {"func", KW_FUNC}}) {
     fs.open(fileName);
     if (!fs.is_open()) {
         std::cerr << "[error] can not open source file\n";
         exit(EXIT_FAILURE);
     }
+}
+
+Parser::~Parser() {
+    delete context;
+    fs.close();
 }
 
 Expression* Parser::parsePrimaryExpr() {
@@ -220,23 +233,31 @@ GlobalContext* Parser::parse() {
 }
 
 std::tuple<Token, std::string> Parser::next() {
-    char c = fs.get();
+    char c = getNextChar();
 
     if (c == EOF) {
         return std::make_tuple(TK_EOF, "");
     }
-    if (c == ' ' || c == '\n' || c == '\r') {
-        while (c == ' ' || c == '\n' || c == '\r') {
-            c = fs.get();
+    if (c == ' ' || c == '\n' || c == '\r' || c == '\t') {
+        while (c == ' ' || c == '\n' || c == '\r' || c == '\t') {
+            if (c == '\n') {
+                lineCount++;
+                columnCount = 0;
+            }
+            c = getNextChar();
+        }
+        if (c == EOF) {
+            return std::make_tuple(TK_EOF, "");
         }
     }
 
     if (c == '#') {
-        while (c != '\n') {
-            c = fs.get();
+        while (c != '\n' && c != EOF) {
+            c = getNextChar();
         }
-        fs.get();
-        c = fs.get();
+        c = getNextChar();  // consume '\n'
+        lineCount++;
+        columnCount = 0;
         if (c == EOF) {
             return std::make_tuple(TK_EOF, "");
         }
@@ -245,13 +266,13 @@ std::tuple<Token, std::string> Parser::next() {
     if (c >= '0' && c <= '9') {
         std::string lexeme{c};
         bool isDouble = false;
-        char cn = fs.peek();
+        char cn = peekNextChar();
         while ((cn >= '0' && cn <= '9') || (!isDouble && cn == '.')) {
             if (c == '.') {
                 isDouble = true;
             }
-            c = fs.get();
-            cn = fs.peek();
+            c = getNextChar();
+            cn = peekNextChar();
             lexeme += c;
         }
         return !isDouble ? make_tuple(LIT_INT, lexeme)
@@ -259,12 +280,12 @@ std::tuple<Token, std::string> Parser::next() {
     }
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
         std::string lexeme{c};
-        char cn = fs.peek();
+        char cn = peekNextChar();
         while ((cn >= 'a' && cn <= 'z') || (cn >= 'A' && cn <= 'Z') ||
                (cn >= '0' && cn <= '9')) {
-            c = fs.get();
+            c = getNextChar();
             lexeme += c;
-            cn = fs.peek();
+            cn = peekNextChar();
         }
         auto result = keywords.find(lexeme);
         return result != keywords.end()
@@ -273,13 +294,13 @@ std::tuple<Token, std::string> Parser::next() {
     }
     if (c == '"') {
         std::string lexeme;
-        char cn = fs.peek();
+        char cn = peekNextChar();
         while (cn != '"') {
-            c = fs.get();
+            c = getNextChar();
             lexeme += c;
-            cn = fs.peek();
+            cn = peekNextChar();
         }
-        fs.get();
+        getNextChar();
         return std::make_tuple(LIT_STR, lexeme);
     }
     if (c == '[') {
@@ -319,37 +340,37 @@ std::tuple<Token, std::string> Parser::next() {
         return std::make_tuple(TK_MOD, "%");
     }
     if (c == '=') {
-        if (fs.peek() == '=') {
-            c = fs.get();
+        if (peekNextChar() == '=') {
+            c = getNextChar();
             return std::make_tuple(TK_EQ, "==");
         }
         return std::make_tuple(TK_ASSIGN, "=");
     }
     if (c == '!') {
-        if (fs.peek() == '=') {
-            c = fs.get();
+        if (peekNextChar() == '=') {
+            c = getNextChar();
             return std::make_tuple(TK_NE, "!=");
         }
         return std::make_tuple(TK_LOGNOT, "!");
     }
     if (c == '|') {
-        c = fs.get();
+        c = getNextChar();
         return std::make_tuple(TK_LOGOR, "||");
     }
     if (c == '&') {
-        c = fs.get();
+        c = getNextChar();
         return std::make_tuple(TK_LOGAND, "&&");
     }
     if (c == '>') {
-        if (fs.peek() == '=') {
-            c = fs.get();
+        if (peekNextChar() == '=') {
+            c = getNextChar();
             return std::make_tuple(TK_GE, ">=");
         }
         return std::make_tuple(TK_GT, ">");
     }
     if (c == '<') {
-        if (fs.peek() == '=') {
-            c = fs.get();
+        if (peekNextChar() == '=') {
+            c = getNextChar();
             return std::make_tuple(TK_LE, "<=");
         }
         return std::make_tuple(TK_LT, "<");

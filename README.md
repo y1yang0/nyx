@@ -5,14 +5,17 @@
 A dynamic typed scripting language :0
 
 # language reference
-## data type
+## Basic 
+**Comment** starts with `#` tile end of line, that is, **nyx** only supports line comment.
+
+## Data type
 + `int`
 + `double` 
 + `string` 
 + `bool` 
 + `null`
 
-## built-in functions
+## Built-in functions
 ```nyx
 # take various arguments and print their values to stdout
 func print(a,b,c...)

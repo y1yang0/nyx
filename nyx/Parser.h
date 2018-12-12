@@ -13,9 +13,12 @@
 class Parser {
 public:
     explicit Parser(const std::string& fileName);
+    ~Parser();
+
+public:
     nyx::GlobalContext* parse();
     static void printLex(const std::string& fileName);
-    inline short precedence(Token op);
+    short precedence(Token op);
 
 private:
     Expression* parsePrimaryExpr();
@@ -34,6 +37,13 @@ private:
 private:
     std::tuple<Token, std::string> next();
 
+    inline char getNextChar() {
+        columnCount++;
+        return static_cast<char>(fs.get());
+    }
+
+    inline char peekNextChar() { return static_cast<char>(fs.peek()); }
+
     inline Token getCurrentToken() const {
         return std::get<Token>(currentToken);
     }
@@ -42,14 +52,15 @@ private:
     }
 
 private:
-    const std::map<std::string, Token> keywords{
-        {"if", KW_IF},     {"while", KW_WHILE}, {"null", KW_NULL},
-        {"true", KW_TRUE}, {"false", KW_FALSE}, {"for", KW_FALSE},
-        {"func", KW_FUNC}};
+    const std::map<std::string, Token> keywords;
 
     std::tuple<Token, std::string> currentToken;
 
     nyx::GlobalContext* context;
 
     std::fstream fs;
+
+    int lineCount = 1;
+
+    int columnCount = 0;
 };

@@ -59,7 +59,7 @@ nyx::Value IdentExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
     return nyx::Value(nyx::NyxNull);
 }
 
-nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt) {
+static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt) {
     nyx::Value result;
     // Only -num supported now;
     if (opt == TK_MINUS) {
@@ -79,7 +79,7 @@ nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt) {
     return lhs;
 }
 
-nyx::Value calcBinaryExpr(nyx::Value& lhs, Token opt, Value& rhs) {
+static nyx::Value calcBinaryExpr(nyx::Value& lhs, Token opt, Value& rhs) {
     nyx::Value result;
     switch (opt) {
         case TK_PLUS:
@@ -100,6 +100,13 @@ nyx::Value calcBinaryExpr(nyx::Value& lhs, Token opt, Value& rhs) {
                 result.type = nyx::NyxDouble;
                 result.data = std::any_cast<double>(lhs.data) +
                               std::any_cast<int>(rhs.data);
+            } else if (lhs.type == nyx::NyxString &&
+                       rhs.type == nyx::NyxString) {
+                result.type = nyx::NyxString;
+                result.data = std::any_cast<std::string>(lhs.data) +
+                              std::any_cast<std::string>(rhs.data);
+            } else {
+                throw std::runtime_error("unexpected arguments of +");
             }
             break;
         case TK_MINUS:
@@ -120,6 +127,8 @@ nyx::Value calcBinaryExpr(nyx::Value& lhs, Token opt, Value& rhs) {
                 result.type = nyx::NyxDouble;
                 result.data = std::any_cast<double>(lhs.data) -
                               std::any_cast<int>(rhs.data);
+            } else {
+                throw std::runtime_error("unexpected arguments of -");
             }
             break;
         case TK_TIMES:
@@ -140,6 +149,8 @@ nyx::Value calcBinaryExpr(nyx::Value& lhs, Token opt, Value& rhs) {
                 result.type = nyx::NyxDouble;
                 result.data = std::any_cast<double>(lhs.data) *
                               std::any_cast<int>(rhs.data);
+            } else {
+                throw std::runtime_error("unexpected arguments of *");
             }
             break;
         case TK_DIV:
@@ -160,6 +171,18 @@ nyx::Value calcBinaryExpr(nyx::Value& lhs, Token opt, Value& rhs) {
                 result.type = nyx::NyxDouble;
                 result.data = std::any_cast<double>(lhs.data) /
                               std::any_cast<int>(rhs.data);
+            } else {
+                throw std::runtime_error("unexpected arguments of /");
+            }
+            break;
+        case TK_MOD:
+            if (lhs.type == nyx::NyxInt && rhs.type == nyx::NyxInt) {
+                result.type = nyx::NyxInt;
+                result.data = (int)std::any_cast<int>(lhs.data) %
+                              std::any_cast<int>(rhs.data);
+            } else {
+                throw std::runtime_error(
+                    "the operators % only takes two int arguments");
             }
             break;
     }
