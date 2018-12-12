@@ -3,6 +3,9 @@
 
 enum Token {
     INVALID,      // <invalid>
+    TK_BITAND,    // &
+    TK_BITOR,     // |
+    TK_BITNOT,    // ~
     TK_COMMA,     // ,
     TK_LOGAND,    // &&
     TK_LOGOR,     // ||

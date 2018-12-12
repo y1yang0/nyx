@@ -1,8 +1,8 @@
-#include "Parser.h"
 #include "Nyx.h"
- 
+#include "Parser.h"
+
 void Parser::printLex(const std::string& fileName) {
-    Parser p(fileName, new nyx::GlobalContext);
+    Parser p(fileName);
     std::tuple<Token, std::string> tk;
     do {
         tk = p.next();
@@ -10,8 +10,8 @@ void Parser::printLex(const std::string& fileName) {
     } while (std::get<0>(tk) != TK_EOF);
 }
 
-Parser::Parser(const std::string& fileName, nyx::GlobalContext* context)
-    : context(context),
+Parser::Parser(const std::string& fileName)
+    : context(new nyx::GlobalContext),
       keywords({{"if", KW_IF},
                 {"while", KW_WHILE},
                 {"null", KW_NULL},
@@ -27,7 +27,7 @@ Parser::Parser(const std::string& fileName, nyx::GlobalContext* context)
 }
 
 Parser::~Parser() {
-    // Parser has no responsibilities to release global context
+    delete context;
     fs.close();
 }
 
@@ -340,6 +340,9 @@ std::tuple<Token, std::string> Parser::next() {
     if (c == '%') {
         return std::make_tuple(TK_MOD, "%");
     }
+    if (c == '~') {
+        return std::make_tuple(TK_BITNOT, "~");
+    }
     if (c == '=') {
         if (peekNextChar() == '=') {
             c = getNextChar();
@@ -355,12 +358,18 @@ std::tuple<Token, std::string> Parser::next() {
         return std::make_tuple(TK_LOGNOT, "!");
     }
     if (c == '|') {
-        c = getNextChar();
-        return std::make_tuple(TK_LOGOR, "||");
+        if (peekNextChar() == '|') {
+            c = getNextChar();
+            return std::make_tuple(TK_LOGOR, "||");
+        }
+        return std::make_tuple(TK_BITOR, "|");
     }
     if (c == '&') {
-        c = getNextChar();
-        return std::make_tuple(TK_LOGAND, "&&");
+        if (peekNextChar() == '&') {
+            c = getNextChar();
+            return std::make_tuple(TK_LOGAND, "&&");
+        }
+        return std::make_tuple(TK_BITAND, "&");
     }
     if (c == '>') {
         if (peekNextChar() == '=') {

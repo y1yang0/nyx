@@ -3,16 +3,13 @@
 #include "Builtin.h"
 #include "Interpreter.h"
 #include "Nyx.h"
+#include "Utils.h"
 
-NyxInterpreter::NyxInterpreter(const std::string& fileName){
-    context = new nyx::GlobalContext;
-    context->builtin["print"] = &nyx_builtin_print;
-    context->builtin["typeof"] = &nyx_builtin_typeof;
-    p = new Parser(fileName, context);
+NyxInterpreter::NyxInterpreter(const std::string& fileName) {
+    p = new Parser(fileName);
 }
 
 NyxInterpreter::~NyxInterpreter() {
-    delete context;
     delete p;
 }
 
@@ -29,7 +26,7 @@ void IfStmt::interpret(nyx::GlobalContext* ctx) {}
 void WhileStmt::interpret(nyx::GlobalContext* ctx) {}
 
 void ExpressionStmt::interpret(nyx::GlobalContext* ctx) {
-    std::cout << this->expr->astString() << "\n";
+    //std::cout << this->expr->astString() << "\n";
     this->expr->eval(ctx, nullptr);
 }
 
@@ -93,111 +90,23 @@ static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt) {
     return lhs;
 }
 
-static nyx::Value calcBinaryExpr(nyx::Value& lhs, Token opt, Value& rhs) {
+static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs) {
     nyx::Value result;
     switch (opt) {
         case TK_PLUS:
-            if (lhs.type == nyx::NyxInt && rhs.type == nyx::NyxInt) {
-                result.type = nyx::NyxInt;
-                result.data =
-                    std::any_cast<int>(lhs.data) + std::any_cast<int>(rhs.data);
-            } else if (lhs.type == nyx::NyxDouble &&
-                       rhs.type == nyx::NyxDouble) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<double>(lhs.data) +
-                              std::any_cast<double>(rhs.data);
-            } else if (lhs.type == nyx::NyxInt && rhs.type == nyx::NyxDouble) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<int>(lhs.data) +
-                              std::any_cast<double>(rhs.data);
-            } else if (lhs.type == nyx::NyxDouble && rhs.type == nyx::NyxInt) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<double>(lhs.data) +
-                              std::any_cast<int>(rhs.data);
-            } else if (lhs.type == nyx::NyxString &&
-                       rhs.type == nyx::NyxString) {
-                result.type = nyx::NyxString;
-                result.data = std::any_cast<std::string>(lhs.data) +
-                              std::any_cast<std::string>(rhs.data);
-            } else {
-                throw std::runtime_error("unexpected arguments of +");
-            }
+            result = lhs + rhs;
             break;
         case TK_MINUS:
-            if (lhs.type == nyx::NyxInt && rhs.type == nyx::NyxInt) {
-                result.type = nyx::NyxInt;
-                result.data =
-                    std::any_cast<int>(lhs.data) - std::any_cast<int>(rhs.data);
-            } else if (lhs.type == nyx::NyxDouble &&
-                       rhs.type == nyx::NyxDouble) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<double>(lhs.data) -
-                              std::any_cast<double>(rhs.data);
-            } else if (lhs.type == nyx::NyxInt && rhs.type == nyx::NyxDouble) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<int>(lhs.data) -
-                              std::any_cast<double>(rhs.data);
-            } else if (lhs.type == nyx::NyxDouble && rhs.type == nyx::NyxInt) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<double>(lhs.data) -
-                              std::any_cast<int>(rhs.data);
-            } else {
-                throw std::runtime_error("unexpected arguments of -");
-            }
+            result = lhs - rhs;
             break;
         case TK_TIMES:
-            if (lhs.type == nyx::NyxInt && rhs.type == nyx::NyxInt) {
-                result.type = nyx::NyxInt;
-                result.data =
-                    std::any_cast<int>(lhs.data) * std::any_cast<int>(rhs.data);
-            } else if (lhs.type == nyx::NyxDouble &&
-                       rhs.type == nyx::NyxDouble) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<double>(lhs.data) *
-                              std::any_cast<double>(rhs.data);
-            } else if (lhs.type == nyx::NyxInt && rhs.type == nyx::NyxDouble) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<int>(lhs.data) *
-                              std::any_cast<double>(rhs.data);
-            } else if (lhs.type == nyx::NyxDouble && rhs.type == nyx::NyxInt) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<double>(lhs.data) *
-                              std::any_cast<int>(rhs.data);
-            } else {
-                throw std::runtime_error("unexpected arguments of *");
-            }
+            result = lhs * rhs;
             break;
         case TK_DIV:
-            if (lhs.type == nyx::NyxInt && rhs.type == nyx::NyxInt) {
-                result.type = nyx::NyxDouble;
-                result.data = (double)std::any_cast<int>(lhs.data) /
-                              std::any_cast<int>(rhs.data);
-            } else if (lhs.type == nyx::NyxDouble &&
-                       rhs.type == nyx::NyxDouble) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<double>(lhs.data) /
-                              std::any_cast<double>(rhs.data);
-            } else if (lhs.type == nyx::NyxInt && rhs.type == nyx::NyxDouble) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<int>(lhs.data) /
-                              std::any_cast<double>(rhs.data);
-            } else if (lhs.type == nyx::NyxDouble && rhs.type == nyx::NyxInt) {
-                result.type = nyx::NyxDouble;
-                result.data = std::any_cast<double>(lhs.data) /
-                              std::any_cast<int>(rhs.data);
-            } else {
-                throw std::runtime_error("unexpected arguments of /");
-            }
+            result = lhs / rhs;
             break;
         case TK_MOD:
-            if (lhs.type == nyx::NyxInt && rhs.type == nyx::NyxInt) {
-                result.type = nyx::NyxInt;
-                result.data = (int)std::any_cast<int>(lhs.data) %
-                              std::any_cast<int>(rhs.data);
-            } else {
-                throw std::runtime_error(
-                    "the operators % only takes two int arguments");
-            }
+            result = lhs % rhs;
             break;
     }
     return result;

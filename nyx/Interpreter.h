@@ -15,13 +15,5 @@ private:
     void parseCommandOption(int argc, char* argv) {}
 
 private:
-    nyx::GlobalContext* context;
-
     Parser* p;
-
-    bool printHelp = false;
-
-    bool printLex = false;
-
-    bool printAst = false;
 };

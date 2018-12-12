@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(nyx)
 
 set(CMAKE_CXX_STANDARD 17)
-set(NYX_SRC nyx/Builtin.cpp nyx/Interpreter.cpp nyx/Main.cpp nyx/Parser.cpp nyx/Ast.cpp)
+set(NYX_SRC nyx/Builtin.cpp nyx/Interpreter.cpp nyx/Main.cpp nyx/Parser.cpp nyx/Ast.cpp nyx/Utils.cpp nyx/Nyx.cpp)
 
 add_executable(nyx ${NYX_SRC})
 
