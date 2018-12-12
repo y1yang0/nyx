@@ -2,30 +2,35 @@
 [![Build Status](https://travis-ci.org/racaljk/nyx.svg?branch=master)](https://travis-ci.org/racaljk/nyx) | 
 [![Build status](https://ci.appveyor.com/api/projects/status/ptqln5210xp6gupc?svg=true)](https://ci.appveyor.com/project/racaljk/nyx)
 
-A dynamic typed scripting language :0
+又一个动态类型的脚本语言：——）
 
-# language reference
-## Basic 
-**Comment** starts with `#` tile end of line, that is, **nyx** only supports line comment.
 
-## Data type
-+ `int`
-+ `double` 
-+ `string` 
-+ `bool` 
-+ `null`
+# 语言手册
+## 基础
+**注释** 使用`#`可以注释一行代码。**nyx**不支持多行注释，对于多行需要重复`#`
 
-## Built-in functions
+## 数据类型
++ **int** 整数类型，如`3`,`100000`,`1024`
++ **double** 小数类型，如`3.1415926`,`2.232`，`4.4` 
++ **string** 字符串类型，如`"string"`,`"test"`,`""`
++ **bool** 布尔类型，值域只有字面值`true`和`false`
++ **null** 空值类型，用于指示该变量不具有值，值域只有字面值`null`
+
+## 操作符
+`&&`表示逻辑与运算，`||`表示逻辑或运算。由于宿主语言实现是C++，这些逻辑运算也原生的具有**短路求值**特性。
 ```nyx
-# take various arguments and print their values to stdout
+print(true&&false)
+print(false||true)
+```
+
+## 内置函数
+```nyx
+# 接受任意数目的参数，向stdout输出
 func print(a,b,c...)
 
-# return string representations of type of given argument value
+# 接受一个参数，返回一个字符串用以表示实参类型
 func typeof(a)
 ```
 
-# structure
-+ [Ast](nyx/Ast.h) as it name described, it contains AST definitions of **nyx**
-+ [Nyx](nyx/Nyx.h) definitions of **nyx** runtime structures
-+ [Parser](nyx/Parser.h) syntax parser and lexer
-+ [Interpreter](nyx/Interpreter.h) interpret statements and eval expressions
+# 开源协议
+**nyx**所有代码受[MIT LICENSE](LICENSE)保护。
