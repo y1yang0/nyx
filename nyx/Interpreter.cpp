@@ -4,8 +4,20 @@
 #include "Interpreter.h"
 #include "Nyx.h"
 
+NyxInterpreter::NyxInterpreter(const std::string& fileName){
+    context = new nyx::GlobalContext;
+    context->builtin["print"] = &nyx_builtin_print;
+    context->builtin["typeof"] = &nyx_builtin_typeof;
+    p = new Parser(fileName, context);
+}
+
+NyxInterpreter::~NyxInterpreter() {
+    delete context;
+    delete p;
+}
+
 void NyxInterpreter::execute() {
-    nyx::GlobalContext* ctx = p.parse();
+    nyx::GlobalContext* ctx = p->parse();
 
     for (int i = 0; i < ctx->stmts.size(); i++) {
         ctx->stmts[i]->interpret(ctx);
@@ -17,6 +29,7 @@ void IfStmt::interpret(nyx::GlobalContext* ctx) {}
 void WhileStmt::interpret(nyx::GlobalContext* ctx) {}
 
 void ExpressionStmt::interpret(nyx::GlobalContext* ctx) {
+    std::cout << this->expr->astString() << "\n";
     this->expr->eval(ctx, nullptr);
 }
 
@@ -26,6 +39,7 @@ nyx::Value BoolExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
     val.data = this->literal;
     return val;
 }
+
 nyx::Value NullExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
     return nyx::Value(nyx::NyxNull);
 }

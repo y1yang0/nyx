@@ -5,10 +5,23 @@
 
 class NyxInterpreter {
 public:
-    explicit NyxInterpreter(const std::string& fileName) : p(fileName) {}
+    explicit NyxInterpreter(const std::string& fileName);
+    ~NyxInterpreter();
 
+public:
     void execute();
 
 private:
-    Parser p;
+    void parseCommandOption(int argc, char* argv) {}
+
+private:
+    nyx::GlobalContext* context;
+
+    Parser* p;
+
+    bool printHelp = false;
+
+    bool printLex = false;
+
+    bool printAst = false;
 };

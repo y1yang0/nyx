@@ -1,54 +1,49 @@
-#include <utility>
-
 #pragma once
-#include <memory>
 #include "Nyx.h"
 
 enum Token {
-    INVALID,        // <invalid>
-    TK_COMMA,       // ,
-    TK_LOGAND,      // &&
-    TK_LOGOR,       // ||
-    TK_LOGNOT,      // !
-    TK_EQ,          // ==
-    TK_ASSIGN,      // =
-    TK_NE,          // !=
-    TK_GT,          // >
-    TK_GE,          // >=
-    TK_LT,          // <
-    TK_LE,          // <=
-    TK_PLUS,        // +
-    TK_MINUS,       // -
-    TK_TIMES,       // *
-    TK_DIV,         // /
-    TK_MOD,         // %
-    TK_LPAREN,      // (
-    TK_RPAREN,      // )
-    TK_LBRACE,      // {
-    TK_RBRACE,      // }
-    TK_LBRACKET,    // [
-    TK_RBRACKET,    // ]
-    TK_IDENT,       // <identifier>
-    TK_EOF,         // <eof>
-    KW_IF,          
-    KW_TRUE,
-    KW_FALSE,
-    KW_WHILE,
-    KW_FOR,
-    KW_NULL,
-    KW_FUNC,
-    LIT_INT,
-    LIT_STR,
-    LIT_DOUBLE,
+    INVALID,      // <invalid>
+    TK_COMMA,     // ,
+    TK_LOGAND,    // &&
+    TK_LOGOR,     // ||
+    TK_LOGNOT,    // !
+    TK_EQ,        // ==
+    TK_ASSIGN,    // =
+    TK_NE,        // !=
+    TK_GT,        // >
+    TK_GE,        // >=
+    TK_LT,        // <
+    TK_LE,        // <=
+    TK_PLUS,      // +
+    TK_MINUS,     // -
+    TK_TIMES,     // *
+    TK_DIV,       // /
+    TK_MOD,       // %
+    TK_LPAREN,    // (
+    TK_RPAREN,    // )
+    TK_LBRACE,    // {
+    TK_RBRACE,    // }
+    TK_LBRACKET,  // [
+    TK_RBRACKET,  // ]
+    TK_IDENT,     // <identifier>
+    TK_EOF,       // <eof>
+    KW_IF,        // if
+    KW_TRUE,      // true
+    KW_FALSE,     // false
+    KW_WHILE,     // while
+    KW_FOR,       // for
+    KW_NULL,      // null
+    KW_FUNC,      // func
+    LIT_INT,      // <integer>
+    LIT_STR,      // <string>
+    LIT_DOUBLE,   // <decimal>
 };
-
 
 using nyx::GlobalContext;
 using nyx::LocalContext;
 using nyx::Value;
 struct Expression;
 struct Statement;
-
 
 // Expression
 struct Expression {
@@ -57,40 +52,56 @@ struct Expression {
     virtual nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
         return nyx::Value(nyx::NyxNull);
     }
+    virtual std::string astString();
 };
 
 struct BoolExpr : public Expression {
     explicit BoolExpr(bool literal) : literal(literal) {}
     bool literal;
+
     nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+
+    std::string astString() override;
 };
 struct NullExpr : public Expression {
     explicit NullExpr() = default;
 
     nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+
+    std::string astString() override;
 };
 struct IntExpr : public Expression {
     explicit IntExpr(int literal) : literal(literal) {}
     int literal;
+
     nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+
+    std::string astString() override;
 };
 
 struct DoubleExpr : public Expression {
     explicit DoubleExpr(double literal) : literal(literal) {}
     double literal;
     nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+
+    std::string astString() override;
 };
 
 struct StringExpr : public Expression {
     explicit StringExpr(std::string literal) : literal(std::move(literal)) {}
     std::string literal;
     nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+
+    std::string astString();
 };
 
 struct IdentExpr : public Expression {
-    explicit IdentExpr(std::string identName) : identName(std::move(identName)) {}
+    explicit IdentExpr(std::string identName)
+        : identName(std::move(identName)) {}
     std::string identName;
     nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+
+    std::string astString() override;
 };
 
 struct BinaryExpr : public Expression {
@@ -98,12 +109,15 @@ struct BinaryExpr : public Expression {
     Token opt{};
     Expression* rhs{};
     nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+
+    std::string astString() override;
 };
 
 struct FunCallExpr : public Expression {
     std::string funcName;
     std::vector<Expression*> args;
     nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+    std::string astString() override;
 };
 
 struct AssignExpr : public Expression {
@@ -112,6 +126,8 @@ struct AssignExpr : public Expression {
     std::string identName;
     Expression* expr{};
     nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+
+    std::string astString() override;
 };
 
 // Statement

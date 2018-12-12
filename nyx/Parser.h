@@ -12,7 +12,7 @@
 
 class Parser {
 public:
-    explicit Parser(const std::string& fileName);
+    explicit Parser(const std::string& fileName, nyx::GlobalContext* context);
     ~Parser();
 
 public:

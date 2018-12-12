@@ -1,5 +1,3 @@
-#include <utility>
-
 #pragma once
 
 #include <stdio.h>
@@ -48,7 +46,7 @@ struct LocalContext {
     std::vector<Variable*> vars;
 };
 struct GlobalContext : public LocalContext {
-    explicit GlobalContext();
+    explicit GlobalContext() {}
 
     std::vector<Function*> funcs;
     std::vector<Statement*> stmts;

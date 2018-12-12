@@ -1,7 +1,8 @@
 #include "Parser.h"
-
+#include "Nyx.h"
+ 
 void Parser::printLex(const std::string& fileName) {
-    Parser p(fileName);
+    Parser p(fileName, new nyx::GlobalContext);
     std::tuple<Token, std::string> tk;
     do {
         tk = p.next();
@@ -9,8 +10,8 @@ void Parser::printLex(const std::string& fileName) {
     } while (std::get<0>(tk) != TK_EOF);
 }
 
-Parser::Parser(const std::string& fileName)
-    : context(new GlobalContext),
+Parser::Parser(const std::string& fileName, nyx::GlobalContext* context)
+    : context(context),
       keywords({{"if", KW_IF},
                 {"while", KW_WHILE},
                 {"null", KW_NULL},
@@ -26,7 +27,7 @@ Parser::Parser(const std::string& fileName)
 }
 
 Parser::~Parser() {
-    delete context;
+    // Parser has no responsibilities to release global context
     fs.close();
 }
 
