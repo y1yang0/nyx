@@ -1,18 +1,18 @@
 #include "Parser.h"
 
-void Parser::printLex(const string& fileName) {
+void Parser::printLex(const std::string& fileName) {
     Parser p(fileName);
     std::tuple<Token, std::string> tk;
     do {
         tk = p.next();
         std::cout << "[" << std::get<0>(tk) << "," << std::get<1>(tk) << "]\n";
-    } while (get<0>(tk) != TK_EOF);
+    } while (std::get<0>(tk) != TK_EOF);
 }
 
-Parser::Parser(const string& fileName) : context(new GlobalContext) {
+Parser::Parser(const std::string& fileName) : context(new GlobalContext) {
     fs.open(fileName);
     if (!fs.is_open()) {
-        cerr << "[error] can not open source file\n";
+        std::cerr << "[error] can not open source file\n";
         exit(EXIT_FAILURE);
     }
 }
@@ -89,14 +89,14 @@ Expression* Parser::parseExpression(short oldPrecedence) {
     auto p = parseUnaryExpr();
 
     while (getCurrentToken() == TK_LOGOR || getCurrentToken() == TK_LOGAND ||
-        getCurrentToken() == TK_EQ || getCurrentToken() == TK_NE ||
-        getCurrentToken() == TK_GT || getCurrentToken() == TK_GE ||
-        getCurrentToken() == TK_LT || getCurrentToken() == TK_LE ||
-        getCurrentToken() == TK_PLUS || getCurrentToken() == TK_MINUS ||
-        getCurrentToken() == TK_MOD || getCurrentToken() == TK_TIMES ||
-        getCurrentToken() == TK_DIV) {
+           getCurrentToken() == TK_EQ || getCurrentToken() == TK_NE ||
+           getCurrentToken() == TK_GT || getCurrentToken() == TK_GE ||
+           getCurrentToken() == TK_LT || getCurrentToken() == TK_LE ||
+           getCurrentToken() == TK_PLUS || getCurrentToken() == TK_MINUS ||
+           getCurrentToken() == TK_MOD || getCurrentToken() == TK_TIMES ||
+           getCurrentToken() == TK_DIV) {
         short currentPrecedence = Parser::precedence(getCurrentToken());
-        if (oldPrecedence> currentPrecedence) {
+        if (oldPrecedence > currentPrecedence) {
             return p;
         }
         auto tmp = new BinaryExpr;
@@ -104,13 +104,13 @@ Expression* Parser::parseExpression(short oldPrecedence) {
         tmp->opt = getCurrentToken();
         currentToken = next();
         tmp->rhs = parseExpression(currentPrecedence + 1);
-        p = tmp;  
+        p = tmp;
     }
     return p;
 }
 
 ExpressionStmt* Parser::parseExpressionStmt() {
-    ExpressionStmt *node = nullptr;
+    ExpressionStmt* node = nullptr;
     if (auto p = parseExpression(); p != nullptr) {
         node = new ExpressionStmt(p);
     }
@@ -155,8 +155,8 @@ Statement* Parser::parseStatement() {
     return node;
 }
 
-vector<Statement*> Parser::parseStatementList() {
-    vector<Statement*> node;
+std::vector<Statement*> Parser::parseStatementList() {
+    std::vector<Statement*> node;
     Statement* p;
     while ((p = parseStatement()) != nullptr) {
         node.push_back(p);
@@ -173,12 +173,12 @@ Block* Parser::parseBlock() {
     return node;
 }
 
-vector<string> Parser::parseParameterList() {
-    vector<string> node;
+std::vector<std::string> Parser::parseParameterList() {
+    std::vector<std::string> node;
     currentToken = next();
     if (getCurrentToken() == TK_RPAREN) {
         currentToken = next();
-        return move(node);
+        return std::move(node);
     }
 
     while (getCurrentToken() != TK_RPAREN) {
@@ -219,11 +219,11 @@ GlobalContext* Parser::parse() {
     return this->context;
 }
 
-tuple<Token, string> Parser::next() {
+std::tuple<Token, std::string> Parser::next() {
     char c = fs.get();
 
     if (c == EOF) {
-        return make_tuple(TK_EOF, ""s);
+        return std::make_tuple(TK_EOF, "");
     }
     if (c == ' ' || c == '\n' || c == '\r') {
         while (c == ' ' || c == '\n' || c == '\r') {
@@ -238,12 +238,12 @@ tuple<Token, string> Parser::next() {
         fs.get();
         c = fs.get();
         if (c == EOF) {
-            return make_tuple(TK_EOF, ""s);
+            return std::make_tuple(TK_EOF, "");
         }
     }
 
     if (c >= '0' && c <= '9') {
-        string lexeme{c};
+        std::string lexeme{c};
         bool isDouble = false;
         char cn = fs.peek();
         while ((cn >= '0' && cn <= '9') || (!isDouble && cn == '.')) {
@@ -258,7 +258,7 @@ tuple<Token, string> Parser::next() {
                          : make_tuple(LIT_DOUBLE, lexeme);
     }
     if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
-        string lexeme{c};
+        std::string lexeme{c};
         char cn = fs.peek();
         while ((cn >= 'a' && cn <= 'z') || (cn >= 'A' && cn <= 'Z') ||
                (cn >= '0' && cn <= '9')) {
@@ -267,11 +267,12 @@ tuple<Token, string> Parser::next() {
             cn = fs.peek();
         }
         auto result = keywords.find(lexeme);
-        return result != keywords.end() ? make_tuple(result->second, lexeme)
-                                        : make_tuple(TK_IDENT, lexeme);
+        return result != keywords.end()
+                   ? std::make_tuple(result->second, lexeme)
+                   : std::make_tuple(TK_IDENT, lexeme);
     }
     if (c == '"') {
-        string lexeme;
+        std::string lexeme;
         char cn = fs.peek();
         while (cn != '"') {
             c = fs.get();
@@ -279,97 +280,105 @@ tuple<Token, string> Parser::next() {
             cn = fs.peek();
         }
         fs.get();
-        return make_tuple(LIT_STR, lexeme);
+        return std::make_tuple(LIT_STR, lexeme);
     }
     if (c == '[') {
-        return make_tuple(TK_LBRACKET, "[");
+        return std::make_tuple(TK_LBRACKET, "[");
     }
     if (c == ']') {
-        return make_tuple(TK_RBRACKET, "]");
+        return std::make_tuple(TK_RBRACKET, "]");
     }
     if (c == '{') {
-        return make_tuple(TK_LBRACE, "{");
+        return std::make_tuple(TK_LBRACE, "{");
     }
     if (c == '}') {
-        return make_tuple(TK_RBRACE, "}");
+        return std::make_tuple(TK_RBRACE, "}");
     }
     if (c == '(') {
-        return make_tuple(TK_LPAREN, "(");
+        return std::make_tuple(TK_LPAREN, "(");
     }
     if (c == ')') {
-        return make_tuple(TK_RPAREN, ")");
+        return std::make_tuple(TK_RPAREN, ")");
     }
     if (c == ',') {
-        return make_tuple(TK_COMMA, ",");
+        return std::make_tuple(TK_COMMA, ",");
     }
     if (c == '+') {
-        return make_tuple(TK_PLUS, "+");
+        return std::make_tuple(TK_PLUS, "+");
     }
     if (c == '-') {
-        return make_tuple(TK_MINUS, "-");
+        return std::make_tuple(TK_MINUS, "-");
     }
     if (c == '*') {
-        return make_tuple(TK_TIMES, "*");
+        return std::make_tuple(TK_TIMES, "*");
     }
     if (c == '/') {
-        return make_tuple(TK_DIV, "/");
+        return std::make_tuple(TK_DIV, "/");
     }
     if (c == '%') {
-        return make_tuple(TK_MOD, "%");
+        return std::make_tuple(TK_MOD, "%");
     }
     if (c == '=') {
         if (fs.peek() == '=') {
             c = fs.get();
-            return make_tuple(TK_EQ, "==");
+            return std::make_tuple(TK_EQ, "==");
         }
-        return make_tuple(TK_ASSIGN, "=");
+        return std::make_tuple(TK_ASSIGN, "=");
     }
     if (c == '!') {
         if (fs.peek() == '=') {
             c = fs.get();
-            return make_tuple(TK_NE, "!=");
+            return std::make_tuple(TK_NE, "!=");
         }
-        return make_tuple(TK_LOGNOT, "!");
+        return std::make_tuple(TK_LOGNOT, "!");
     }
     if (c == '|') {
         c = fs.get();
-        return make_tuple(TK_LOGOR, "||");
+        return std::make_tuple(TK_LOGOR, "||");
     }
     if (c == '&') {
         c = fs.get();
-        return make_tuple(TK_LOGAND, "&&");
+        return std::make_tuple(TK_LOGAND, "&&");
     }
     if (c == '>') {
         if (fs.peek() == '=') {
             c = fs.get();
-            return make_tuple(TK_GE, ">=");
+            return std::make_tuple(TK_GE, ">=");
         }
-        return make_tuple(TK_GT, ">");
+        return std::make_tuple(TK_GT, ">");
     }
     if (c == '<') {
         if (fs.peek() == '=') {
             c = fs.get();
-            return make_tuple(TK_LE, "<=");
+            return std::make_tuple(TK_LE, "<=");
         }
-        return make_tuple(TK_LT, "<");
+        return std::make_tuple(TK_LT, "<");
     }
-    cerr << "[error] unknow token fed\n";
-    return make_tuple(INVALID, "invalid"s);
+    std::cerr << "[error] unknow token fed\n";
+    return std::make_tuple(INVALID, "invalid");
 }
 
 inline short Parser::precedence(Token op) {
     switch (op) {
-    case TK_LOGOR:
-        return 1;
-    case TK_LOGAND:
-        return 2;
-    case TK_EQ:case TK_NE:case TK_GT:case TK_GE:case TK_LT:case TK_LE:
-        return 3;
-    case TK_PLUS:case TK_MINUS:
-        return 4;
-    case TK_TIMES:case TK_MOD:case TK_DIV:
-        return 5;
-    default:
-        return 0;
+        case TK_LOGOR:
+            return 1;
+        case TK_LOGAND:
+            return 2;
+        case TK_EQ:
+        case TK_NE:
+        case TK_GT:
+        case TK_GE:
+        case TK_LT:
+        case TK_LE:
+            return 3;
+        case TK_PLUS:
+        case TK_MINUS:
+            return 4;
+        case TK_TIMES:
+        case TK_MOD:
+        case TK_DIV:
+            return 5;
+        default:
+            return 0;
     }
 }

@@ -12,38 +12,42 @@
 
 class Parser {
 public:
-    explicit Parser(const string& fileName);
+    explicit Parser(const std::string& fileName);
     nyx::GlobalContext* parse();
-    static void printLex(const string& fileName);
+    static void printLex(const std::string& fileName);
     inline short precedence(Token op);
-    
+
 private:
     Expression* parsePrimaryExpr();
     Expression* parseUnaryExpr();
-    Expression* parseExpression(short oldPrecedence = 1/*default to lowest precedence(0) + 1*/);
+    Expression* parseExpression(
+        short oldPrecedence = 1 /*default to lowest precedence(0) + 1*/);
     ExpressionStmt* parseExpressionStmt();
     IfStmt* parseIfStmt();
     WhileStmt* parseWhileStmt();
     Statement* parseStatement();
     std::vector<Statement*> parseStatementList();
     Block* parseBlock();
-    std::vector<string> parseParameterList();
+    std::vector<std::string> parseParameterList();
     nyx::Function* parseFuncDef();
 
 private:
-    std::tuple<Token, string> next();
+    std::tuple<Token, std::string> next();
 
-    
-    inline Token getCurrentToken() const { return get<Token>(currentToken); }
-    inline string getCurrentLexeme() const { return get<std::string>(currentToken); }
+    inline Token getCurrentToken() const {
+        return std::get<Token>(currentToken);
+    }
+    inline std::string getCurrentLexeme() const {
+        return std::get<std::string>(currentToken);
+    }
 
 private:
-    const std::map<string, Token> keywords{{"if", KW_IF},       {"while", KW_WHILE},
-                                      {"null", KW_NULL},   {"true", KW_TRUE},
-                                      {"false", KW_FALSE}, {"for", KW_FALSE},
-                                      {"func", KW_FUNC}};
+    const std::map<std::string, Token> keywords{
+        {"if", KW_IF},     {"while", KW_WHILE}, {"null", KW_NULL},
+        {"true", KW_TRUE}, {"false", KW_FALSE}, {"for", KW_FALSE},
+        {"func", KW_FUNC}};
 
-    std::tuple<Token, string> currentToken;
+    std::tuple<Token, std::string> currentToken;
 
     nyx::GlobalContext* context;
 

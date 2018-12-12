@@ -8,50 +8,52 @@
 #include <unordered_map>
 #include <vector>
 
-using namespace std;
 struct Block;
 struct Statement;
 
 namespace nyx {
-    enum ValueType { NyxInt, NyxDouble, NyxString, NyxBool, NyxNull };
+enum ValueType { NyxInt, NyxDouble, NyxString, NyxBool, NyxNull };
 
-    struct Function {
-        explicit Function() = default;
+struct Function {
+    explicit Function() = default;
 
-        string name;
-        vector<string> params;
-        Block* block{};
-    };
+    std::string name;
+    std::vector<std::string> params;
+    Block* block{};
+};
 
-    struct Value {
-        explicit Value() = default;
+struct Value {
+    explicit Value() = default;
 
-        explicit Value(nyx::ValueType type) : type(type) {}
-        explicit Value(nyx::ValueType type, any data) : type(type), data(std::move(data)) {}
+    explicit Value(nyx::ValueType type) : type(type) {}
+    explicit Value(nyx::ValueType type, std::any data)
+        : type(type), data(std::move(data)) {}
 
-        inline bool isNyxNull()const { return type == nyx::NyxNull; }
+    inline bool isNyxNull() const { return type == nyx::NyxNull; }
 
-        nyx::ValueType type{};
-        any data;
-    };
+    nyx::ValueType type{};
+    std::any data;
+};
 
-    struct Variable {
-        explicit Variable() = default;
+struct Variable {
+    explicit Variable() = default;
 
-        string name;
-        Value value;
-    };
+    std::string name;
+    Value value;
+};
 
-    struct LocalContext {
-        explicit LocalContext() = default;
+struct LocalContext {
+    explicit LocalContext() = default;
 
-        vector<Variable*> vars;
-    };
-    struct GlobalContext : public LocalContext {
-        explicit GlobalContext();
+    std::vector<Variable*> vars;
+};
+struct GlobalContext : public LocalContext {
+    explicit GlobalContext();
 
-        vector<Function*> funcs;
-        vector<Statement*> stmts;
-        unordered_map<string, Value (*)(GlobalContext*, vector<Value>)> builtin;
-    };
-}
+    std::vector<Function*> funcs;
+    std::vector<Statement*> stmts;
+    std::unordered_map<std::string,
+                       Value (*)(GlobalContext*, std::vector<Value>)>
+        builtin;
+};
+}  // namespace nyx
