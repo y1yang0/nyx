@@ -23,13 +23,13 @@ Expression* Parser::parsePrimaryExpr() {
         currentToken = next();
         if (getCurrentToken() == TK_ASSIGN) {
             currentToken = next();
-            return new AssignExpr(ident, parseExpression(1));
+            return new AssignExpr(ident, parseExpression());
         } else if (getCurrentToken() == TK_LPAREN) {
             currentToken = next();
             auto val = new FunCallExpr;
             val->funcName = ident;
             while (getCurrentToken() != TK_RPAREN) {
-                val->args.push_back(parseExpression(1));
+                val->args.push_back(parseExpression());
                 if (getCurrentToken() == TK_COMMA) {
                     currentToken = next();
                 }
@@ -60,7 +60,7 @@ Expression* Parser::parsePrimaryExpr() {
         return new NullExpr();
     } else if (getCurrentToken() == TK_LPAREN) {
         currentToken = next();
-        auto val = parseExpression(1);
+        auto val = parseExpression();
         assert(getCurrentToken() == TK_RPAREN);
         currentToken = next();
         return val;
@@ -110,8 +110,8 @@ Expression* Parser::parseExpression(short oldPrecedence) {
 }
 
 ExpressionStmt* Parser::parseExpressionStmt() {
-    ExpressionStmt* node;
-    if (auto p = parseExpression(1); p != nullptr) {
+    ExpressionStmt *node = nullptr;
+    if (auto p = parseExpression(); p != nullptr) {
         node = new ExpressionStmt(p);
     }
     return node;
@@ -120,7 +120,7 @@ ExpressionStmt* Parser::parseExpressionStmt() {
 IfStmt* Parser::parseIfStmt() {
     IfStmt* node{new IfStmt};
     currentToken = next();
-    node->cond = parseExpression(1);
+    node->cond = parseExpression();
     assert(getCurrentToken() == TK_RPAREN);
     currentToken = next();
     node->block = parseBlock();
@@ -130,7 +130,7 @@ IfStmt* Parser::parseIfStmt() {
 WhileStmt* Parser::parseWhileStmt() {
     WhileStmt* node{new WhileStmt};
     currentToken = next();
-    node->cond = parseExpression(1);
+    node->cond = parseExpression();
     assert(getCurrentToken() == TK_RPAREN);
     currentToken = next();
     node->block = parseBlock();
@@ -194,10 +194,10 @@ vector<string> Parser::parseParameterList() {
     return move(node);
 }
 
-Function* Parser::parseFuncDef() {
+nyx::Function* Parser::parseFuncDef() {
     assert(getCurrentToken() == KW_FUNC);
     currentToken = next();
-    Function* node{new Function};
+    auto* node = new nyx::Function;
     node->name = getCurrentLexeme();
     currentToken = next();
     assert(getCurrentToken() == TK_LPAREN);
@@ -246,7 +246,7 @@ tuple<Token, string> Parser::next() {
         string lexeme{c};
         bool isDouble = false;
         char cn = fs.peek();
-        while (cn >= '0' && cn <= '9' || (!isDouble && cn == '.')) {
+        while ((cn >= '0' && cn <= '9') || (!isDouble && cn == '.')) {
             if (c == '.') {
                 isDouble = true;
             }

@@ -3,4 +3,4 @@
 #include <vector>
 #include "Nyx.h"
 
-Value print(GlobalContext* ctx, std::vector<Value> args);
+nyx::Value print(nyx::GlobalContext* ctx, std::vector<nyx::Value> args);

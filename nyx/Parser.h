@@ -13,39 +13,39 @@
 class Parser {
 public:
     explicit Parser(const string& fileName);
-    GlobalContext* parse();
+    nyx::GlobalContext* parse();
     static void printLex(const string& fileName);
     inline short precedence(Token op);
     
 private:
     Expression* parsePrimaryExpr();
     Expression* parseUnaryExpr();
-    Expression* parseExpression(short oldPrecedence);
+    Expression* parseExpression(short oldPrecedence = 1/*default to lowest precedence(0) + 1*/);
     ExpressionStmt* parseExpressionStmt();
     IfStmt* parseIfStmt();
     WhileStmt* parseWhileStmt();
     Statement* parseStatement();
-    vector<Statement*> parseStatementList();
+    std::vector<Statement*> parseStatementList();
     Block* parseBlock();
-    vector<string> parseParameterList();
-    Function* parseFuncDef();
+    std::vector<string> parseParameterList();
+    nyx::Function* parseFuncDef();
 
 private:
-    tuple<Token, string> next();
+    std::tuple<Token, string> next();
 
     
-    inline Token getCurrentToken() const { return get<0>(currentToken); }
-    inline string getCurrentLexeme() const { return get<1>(currentToken); }
+    inline Token getCurrentToken() const { return get<Token>(currentToken); }
+    inline string getCurrentLexeme() const { return get<std::string>(currentToken); }
 
 private:
-    const map<string, Token> keywords{{"if", KW_IF},       {"while", KW_WHILE},
+    const std::map<string, Token> keywords{{"if", KW_IF},       {"while", KW_WHILE},
                                       {"null", KW_NULL},   {"true", KW_TRUE},
                                       {"false", KW_FALSE}, {"for", KW_FALSE},
                                       {"func", KW_FUNC}};
 
-    tuple<Token, string> currentToken;
+    std::tuple<Token, string> currentToken;
 
-    GlobalContext* context;
+    nyx::GlobalContext* context;
 
-    fstream fs;
+    std::fstream fs;
 };

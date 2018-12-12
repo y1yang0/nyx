@@ -3,11 +3,9 @@
 #include "Nyx.h"
 #include "Parser.h"
 
-using namespace std;
-
 class NyxInterpreter {
 public:
-    explicit NyxInterpreter(const string& fileName) : p(fileName) {}
+    explicit NyxInterpreter(const std::string& fileName) : p(fileName) {}
 
     void execute();
 

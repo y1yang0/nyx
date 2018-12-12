@@ -1,4 +1,4 @@
 #include "Builtin.h"
 #include "Nyx.h"
 
-GlobalContext::GlobalContext() { builtin["print"] = &print; }
+nyx::GlobalContext::GlobalContext() { builtin["print"] = &print; }
