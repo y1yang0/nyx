@@ -23,13 +23,13 @@ Expression* Parser::parsePrimaryExpr() {
         currentToken = next();
         if (getCurrentToken() == TK_ASSIGN) {
             currentToken = next();
-            return new AssignExpr(ident, parseExpression());
+            return new AssignExpr(ident, parseExpression(1));
         } else if (getCurrentToken() == TK_LPAREN) {
             currentToken = next();
             auto val = new FunCallExpr;
             val->funcName = ident;
             while (getCurrentToken() != TK_RPAREN) {
-                val->args.push_back(parseExpression());
+                val->args.push_back(parseExpression(1));
                 if (getCurrentToken() == TK_COMMA) {
                     currentToken = next();
                 }
@@ -60,7 +60,7 @@ Expression* Parser::parsePrimaryExpr() {
         return new NullExpr();
     } else if (getCurrentToken() == TK_LPAREN) {
         currentToken = next();
-        auto val = parseExpression();
+        auto val = parseExpression(1);
         assert(getCurrentToken() == TK_RPAREN);
         currentToken = next();
         return val;
@@ -85,7 +85,7 @@ Expression* Parser::parseUnaryExpr() {
     return nullptr;
 }
 
-Expression* Parser::parseExpression() {
+Expression* Parser::parseExpression(short oldPrecedence) {
     auto p = parseUnaryExpr();
 
     while (getCurrentToken() == TK_LOGOR || getCurrentToken() == TK_LOGAND ||
@@ -95,11 +95,15 @@ Expression* Parser::parseExpression() {
         getCurrentToken() == TK_PLUS || getCurrentToken() == TK_MINUS ||
         getCurrentToken() == TK_MOD || getCurrentToken() == TK_TIMES ||
         getCurrentToken() == TK_DIV) {
+        short currentPrecedence = Parser::precedence(getCurrentToken());
+        if (oldPrecedence> currentPrecedence) {
+            return p;
+        }
         auto tmp = new BinaryExpr;
         tmp->lhs = p;
         tmp->opt = getCurrentToken();
         currentToken = next();
-        tmp->rhs = parseExpression();
+        tmp->rhs = parseExpression(currentPrecedence + 1);
         p = tmp;  
     }
     return p;
@@ -107,7 +111,7 @@ Expression* Parser::parseExpression() {
 
 ExpressionStmt* Parser::parseExpressionStmt() {
     ExpressionStmt* node;
-    if (auto p = parseExpression(); p != nullptr) {
+    if (auto p = parseExpression(1); p != nullptr) {
         node = new ExpressionStmt(p);
     }
     return node;
@@ -116,7 +120,7 @@ ExpressionStmt* Parser::parseExpressionStmt() {
 IfStmt* Parser::parseIfStmt() {
     IfStmt* node{new IfStmt};
     currentToken = next();
-    node->cond = parseExpression();
+    node->cond = parseExpression(1);
     assert(getCurrentToken() == TK_RPAREN);
     currentToken = next();
     node->block = parseBlock();
@@ -126,7 +130,7 @@ IfStmt* Parser::parseIfStmt() {
 WhileStmt* Parser::parseWhileStmt() {
     WhileStmt* node{new WhileStmt};
     currentToken = next();
-    node->cond = parseExpression();
+    node->cond = parseExpression(1);
     assert(getCurrentToken() == TK_RPAREN);
     currentToken = next();
     node->block = parseBlock();

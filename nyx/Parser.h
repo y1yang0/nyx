@@ -15,11 +15,12 @@ public:
     explicit Parser(const string& fileName);
     GlobalContext* parse();
     static void printLex(const string& fileName);
-
+    inline short precedence(Token op);
+    
 private:
     Expression* parsePrimaryExpr();
     Expression* parseUnaryExpr();
-    Expression* parseExpression();
+    Expression* parseExpression(short oldPrecedence);
     ExpressionStmt* parseExpressionStmt();
     IfStmt* parseIfStmt();
     WhileStmt* parseWhileStmt();
@@ -32,7 +33,7 @@ private:
 private:
     tuple<Token, string> next();
 
-    inline short precedence(Token op);
+    
     inline Token getCurrentToken() const { return get<0>(currentToken); }
     inline string getCurrentLexeme() const { return get<1>(currentToken); }
 
