@@ -24,7 +24,7 @@ std::string BinaryExpr::astString() {
     std::string str = "BinaryExpr(";
     if (opt != INVALID) {
         str += "operator=";
-        str += opt;
+        str += std::to_string(opt);
     }
     if (lhs) {
         str += ",lhs=";

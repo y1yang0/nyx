@@ -9,9 +9,7 @@ NyxInterpreter::NyxInterpreter(const std::string& fileName) {
     p = new Parser(fileName);
 }
 
-NyxInterpreter::~NyxInterpreter() {
-    delete p;
-}
+NyxInterpreter::~NyxInterpreter() { delete p; }
 
 void NyxInterpreter::execute() {
     nyx::GlobalContext* ctx = p->parse();
@@ -26,7 +24,7 @@ void IfStmt::interpret(nyx::GlobalContext* ctx) {}
 void WhileStmt::interpret(nyx::GlobalContext* ctx) {}
 
 void ExpressionStmt::interpret(nyx::GlobalContext* ctx) {
-    //std::cout << this->expr->astString() << "\n";
+    // std::cout << this->expr->astString() << "\n";
     this->expr->eval(ctx, nullptr);
 }
 
@@ -94,19 +92,28 @@ static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs) {
     nyx::Value result;
     switch (opt) {
         case TK_PLUS:
-            result = lhs + rhs;
+            result = (lhs + rhs);
             break;
         case TK_MINUS:
-            result = lhs - rhs;
+            result = (lhs - rhs);
             break;
         case TK_TIMES:
-            result = lhs * rhs;
+            result = (lhs * rhs);
             break;
         case TK_DIV:
-            result = lhs / rhs;
+            result = (lhs / rhs);
             break;
         case TK_MOD:
-            result = lhs % rhs;
+            result = (lhs % rhs);
+            break;
+        case TK_LOGAND:
+            result = (lhs && rhs);
+            break;
+        case TK_LOGOR:
+            result = (lhs || rhs);
+            break;
+        case TK_EQ:
+            result = (lhs == rhs);
             break;
     }
     return result;

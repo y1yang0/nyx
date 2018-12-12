@@ -83,7 +83,8 @@ Expression* Parser::parsePrimaryExpr() {
 }
 
 Expression* Parser::parseUnaryExpr() {
-    if (getCurrentToken() == TK_MINUS) {
+    if (getCurrentToken() == TK_MINUS || getCurrentToken() == TK_LOGNOT ||
+        getCurrentToken() == TK_BITAND) {
         auto val = new BinaryExpr;
         val->opt = getCurrentToken();
         currentToken = next();
@@ -102,7 +103,9 @@ Expression* Parser::parseUnaryExpr() {
 Expression* Parser::parseExpression(short oldPrecedence) {
     auto p = parseUnaryExpr();
 
-    while (getCurrentToken() == TK_LOGOR || getCurrentToken() == TK_LOGAND ||
+    while (getCurrentToken() == TK_BITOR || getCurrentToken() == TK_BITAND ||
+           getCurrentToken() == TK_BITNOT || getCurrentToken() == TK_LOGOR ||
+           getCurrentToken() == TK_LOGAND || getCurrentToken() == TK_LOGNOT ||
            getCurrentToken() == TK_EQ || getCurrentToken() == TK_NE ||
            getCurrentToken() == TK_GT || getCurrentToken() == TK_GE ||
            getCurrentToken() == TK_LT || getCurrentToken() == TK_LE ||
@@ -256,9 +259,12 @@ std::tuple<Token, std::string> Parser::next() {
         while (c != '\n' && c != EOF) {
             c = getNextChar();
         }
-        c = getNextChar();  // consume '\n'
-        lineCount++;
-        columnCount = 0;
+        // consume newlines
+        while (c == '\n') {
+            lineCount++;
+            columnCount = 0;
+            c = getNextChar();
+        }
         if (c == EOF) {
             return std::make_tuple(TK_EOF, "");
         }
@@ -404,10 +410,12 @@ inline short Parser::precedence(Token op) {
             return 3;
         case TK_PLUS:
         case TK_MINUS:
+        case TK_BITOR:
             return 4;
         case TK_TIMES:
         case TK_MOD:
         case TK_DIV:
+        case TK_BITAND:
             return 5;
         default:
             return 0;

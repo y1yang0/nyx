@@ -34,6 +34,16 @@ struct Value {
     Value operator/(Value rhs);
     Value operator%(Value rhs);
 
+    Value operator&&(Value rhs);
+    Value operator||(Value rhs);
+
+    Value operator==(Value rhs);
+    Value operator!=(Value rhs);
+    Value operator>(Value rhs);
+    Value operator>=(Value rhs);
+    Value operator<(Value rhs);
+    Value operator<=(Value rhs);
+
     nyx::ValueType type{};
     std::any data;
 };
