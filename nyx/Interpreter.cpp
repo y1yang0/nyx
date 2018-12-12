@@ -153,7 +153,7 @@ Value calcBinaryExpr(Value &lhs, Token opt , Value& rhs) {
         if (lhs.type == nyx::NyxInt && rhs.type == nyx::NyxInt) {
             result.type = nyx::NyxDouble;
             result.data =
-                any_cast<int>(lhs.data) / any_cast<int>(rhs.data);
+                (double)any_cast<int>(lhs.data) / any_cast<int>(rhs.data);
         } else if (lhs.type == nyx::NyxDouble &&
             rhs.type == nyx::NyxDouble) {
             result.type = nyx::NyxDouble;
