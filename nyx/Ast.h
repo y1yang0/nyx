@@ -1,5 +1,5 @@
 #pragma once
-#include "Nyx.h"
+#include "Nyx.hpp"
 
 enum Token {
     INVALID,  // <invalid>
@@ -59,7 +59,7 @@ struct Expression {
     virtual ~Expression() = default;
 
     virtual nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
-        return nyx::Value(nyx::NyxNull);
+        return nyx::Value(nyx::Null);
     }
     virtual std::string astString();
 };

@@ -1,4 +1,4 @@
-#include "Nyx.h"
+#include "Nyx.hpp"
 #include "Parser.h"
 
 void Parser::printLex(const std::string& fileName) {

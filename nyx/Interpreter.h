@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "Nyx.h"
+#include "Nyx.hpp"
 #include "Parser.h"
 
 class NyxInterpreter {

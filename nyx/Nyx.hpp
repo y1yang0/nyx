@@ -10,7 +10,7 @@ struct Block;
 struct Statement;
 
 namespace nyx {
-enum ValueType { NyxInt, NyxDouble, NyxString, NyxBool, NyxNull };
+enum ValueType { Int, Double, String, Bool, Null };
 
 struct Function {
     explicit Function() = default;
@@ -26,7 +26,8 @@ struct Value {
     explicit Value(nyx::ValueType type, std::any data)
         : type(type), data(std::move(data)) {}
 
-    inline bool isNyxNull() const { return type == nyx::NyxNull; }
+    template <int _NyxType>
+    inline bool isType();
 
     Value operator+(Value rhs);
     Value operator-(Value rhs);
@@ -72,4 +73,8 @@ struct GlobalContext : public LocalContext {
                        Value (*)(GlobalContext*, std::vector<Value>)>
         builtin;
 };
+template <int _NyxType>
+inline bool Value::isType() {
+    return this->type == _NyxType;
+}
 }  // namespace nyx

@@ -1,18 +1,18 @@
-#include "Nyx.h"
+#include "Nyx.hpp"
 #include "Utils.h"
 
 std::string valueToStdString(nyx::Value v) {
     switch (v.type) {
-        case nyx::NyxBool:
+        case nyx::Bool:
             return std::any_cast<bool>(v.data) ? "true" : "false";
-        case nyx::NyxDouble:
+        case nyx::Double:
             return std::to_string(std::any_cast<double>(v.data));
-        case nyx::NyxInt:
+        case nyx::Int:
             return std::to_string(std::any_cast<int>(v.data));
-        case nyx::NyxNull:
+        case nyx::Null:
             return "null";
-        case nyx::NyxString:
+        case nyx::String:
             return std::any_cast<std::string>(v.data);
     }
-    return "unknow";
+    return "unknown";
 }

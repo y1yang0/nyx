@@ -2,18 +2,18 @@
 #include <vector>
 #include "Ast.h"
 #include "Builtin.h"
-#include "Nyx.h"
+#include "Nyx.hpp"
 #include "Utils.h"
 
 nyx::Value nyx_builtin_print(nyx::GlobalContext* ctx, std::vector<Value> args) {
     for (auto arg : args) {
         std::cout << valueToStdString(arg) << "\n";
     }
-    return nyx::Value(nyx::NyxInt, (int)args.size());
+    return nyx::Value(nyx::Int, (int)args.size());
 }
 
 nyx::Value nyx_builtin_input(nyx::GlobalContext* ctx, std::vector<Value> args) {
-    nyx::Value result{nyx::NyxString};
+    nyx::Value result{nyx::String};
 
     std::string str;
     std::cin >> str;
@@ -28,23 +28,20 @@ nyx::Value nyx_builtin_typeof(nyx::GlobalContext* ctx,
                                  args.size());
     }
     switch (args[0].type) {
-        case nyx::NyxBool:
-            return nyx::Value(nyx::NyxString,
-                              std::make_any<std::string>("bool"));
-        case nyx::NyxDouble:
-            return nyx::Value(nyx::NyxString,
+        case nyx::Bool:
+            return nyx::Value(nyx::String, std::make_any<std::string>("bool"));
+        case nyx::Double:
+            return nyx::Value(nyx::String,
                               std::make_any<std::string>("double"));
-        case nyx::NyxInt:
-            return nyx::Value(nyx::NyxString,
-                              std::make_any<std::string>("int"));
-        case nyx::NyxString:
-            return nyx::Value(nyx::NyxString,
+        case nyx::Int:
+            return nyx::Value(nyx::String, std::make_any<std::string>("int"));
+        case nyx::String:
+            return nyx::Value(nyx::String,
                               std::make_any<std::string>("string"));
-        case nyx::NyxNull:
-            return nyx::Value(nyx::NyxString,
-                              std::make_any<std::string>("null"));
+        case nyx::Null:
+            return nyx::Value(nyx::String, std::make_any<std::string>("null"));
         default:
-            return nyx::Value(nyx::NyxString,
+            return nyx::Value(nyx::String,
                               std::make_any<std::string>("unknown"));
     }
 }

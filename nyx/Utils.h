@@ -1,6 +1,6 @@
 #pragma once
 #include <any>
 #include <string>
-#include "Nyx.h"
+#include "Nyx.hpp"
 
 std::string valueToStdString(nyx::Value v);

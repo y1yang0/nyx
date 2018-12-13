@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "Nyx.h"
+#include "Nyx.hpp"
 
 nyx::Value nyx_builtin_print(nyx::GlobalContext* ctx,
                              std::vector<nyx::Value> args);

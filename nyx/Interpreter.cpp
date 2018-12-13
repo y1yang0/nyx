@@ -2,7 +2,7 @@
 #include "Ast.h"
 #include "Builtin.h"
 #include "Interpreter.h"
-#include "Nyx.h"
+#include "Nyx.hpp"
 #include "Utils.h"
 
 NyxInterpreter::NyxInterpreter(const std::string& fileName)
@@ -27,55 +27,41 @@ void ExpressionStmt::interpret(nyx::GlobalContext* ctx) {
     this->expr->eval(ctx, nullptr);
 }
 
-nyx::Value BoolExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
-    nyx::Value val;
-    val.type = nyx::ValueType::NyxBool;
-    val.data = this->literal;
-    return val;
-}
-
 nyx::Value NullExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
-    return nyx::Value(nyx::NyxNull);
+    return nyx::Value(nyx::Null);
+}
+nyx::Value BoolExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
+    return nyx::Value(nyx::Bool, this->literal);
 }
 nyx::Value IntExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
-    nyx::Value val;
-    val.type = nyx::ValueType::NyxInt;
-    val.data = this->literal;
-    return val;
+    return nyx::Value(nyx::Int, this->literal);
 }
 nyx::Value DoubleExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
-    nyx::Value val;
-    val.type = nyx::ValueType::NyxDouble;
-    val.data = this->literal;
-    return val;
+    return nyx::Value(nyx::Double, this->literal);
 }
 nyx::Value StringExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
-    nyx::Value val;
-    val.type = nyx::ValueType::NyxString;
-    val.data = this->literal;
-    return val;
+    return nyx::Value(nyx::String, this->literal);
 }
 nyx::Value IdentExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
     nyx::Value result;
-    for (auto& v : gctx->vars) {
+    for (const auto& v : gctx->vars) {
         if (v->name == this->identName) {
             result.type = v->value.type;
             result.data = v->value.data;
             return result;
         }
     }
-    return nyx::Value(nyx::NyxNull);
+    return nyx::Value(nyx::Null);
 }
 
 static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt) {
     switch (opt) {
         case TK_MINUS:
             switch (lhs.type) {
-                case nyx::NyxInt:
-                    return nyx::Value(nyx::NyxInt,
-                                      -std::any_cast<int>(lhs.data));
-                case nyx::NyxDouble:
-                    return nyx::Value(nyx::NyxDouble,
+                case nyx::Int:
+                    return nyx::Value(nyx::Int, -std::any_cast<int>(lhs.data));
+                case nyx::Double:
+                    return nyx::Value(nyx::Double,
                                       -std::any_cast<double>(lhs.data));
                 default:
                     throw std::runtime_error(
@@ -83,26 +69,27 @@ static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt) {
             }
             break;
         case TK_LOGNOT:
-            if (lhs.type == nyx::NyxBool) {
-                return nyx::Value(nyx::NyxBool, !std::any_cast<bool>(lhs.data));
+            if (lhs.type == nyx::Bool) {
+                return nyx::Value(nyx::Bool, !std::any_cast<bool>(lhs.data));
             } else {
                 throw std::runtime_error("invalid ! operations on given value");
             }
             break;
         case TK_BITNOT:
-            if (lhs.type == nyx::NyxInt) {
-                return nyx::Value(nyx::NyxInt, ~std::any_cast<int>(lhs.data));
+            if (lhs.type == nyx::Int) {
+                return nyx::Value(nyx::Int, ~std::any_cast<int>(lhs.data));
             } else {
                 throw std::runtime_error("invalid ~ operations on given value");
             }
             break;
     }
 
+    // Maybe a FunCallExpr or IdentExpr
     return lhs;
 }
 
 static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs) {
-    nyx::Value result{nyx::NyxNull};
+    nyx::Value result{nyx::Null};
 
     switch (opt) {
         case TK_PLUS:
@@ -157,11 +144,11 @@ static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs) {
 
 nyx::Value BinaryExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
     nyx::Value lhs =
-        this->lhs ? this->lhs->eval(gctx, lctx) : nyx::Value(nyx::NyxNull);
+        this->lhs ? this->lhs->eval(gctx, lctx) : nyx::Value(nyx::Null);
     nyx::Value rhs =
-        this->rhs ? this->rhs->eval(gctx, lctx) : nyx::Value(nyx::NyxNull);
+        this->rhs ? this->rhs->eval(gctx, lctx) : nyx::Value(nyx::Null);
     Token opt = this->opt;
-    if (!lhs.isNyxNull() && rhs.isNyxNull()) {
+    if (!lhs.isType<nyx::Null>() && rhs.isType<nyx::Null>()) {
         // Unary evaluating
         return calcUnaryExpr(lhs, opt);
     }

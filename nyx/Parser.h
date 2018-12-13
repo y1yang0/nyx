@@ -8,7 +8,7 @@
 #include <string>
 #include <tuple>
 #include "Ast.h"
-#include "Nyx.h"
+#include "Nyx.hpp"
 
 class Parser {
 public:
