@@ -1,5 +1,5 @@
 #include "Nyx.hpp"
-#include "Utils.h"
+#include "Utils.hpp"
 
 std::string valueToStdString(nyx::Value v) {
     switch (v.type) {

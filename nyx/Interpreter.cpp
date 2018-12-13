@@ -3,7 +3,7 @@
 #include "Builtin.h"
 #include "Interpreter.h"
 #include "Nyx.hpp"
-#include "Utils.h"
+#include "Utils.hpp"
 
 NyxInterpreter::NyxInterpreter(const std::string& fileName)
     : p(new Parser(fileName)) {}

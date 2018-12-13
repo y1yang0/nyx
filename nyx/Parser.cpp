@@ -1,5 +1,6 @@
 #include "Nyx.hpp"
 #include "Parser.h"
+#include "Utils.hpp"
 
 void Parser::printLex(const std::string& fileName) {
     Parser p(fileName);
@@ -66,7 +67,7 @@ Expression* Parser::parsePrimaryExpr() {
         currentToken = next();
         return new StringExpr(val);
     } else if (getCurrentToken() == KW_TRUE || getCurrentToken() == KW_FALSE) {
-        auto val = KW_TRUE == getCurrentToken() ? true : false;
+        auto val = KW_TRUE == getCurrentToken();
         currentToken = next();
         return new BoolExpr(val);
     } else if (getCurrentToken() == KW_NULL) {
@@ -83,18 +84,14 @@ Expression* Parser::parsePrimaryExpr() {
 }
 
 Expression* Parser::parseUnaryExpr() {
-    if (getCurrentToken() == TK_MINUS || getCurrentToken() == TK_LOGNOT ||
-        getCurrentToken() == TK_BITNOT) {
+    if (anyone(getCurrentToken(), TK_MINUS, TK_LOGNOT, TK_BITNOT)) {
         auto val = new BinaryExpr;
         val->opt = getCurrentToken();
         currentToken = next();
         val->lhs = parseUnaryExpr();
         return val;
-    } else if (getCurrentToken() == LIT_DOUBLE ||
-               getCurrentToken() == LIT_INT || getCurrentToken() == LIT_STR ||
-               getCurrentToken() == TK_IDENT ||
-               getCurrentToken() == TK_LPAREN || getCurrentToken() == KW_TRUE ||
-               getCurrentToken() == KW_FALSE || getCurrentToken() == KW_NULL) {
+    } else if (anyone(getCurrentToken(), LIT_DOUBLE, LIT_INT, LIT_STR, TK_IDENT,
+                      TK_LPAREN, KW_TRUE, KW_FALSE, KW_NULL)) {
         return parsePrimaryExpr();
     }
     return nullptr;
@@ -103,15 +100,9 @@ Expression* Parser::parseUnaryExpr() {
 Expression* Parser::parseExpression(short oldPrecedence) {
     auto p = parseUnaryExpr();
 
-    while (getCurrentToken() == TK_BITOR || getCurrentToken() == TK_BITAND ||
-           getCurrentToken() == TK_BITNOT || getCurrentToken() == TK_LOGOR ||
-           getCurrentToken() == TK_LOGAND || getCurrentToken() == TK_LOGNOT ||
-           getCurrentToken() == TK_EQ || getCurrentToken() == TK_NE ||
-           getCurrentToken() == TK_GT || getCurrentToken() == TK_GE ||
-           getCurrentToken() == TK_LT || getCurrentToken() == TK_LE ||
-           getCurrentToken() == TK_PLUS || getCurrentToken() == TK_MINUS ||
-           getCurrentToken() == TK_MOD || getCurrentToken() == TK_TIMES ||
-           getCurrentToken() == TK_DIV) {
+    while (anyone(getCurrentToken(), TK_BITOR, TK_BITAND, TK_BITNOT, TK_LOGOR,
+                  TK_LOGAND, TK_LOGNOT, TK_EQ, TK_NE, TK_GT, TK_GE, TK_LT,
+                  TK_LE, TK_PLUS, TK_MINUS, TK_MOD, TK_TIMES, TK_DIV)) {
         short currentPrecedence = Parser::precedence(getCurrentToken());
         if (oldPrecedence > currentPrecedence) {
             return p;
@@ -242,8 +233,8 @@ std::tuple<Token, std::string> Parser::next() {
     if (c == EOF) {
         return std::make_tuple(TK_EOF, "");
     }
-    if (c == ' ' || c == '\n' || c == '\r' || c == '\t') {
-        while (c == ' ' || c == '\n' || c == '\r' || c == '\t') {
+    if (anyone(c, ' ', '\n', '\r', '\t')) {
+        while (anyone(c, ' ', '\n', '\r', '\t')) {
             if (c == '\n') {
                 lineCount++;
                 columnCount = 0;
@@ -418,6 +409,7 @@ inline short Parser::precedence(Token op) {
         case TK_BITAND:
             return 5;
         default:
+            // Lowest precedence
             return 0;
     }
 }

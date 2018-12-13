@@ -2,7 +2,7 @@
 #include "Nyx.hpp"
 
 enum Token {
-    INVALID,  // <invalid>
+    INVALID = 0,  // <invalid>
 
     TK_IDENT,    // <identifier>
     TK_EOF,      // <eof>

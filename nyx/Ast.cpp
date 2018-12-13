@@ -23,8 +23,66 @@ std::string IdentExpr::astString() { return "IdentExpr(" + identName + ")"; }
 std::string BinaryExpr::astString() {
     std::string str = "BinaryExpr(";
     if (opt != INVALID) {
-        str += "operator=";
-        str += std::to_string(opt);
+        str += "opt=";
+        switch (opt) {
+            case TK_BITAND:
+                str += "&";
+                break;
+            case TK_BITOR:
+                str += "|";
+                break;
+            case TK_BITNOT:
+                str += "!";
+                break;
+            case TK_LOGAND:
+                str += "&&";
+                break;
+            case TK_LOGOR:
+                str += "||";
+                break;
+            case TK_LOGNOT:
+                str += "!";
+                break;
+            case TK_PLUS:
+                str += "+";
+                break;
+            case TK_MINUS:
+                str += "-";
+                break;
+            case TK_TIMES:
+                str += "*";
+                break;
+            case TK_DIV:
+                str += "/";
+                break;
+            case TK_MOD:
+                str += "%";
+                break;
+            case TK_EQ:
+                str += "==";
+                break;
+            case TK_NE:
+                str += "!=";
+                break;
+            case TK_GT:
+                str += ">";
+                break;
+            case TK_GE:
+                str += ">=";
+                break;
+            case TK_LT:
+                str += "<";
+                break;
+            case TK_LE:
+                str += "<=";
+                break;
+            case TK_ASSIGN:
+                str += "=";
+                break;
+            default:
+                str += std::to_string(opt);
+                break;
+        }
     }
     if (lhs) {
         str += ",lhs=";
@@ -51,7 +109,7 @@ std::string FunCallExpr::astString() {
 }
 
 std::string AssignExpr::astString() {
-    std::string str = "AssignExpr(varName=";
+    std::string str = "AssignExpr(identName=";
     str += identName;
     str += ",rhs=";
     str += expr->astString();

@@ -1,6 +1,6 @@
 #include "Builtin.h"
 #include "Nyx.hpp"
-#include "Utils.h"
+#include "Utils.hpp"
 
 nyx::GlobalContext::GlobalContext() {
     builtin["print"] = &nyx_builtin_print;
@@ -12,26 +12,19 @@ nyx::Value nyx::Value::operator+(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
-        result.data =
-            std::any_cast<int>(this->data) + std::any_cast<int>(rhs.data);
+        result.data = value_cast<int>() + rhs.value_cast<int>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<double>(this->data) + std::any_cast<double>(rhs.data);
+        result.data = value_cast<double>() + rhs.value_cast<double>();
     } else if (isType<nyx::Int>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<int>(this->data) + std::any_cast<double>(rhs.data);
+        result.data = value_cast<int>() + rhs.value_cast<double>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<double>(this->data) + std::any_cast<int>(rhs.data);
+        result.data = value_cast<double>() + rhs.value_cast<int>();
     } else if (isType<nyx::String>() || rhs.isType<nyx::String>()) {
         result.type = nyx::String;
-        std::string lhsStr, rhsStr;
-        lhsStr = valueToStdString(*this);
-        rhsStr = valueToStdString(rhs);
-        result.data = lhsStr + rhsStr;
+        result.data = valueToStdString(*this) + valueToStdString(rhs);
     } else {
         throw std::runtime_error("unexpected arguments of +");
     }
@@ -42,20 +35,16 @@ nyx::Value nyx::Value::operator-(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
-        result.data =
-            std::any_cast<int>(this->data) - std::any_cast<int>(rhs.data);
+        result.data = value_cast<int>() - rhs.value_cast<int>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<double>(this->data) - std::any_cast<double>(rhs.data);
+        result.data = value_cast<double>() - rhs.value_cast<double>();
     } else if (isType<nyx::Int>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<int>(this->data) - std::any_cast<double>(rhs.data);
+        result.data = value_cast<int>() - rhs.value_cast<double>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<double>(this->data) - std::any_cast<int>(rhs.data);
+        result.data = value_cast<double>() - rhs.value_cast<int>();
     } else {
         throw std::runtime_error("unexpected arguments of -");
     }
@@ -67,20 +56,16 @@ nyx::Value nyx::Value::operator*(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
-        result.data =
-            std::any_cast<int>(this->data) * std::any_cast<int>(rhs.data);
+        result.data = value_cast<int>() * rhs.value_cast<int>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<double>(this->data) * std::any_cast<double>(rhs.data);
+        result.data = value_cast<double>() * rhs.value_cast<double>();
     } else if (isType<nyx::Int>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<int>(this->data) * std::any_cast<double>(rhs.data);
+        result.data = value_cast<int>() * rhs.value_cast<double>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<double>(this->data) * std::any_cast<int>(rhs.data);
+        result.data = value_cast<double>() * rhs.value_cast<int>();
     } else {
         throw std::runtime_error("unexpected arguments of *");
     }
@@ -91,20 +76,16 @@ nyx::Value nyx::Value::operator/(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
-        result.data =
-            std::any_cast<int>(this->data) / std::any_cast<int>(rhs.data);
+        result.data = value_cast<int>() / rhs.value_cast<int>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<double>(this->data) / std::any_cast<double>(rhs.data);
+        result.data = value_cast<double>() / rhs.value_cast<double>();
     } else if (isType<nyx::Int>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<int>(this->data) / std::any_cast<double>(rhs.data);
+        result.data = value_cast<int>() / rhs.value_cast<double>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Double;
-        result.data =
-            std::any_cast<double>(this->data) / std::any_cast<int>(rhs.data);
+        result.data = value_cast<double>() / rhs.value_cast<int>();
     } else {
         throw std::runtime_error("unexpected arguments of /");
     }
@@ -115,8 +96,7 @@ nyx::Value nyx::Value::operator%(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
-        result.data =
-            (int)std::any_cast<int>(this->data) % std::any_cast<int>(rhs.data);
+        result.data = (int)value_cast<int>() % rhs.value_cast<int>();
     } else {
         throw std::runtime_error("unexpected arguments of %");
     }
@@ -127,8 +107,7 @@ nyx::Value nyx::Value::operator&&(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
         result.type = nyx::Bool;
-        result.data =
-            (std::any_cast<bool>(this->data) && std::any_cast<bool>(rhs.data));
+        result.data = (value_cast<bool>() && rhs.value_cast<bool>());
     } else {
         throw std::runtime_error("unexpected arguments of &&");
     }
@@ -139,8 +118,7 @@ nyx::Value nyx::Value::operator||(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
         result.type = nyx::Bool;
-        result.data =
-            (std::any_cast<bool>(this->data) || std::any_cast<bool>(rhs.data));
+        result.data = (value_cast<bool>() || rhs.value_cast<bool>());
     } else {
         throw std::runtime_error("unexpected arguments of ||");
     }
@@ -151,12 +129,10 @@ nyx::Value nyx::Value::operator==(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
-        result.data =
-            (std::any_cast<int>(this->data) == std::any_cast<int>(rhs.data));
+        result.data = (value_cast<int>() == rhs.value_cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Bool;
-        result.data = (std::any_cast<double>(this->data) ==
-                       std::any_cast<double>(rhs.data));
+        result.data = (value_cast<double>() == rhs.value_cast<double>());
     } else if (isType<nyx::String>() || rhs.isType<nyx::String>()) {
         result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
@@ -165,8 +141,7 @@ nyx::Value nyx::Value::operator==(nyx::Value rhs) {
         result.data = (lhsStr == rhsStr);
     } else if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
         result.type = nyx::Bool;
-        result.data =
-            (std::any_cast<bool>(this->data) == std::any_cast<bool>(rhs.data));
+        result.data = (value_cast<bool>() == rhs.value_cast<bool>());
     } else if (this->type == nyx::Null && rhs.type == nyx::Null) {
         result.type = nyx::Bool;
         result.data = std::make_any<bool>(true);
@@ -180,12 +155,10 @@ nyx::Value nyx::Value::operator!=(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
-        result.data =
-            (std::any_cast<int>(this->data) != std::any_cast<int>(rhs.data));
+        result.data = (value_cast<int>() != rhs.value_cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Bool;
-        result.data = (std::any_cast<double>(this->data) !=
-                       std::any_cast<double>(rhs.data));
+        result.data = (value_cast<double>() != rhs.value_cast<double>());
     } else if (isType<nyx::String>() || rhs.isType<nyx::String>()) {
         result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
@@ -194,8 +167,7 @@ nyx::Value nyx::Value::operator!=(nyx::Value rhs) {
         result.data = (lhsStr != rhsStr);
     } else if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
         result.type = nyx::Bool;
-        result.data =
-            (std::any_cast<bool>(this->data) != std::any_cast<bool>(rhs.data));
+        result.data = (value_cast<bool>() != rhs.value_cast<bool>());
     } else if (this->type == nyx::Null && rhs.type == nyx::Null) {
         result.type = nyx::Bool;
         result.data = std::make_any<bool>(false);
@@ -209,12 +181,10 @@ nyx::Value nyx::Value::operator>(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
-        result.data =
-            (std::any_cast<int>(this->data) > std::any_cast<int>(rhs.data));
+        result.data = (value_cast<int>() > rhs.value_cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Bool;
-        result.data = (std::any_cast<double>(this->data) >
-                       std::any_cast<double>(rhs.data));
+        result.data = (value_cast<double>() > rhs.value_cast<double>());
     } else if (isType<nyx::String>() || rhs.isType<nyx::String>()) {
         result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
@@ -231,12 +201,10 @@ nyx::Value nyx::Value::operator>=(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
-        result.data =
-            (std::any_cast<int>(this->data) >= std::any_cast<int>(rhs.data));
+        result.data = (value_cast<int>() >= rhs.value_cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Bool;
-        result.data = (std::any_cast<double>(this->data) >=
-                       std::any_cast<double>(rhs.data));
+        result.data = (value_cast<double>() >= rhs.value_cast<double>());
     } else if (isType<nyx::String>() || rhs.isType<nyx::String>()) {
         result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
@@ -253,12 +221,10 @@ nyx::Value nyx::Value::operator<(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
-        result.data =
-            (std::any_cast<int>(this->data) < std::any_cast<int>(rhs.data));
+        result.data = (value_cast<int>() < rhs.value_cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Bool;
-        result.data = (std::any_cast<double>(this->data) <
-                       std::any_cast<double>(rhs.data));
+        result.data = (value_cast<double>() < rhs.value_cast<double>());
     } else if (isType<nyx::String>() || rhs.isType<nyx::String>()) {
         result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
@@ -275,12 +241,10 @@ nyx::Value nyx::Value::operator<=(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
-        result.data =
-            (std::any_cast<int>(this->data) <= std::any_cast<int>(rhs.data));
+        result.data = (value_cast<int>() <= rhs.value_cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
         result.type = nyx::Bool;
-        result.data = (std::any_cast<double>(this->data) <=
-                       std::any_cast<double>(rhs.data));
+        result.data = (value_cast<double>() <= rhs.value_cast<double>());
     } else if (isType<nyx::String>() || rhs.isType<nyx::String>()) {
         result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
@@ -297,8 +261,7 @@ nyx::Value nyx::Value::operator&(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
-        result.data =
-            (std::any_cast<int>(this->data) & std::any_cast<int>(rhs.data));
+        result.data = (value_cast<int>() & rhs.value_cast<int>());
     } else {
         throw std::runtime_error("unexpected arguments of &");
     }
@@ -309,8 +272,7 @@ nyx::Value nyx::Value::operator|(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
-        result.data =
-            (std::any_cast<int>(this->data) | std::any_cast<int>(rhs.data));
+        result.data = (value_cast<int>() | rhs.value_cast<int>());
     } else {
         throw std::runtime_error("unexpected arguments of |");
     }

@@ -3,7 +3,7 @@
 #include "Ast.h"
 #include "Builtin.h"
 #include "Nyx.hpp"
-#include "Utils.h"
+#include "Utils.hpp"
 
 nyx::Value nyx_builtin_print(nyx::GlobalContext* ctx, std::vector<Value> args) {
     for (auto arg : args) {

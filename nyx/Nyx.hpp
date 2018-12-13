@@ -29,6 +29,9 @@ struct Value {
     template <int _NyxType>
     inline bool isType();
 
+    template <typename _CastingType>
+    inline _CastingType value_cast();
+
     Value operator+(Value rhs);
     Value operator-(Value rhs);
     Value operator*(Value rhs);
@@ -64,6 +67,7 @@ struct LocalContext {
 
     std::vector<Variable*> vars;
 };
+
 struct GlobalContext : public LocalContext {
     explicit GlobalContext();
 
@@ -73,8 +77,14 @@ struct GlobalContext : public LocalContext {
                        Value (*)(GlobalContext*, std::vector<Value>)>
         builtin;
 };
+
 template <int _NyxType>
 inline bool Value::isType() {
     return this->type == _NyxType;
+}
+
+template <typename _CastingType>
+inline _CastingType Value::value_cast() {
+    return std::any_cast<_CastingType>(data);
 }
 }  // namespace nyx
