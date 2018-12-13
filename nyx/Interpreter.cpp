@@ -125,6 +125,18 @@ static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs) {
         case TK_NE:
             result = (lhs != rhs);
             break;
+        case TK_GT:
+            result = (lhs > rhs);
+            break;
+        case TK_GE:
+            result = (lhs >= rhs);
+            break;
+        case TK_LT:
+            result = (lhs < rhs);
+            break;
+        case TK_LE:
+            result = (lhs <= rhs);
+            break;
     }
 
     return result;
