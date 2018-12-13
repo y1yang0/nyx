@@ -84,7 +84,7 @@ Expression* Parser::parsePrimaryExpr() {
 
 Expression* Parser::parseUnaryExpr() {
     if (getCurrentToken() == TK_MINUS || getCurrentToken() == TK_LOGNOT ||
-        getCurrentToken() == TK_BITAND) {
+        getCurrentToken() == TK_BITNOT) {
         auto val = new BinaryExpr;
         val->opt = getCurrentToken();
         currentToken = next();

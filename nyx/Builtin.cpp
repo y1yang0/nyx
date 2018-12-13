@@ -12,6 +12,15 @@ nyx::Value nyx_builtin_print(nyx::GlobalContext* ctx, std::vector<Value> args) {
     return nyx::Value(nyx::NyxInt, (int)args.size());
 }
 
+nyx::Value nyx_builtin_input(nyx::GlobalContext* ctx, std::vector<Value> args) {
+    nyx::Value result{nyx::NyxString};
+
+    std::string str;
+    std::cin >> str;
+    result.data = std::make_any<std::string>(std::move(str));
+    return result;
+}
+
 nyx::Value nyx_builtin_typeof(nyx::GlobalContext* ctx,
                               std::vector<nyx::Value> args) {
     if (args.size() != 1) {

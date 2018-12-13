@@ -5,6 +5,7 @@
 nyx::GlobalContext::GlobalContext() {
     builtin["print"] = &nyx_builtin_print;
     builtin["typeof"] = &nyx_builtin_typeof;
+    builtin["input"] = &nyx_builtin_input;
 }
 
 nyx::Value nyx::Value::operator+(nyx::Value rhs) {
@@ -288,6 +289,30 @@ nyx::Value nyx::Value::operator<=(nyx::Value rhs) {
         result.data = (lhsStr <= rhsStr);
     } else {
         throw std::runtime_error("unexpected arguments of <=");
+    }
+    return result;
+}
+
+nyx::Value nyx::Value::operator&(nyx::Value rhs) {
+    nyx::Value result;
+    if (this->type == nyx::NyxInt && rhs.type == nyx::NyxInt) {
+        result.type = nyx::NyxInt;
+        result.data =
+            (std::any_cast<int>(this->data) & std::any_cast<int>(rhs.data));
+    } else {
+        throw std::runtime_error("unexpected arguments of &");
+    }
+    return result;
+}
+
+nyx::Value nyx::Value::operator|(nyx::Value rhs) {
+    nyx::Value result;
+    if (this->type == nyx::NyxInt && rhs.type == nyx::NyxInt) {
+        result.type = nyx::NyxInt;
+        result.data =
+            (std::any_cast<int>(this->data) | std::any_cast<int>(rhs.data));
+    } else {
+        throw std::runtime_error("unexpected arguments of |");
     }
     return result;
 }

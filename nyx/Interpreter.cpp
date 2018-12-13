@@ -5,9 +5,8 @@
 #include "Nyx.h"
 #include "Utils.h"
 
-NyxInterpreter::NyxInterpreter(const std::string& fileName) {
-    p = new Parser(fileName);
-}
+NyxInterpreter::NyxInterpreter(const std::string& fileName)
+    : p(new Parser(fileName)) {}
 
 NyxInterpreter::~NyxInterpreter() { delete p; }
 
@@ -89,6 +88,14 @@ static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt) {
             } else {
                 throw std::runtime_error("invalid ! operations on given value");
             }
+            break;
+        case TK_BITNOT:
+            if (lhs.type == nyx::NyxInt) {
+                return nyx::Value(nyx::NyxInt, ~std::any_cast<int>(lhs.data));
+            } else {
+                throw std::runtime_error("invalid ~ operations on given value");
+            }
+            break;
     }
 
     return lhs;
@@ -136,6 +143,12 @@ static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs) {
             break;
         case TK_LE:
             result = (lhs <= rhs);
+            break;
+        case TK_BITAND:
+            result = (lhs & rhs);
+            break;
+        case TK_BITOR:
+            result = (lhs | rhs);
             break;
     }
 
