@@ -40,6 +40,7 @@ enum Token {
     TK_RBRACKET,  // ]
 
     KW_IF,     // if
+    KW_ELSE,   // else
     KW_TRUE,   // true
     KW_FALSE,  // false
     KW_WHILE,  // while
@@ -144,6 +145,8 @@ struct Statement {
     virtual ~Statement() = default;
 
     virtual void interpret(nyx::GlobalContext* ctx) {}
+
+    virtual std::string astString() { return "Stmt"; }
 };
 struct Block {
     explicit Block() = default;
@@ -154,16 +157,23 @@ struct ExpressionStmt : public Statement {
     explicit ExpressionStmt(Expression* expr) : expr(expr) {}
     Expression* expr{};
     void interpret(nyx::GlobalContext* ctx) override;
+
+    std::string astString() override;
 };
 
 struct IfStmt : public Statement {
     Expression* cond{};
     Block* block{};
+    Block* elseBlock{};
     void interpret(nyx::GlobalContext* ctx) override;
+
+    std::string astString() override;
 };
 
 struct WhileStmt : public Statement {
     Expression* cond{};
     Block* block{};
+
     void interpret(nyx::GlobalContext* ctx) override;
+    std::string astString() override;
 };

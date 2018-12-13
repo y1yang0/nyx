@@ -1,0 +1,19 @@
+a = 3
+if(a+3==6){
+    print("sure")
+    print("it")
+    if(a+4==7){
+        print("nest")
+        if(a+5==9){
+            print("impossible")
+        }
+    }
+    print("is")
+}
+
+if(a+1==3){
+    print("then")
+}else{
+    print("else")
+}
+

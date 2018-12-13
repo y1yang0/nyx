@@ -18,9 +18,34 @@ void NyxInterpreter::execute() {
     }
 }
 
-void IfStmt::interpret(nyx::GlobalContext* ctx) {}
+void IfStmt::interpret(nyx::GlobalContext* ctx) {
+    Value cond = this->cond->eval(ctx, nullptr);
+    if (!cond.isType<nyx::Bool>()) {
+        throw std::runtime_error("expect bool type in if condition");
+    }
+    if (true == cond.value_cast<bool>()) {
+        for (auto& stmt : block->stmts) {
+            stmt->interpret(ctx);
+        }
+    } else {
+        if (elseBlock != nullptr) {
+            for (auto& elseStmt : elseBlock->stmts) {
+                elseStmt->interpret(ctx);
+            }
+        }
+    }
+}
 
-void WhileStmt::interpret(nyx::GlobalContext* ctx) {}
+void WhileStmt::interpret(nyx::GlobalContext* ctx) {
+    Value cond;
+
+    do {
+        cond = this->cond->eval(ctx, nullptr);
+        if (!cond.isType<nyx::Bool>()) {
+            throw std::runtime_error("expect bool type in while condition");
+        }
+    } while (true == cond.value_cast<bool>());
+}
 
 void ExpressionStmt::interpret(nyx::GlobalContext* ctx) {
     // std::cout << this->expr->astString() << "\n";

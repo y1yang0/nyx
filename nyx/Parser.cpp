@@ -14,6 +14,7 @@ void Parser::printLex(const std::string& fileName) {
 Parser::Parser(const std::string& fileName)
     : context(new nyx::GlobalContext),
       keywords({{"if", KW_IF},
+                {"else", KW_ELSE},
                 {"while", KW_WHILE},
                 {"null", KW_NULL},
                 {"true", KW_TRUE},
@@ -132,6 +133,10 @@ IfStmt* Parser::parseIfStmt() {
     assert(getCurrentToken() == TK_RPAREN);
     currentToken = next();
     node->block = parseBlock();
+    if (getCurrentToken() == KW_ELSE) {
+        currentToken = next();
+        node->elseBlock = parseBlock();
+    }
     return node;
 }
 
@@ -155,7 +160,7 @@ Statement* Parser::parseStatement() {
         case KW_WHILE:
             currentToken = next();
             node = parseWhileStmt();
-
+            break;
         default:
             node = parseExpressionStmt();
             break;

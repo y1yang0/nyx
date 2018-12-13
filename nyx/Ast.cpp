@@ -116,3 +116,34 @@ std::string AssignExpr::astString() {
     str += ")";
     return str;
 }
+
+std::string ExpressionStmt::astString() {
+    std::string str = "ExpressionStmt(expr=";
+    str += expr->astString();
+    str += ")";
+    return str;
+}
+
+std::string WhileStmt::astString() {
+    std::string str = "WhileStmt(cond=";
+    str += cond->astString();
+    str += ",exprs=[";
+    for (auto& e : block->stmts) {
+        str += e->astString();
+        str += ",";
+    }
+    str += "])";
+    return str;
+}
+
+std::string IfStmt::astString() {
+    std::string str = "IfStmt(cond=";
+    str += cond->astString();
+    str += ",exprs=[";
+    for (auto& e : block->stmts) {
+        str += e->astString();
+        str += ",";
+    }
+    str += "])";
+    return str;
+}
