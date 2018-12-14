@@ -29,7 +29,8 @@ Parser::Parser(const std::string& fileName)
 }
 
 Parser::~Parser() {
-    delete context;
+    // It will be released by destruction behavior of local std::deque
+    // delete context;
     fs.close();
 }
 

@@ -11,6 +11,10 @@ public:
 public:
     void execute();
 
+    static void enterContext(std::deque<nyx::LocalContext*>& ctxChain);
+
+    static void leaveContext(std::deque<nyx::LocalContext*>& ctxChain);
+
 private:
     void parseCommandOption(int argc, char* argv) {}
 

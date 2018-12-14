@@ -8,6 +8,43 @@ nyx::GlobalContext::GlobalContext() {
     builtin["input"] = &nyx_builtin_input;
 }
 
+nyx::GlobalContext::~GlobalContext() {
+    for (auto* f : funcs) {
+        delete f;
+    }
+}
+
+nyx::LocalContext::~LocalContext() {
+    for (auto v : vars) {
+        delete v.second;
+    }
+}
+
+bool nyx::LocalContext::removeVariable(const std::string& identName) {
+    auto* found = findVariable(identName);
+    delete found;
+    return vars.erase(identName);
+}
+
+bool nyx::LocalContext::hasVariable(const std::string& identName) {
+    return vars.count(identName) == 1;
+}
+
+void nyx::LocalContext::addVariable(const std::string& identName,
+                                    nyx::Value value) {
+    auto* var = new nyx::Variable;
+    var->name = identName;
+    var->value = value;
+    vars.emplace(identName, var);
+}
+
+nyx::Variable* nyx::LocalContext::findVariable(const std::string& identName) {
+    if (auto res = vars.find(identName); res != vars.end()) {
+        return res->second;
+    }
+    return nullptr;
+}
+
 nyx::Value nyx::Value::operator+(nyx::Value rhs) {
     nyx::Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {

@@ -1,4 +1,5 @@
 #pragma once
+#include <deque>
 #include "Nyx.hpp"
 
 enum Token {
@@ -59,7 +60,7 @@ struct Statement;
 struct Expression {
     virtual ~Expression() = default;
 
-    virtual nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
+    virtual nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) {
         return nyx::Value(nyx::Null);
     }
     virtual std::string astString();
@@ -69,14 +70,14 @@ struct BoolExpr : public Expression {
     explicit BoolExpr(bool literal) : literal(literal) {}
     bool literal;
 
-    nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+    nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
     std::string astString() override;
 };
 struct NullExpr : public Expression {
     explicit NullExpr() = default;
 
-    nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+    nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
     std::string astString() override;
 };
@@ -84,7 +85,7 @@ struct IntExpr : public Expression {
     explicit IntExpr(int literal) : literal(literal) {}
     int literal;
 
-    nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+    nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
     std::string astString() override;
 };
@@ -92,7 +93,7 @@ struct IntExpr : public Expression {
 struct DoubleExpr : public Expression {
     explicit DoubleExpr(double literal) : literal(literal) {}
     double literal;
-    nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+    nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
     std::string astString() override;
 };
@@ -100,7 +101,7 @@ struct DoubleExpr : public Expression {
 struct StringExpr : public Expression {
     explicit StringExpr(std::string literal) : literal(std::move(literal)) {}
     std::string literal;
-    nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+    nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
     std::string astString();
 };
@@ -109,7 +110,7 @@ struct IdentExpr : public Expression {
     explicit IdentExpr(std::string identName)
         : identName(std::move(identName)) {}
     std::string identName;
-    nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+    nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
     std::string astString() override;
 };
@@ -118,7 +119,7 @@ struct BinaryExpr : public Expression {
     Expression* lhs{};
     Token opt{};
     Expression* rhs{};
-    nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+    nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
     std::string astString() override;
 };
@@ -126,7 +127,7 @@ struct BinaryExpr : public Expression {
 struct FunCallExpr : public Expression {
     std::string funcName;
     std::vector<Expression*> args;
-    nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+    nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
     std::string astString() override;
 };
 
@@ -135,7 +136,7 @@ struct AssignExpr : public Expression {
         : identName(std::move(identName)), expr(expr) {}
     std::string identName;
     Expression* expr{};
-    nyx::Value eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) override;
+    nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
     std::string astString() override;
 };
@@ -144,7 +145,7 @@ struct AssignExpr : public Expression {
 struct Statement {
     virtual ~Statement() = default;
 
-    virtual void interpret(nyx::GlobalContext* ctx) {}
+    virtual void interpret(std::deque<nyx::LocalContext*> ctxChain) {}
 
     virtual std::string astString() { return "Stmt"; }
 };
@@ -156,7 +157,7 @@ struct Block {
 struct ExpressionStmt : public Statement {
     explicit ExpressionStmt(Expression* expr) : expr(expr) {}
     Expression* expr{};
-    void interpret(nyx::GlobalContext* ctx) override;
+    void interpret(std::deque<nyx::LocalContext*> ctxChain) override;
 
     std::string astString() override;
 };
@@ -165,7 +166,7 @@ struct IfStmt : public Statement {
     Expression* cond{};
     Block* block{};
     Block* elseBlock{};
-    void interpret(nyx::GlobalContext* ctx) override;
+    void interpret(std::deque<nyx::LocalContext*> ctxChain) override;
 
     std::string astString() override;
 };
@@ -174,6 +175,6 @@ struct WhileStmt : public Statement {
     Expression* cond{};
     Block* block{};
 
-    void interpret(nyx::GlobalContext* ctx) override;
+    void interpret(std::deque<nyx::LocalContext*> ctxChain) override;
     std::string astString() override;
 };

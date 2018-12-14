@@ -70,6 +70,32 @@ print(4|66) # 00000100 & 01000010 => 70
 print(~43) # 00101011 =>11010100 => -44
 ```
 
+## 5. 流程控制
+## 5.1 if-else分支跳转
+`if`语句可以根据条件进行分支跳转。单个`if`分支跳转和`if-else`分支跳转都是允许的：
+```nyx
+a = input()
+if(a+1 == "whatsup"){
+    print("fine")
+}
+b = 10
+if(b <10){
+    print("b is less than 10")
+}else{
+    print("b is greater equal than 10")
+}
+```
+## 5.2 while循环
+**nyx**不打算在公共语言基础上标新立异，它的`while`做了与其他大多数语言一样的事情，即根据条件进行循环。
+```nyx
+a= 1
+while(a<100){
+    print("counter:"+a)
+    a = a+1
+}
+```
+
+
 ## 4.内置函数
 ```nyx
 # 接受任意数目的参数，向stdout输出

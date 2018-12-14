@@ -14,6 +14,7 @@ enum ValueType { Int, Double, String, Bool, Null };
 
 struct Function {
     explicit Function() = default;
+    ~Function() { delete block; }
 
     std::string name;
     std::vector<std::string> params;
@@ -62,14 +63,24 @@ struct Variable {
     Value value;
 };
 
-struct LocalContext {
+class LocalContext {
+public:
     explicit LocalContext() = default;
+    virtual ~LocalContext();
 
-    std::vector<Variable*> vars;
+    bool removeVariable(const std::string& identName);
+    bool hasVariable(const std::string& identName);
+    void addVariable(const std::string& identName, nyx::Value value);
+
+    nyx::Variable* findVariable(const std::string& identName);
+
+private:
+    std::unordered_map<std::string, Variable*> vars;
 };
 
 struct GlobalContext : public LocalContext {
     explicit GlobalContext();
+    ~GlobalContext() override;
 
     std::vector<Function*> funcs;
     std::vector<Statement*> stmts;

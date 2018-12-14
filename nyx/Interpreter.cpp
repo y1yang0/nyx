@@ -1,3 +1,4 @@
+#include <deque>
 #include <memory>
 #include "Ast.h"
 #include "Builtin.h"
@@ -11,72 +12,129 @@ NyxInterpreter::NyxInterpreter(const std::string& fileName)
 NyxInterpreter::~NyxInterpreter() { delete p; }
 
 void NyxInterpreter::execute() {
-    nyx::GlobalContext* ctx = p->parse();
+    nyx::GlobalContext* gctx = p->parse();
 
-    for (int i = 0; i < ctx->stmts.size(); i++) {
-        ctx->stmts[i]->interpret(ctx);
+    // The first context must be GlobalContext, when we met first
+    // element in the deque, we can safely convert to GlobalContex
+    std::deque<nyx::LocalContext*> contextChain;
+    contextChain.push_back(gctx);
+
+    for (int i = 0; i < gctx->stmts.size(); i++) {
+        gctx->stmts[i]->interpret(contextChain);
     }
+    delete gctx;
 }
 
-void IfStmt::interpret(nyx::GlobalContext* ctx) {
-    Value cond = this->cond->eval(ctx, nullptr);
+void NyxInterpreter::enterContext(std::deque<nyx::LocalContext*>& ctxChain) {
+    auto* tempContext = new LocalContext;
+    ctxChain.push_back(tempContext);
+}
+
+void NyxInterpreter::leaveContext(std::deque<nyx::LocalContext*>& ctxChain) {
+    auto* tempContext = ctxChain.back();
+    ctxChain.pop_back();
+    delete tempContext;
+}
+
+void IfStmt::interpret(std::deque<nyx::LocalContext*> ctxChain) {
+    Value cond = this->cond->eval(ctxChain);
     if (!cond.isType<nyx::Bool>()) {
         throw std::runtime_error("expect bool type in if condition");
     }
     if (true == cond.value_cast<bool>()) {
+        NyxInterpreter::enterContext(ctxChain);
         for (auto& stmt : block->stmts) {
-            stmt->interpret(ctx);
+            stmt->interpret(ctxChain);
         }
+        NyxInterpreter::leaveContext(ctxChain);
     } else {
         if (elseBlock != nullptr) {
+            NyxInterpreter::enterContext(ctxChain);
             for (auto& elseStmt : elseBlock->stmts) {
-                elseStmt->interpret(ctx);
+                elseStmt->interpret(ctxChain);
             }
+            NyxInterpreter::leaveContext(ctxChain);
         }
     }
 }
 
-void WhileStmt::interpret(nyx::GlobalContext* ctx) {
-    Value cond;
+void WhileStmt::interpret(std::deque<nyx::LocalContext*> ctxChain) {
+    Value cond = this->cond->eval(ctxChain);
 
-    do {
-        cond = this->cond->eval(ctx, nullptr);
+    NyxInterpreter::enterContext(ctxChain);
+    while (true == cond.value_cast<bool>()) {
+        for (auto& stmt : block->stmts) {
+            stmt->interpret(ctxChain);
+        }
+        cond = this->cond->eval(ctxChain);
         if (!cond.isType<nyx::Bool>()) {
             throw std::runtime_error("expect bool type in while condition");
         }
-    } while (true == cond.value_cast<bool>());
+    }
+    NyxInterpreter::leaveContext(ctxChain);
 }
 
-void ExpressionStmt::interpret(nyx::GlobalContext* ctx) {
+void ExpressionStmt::interpret(std::deque<nyx::LocalContext*> ctxChain) {
     // std::cout << this->expr->astString() << "\n";
-    this->expr->eval(ctx, nullptr);
+    this->expr->eval(ctxChain);
 }
 
-nyx::Value NullExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
+nyx::Value NullExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
     return nyx::Value(nyx::Null);
 }
-nyx::Value BoolExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
+nyx::Value BoolExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
     return nyx::Value(nyx::Bool, this->literal);
 }
-nyx::Value IntExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
+nyx::Value IntExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
     return nyx::Value(nyx::Int, this->literal);
 }
-nyx::Value DoubleExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
+nyx::Value DoubleExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
     return nyx::Value(nyx::Double, this->literal);
 }
-nyx::Value StringExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
+nyx::Value StringExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
     return nyx::Value(nyx::String, this->literal);
 }
-nyx::Value IdentExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
-    nyx::Value result;
-    for (const auto& v : gctx->vars) {
-        if (v->name == this->identName) {
-            result.type = v->value.type;
-            result.data = v->value.data;
-            return result;
+nyx::Value IdentExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
+    for (auto p = ctxChain.crbegin(); p != ctxChain.crend(); ++p) {
+        auto* ctx = *p;
+        if (auto* var = ctx->findVariable(this->identName); var != nullptr) {
+            return var->value;
         }
     }
+
     return nyx::Value(nyx::Null);
+}
+
+nyx::Value AssignExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
+    nyx::Value lhs = this->expr->eval(ctxChain);
+
+    // If local context exists, allocate variable within it
+    // Otherwise, allocate variable in global context
+    if (ctxChain.size() == 1) {
+        assert(typeid(*ctxChain.back()) == typeid(GlobalContext));
+    }
+    auto* ctx = ctxChain.back();
+    if (ctx->hasVariable(identName)) {
+        ctx->removeVariable(identName);
+        ctx->addVariable(identName, lhs);
+    } else {
+        ctx->addVariable(identName, lhs);
+    }
+
+    return lhs;
+}
+
+nyx::Value FunCallExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
+    nyx::Value result;
+    GlobalContext* gctx = (GlobalContext*)ctxChain.front();
+    auto func = gctx->builtin[this->funcName];
+    std::vector<Value> arguments;
+    for (auto e : this->args) {
+        arguments.push_back(e->eval(ctxChain));
+    }
+    result = func(gctx, arguments);
+
+    return result;
 }
 
 static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt) {
@@ -167,11 +225,11 @@ static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs) {
     return result;
 }
 
-nyx::Value BinaryExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
+nyx::Value BinaryExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
     nyx::Value lhs =
-        this->lhs ? this->lhs->eval(gctx, lctx) : nyx::Value(nyx::Null);
+        this->lhs ? this->lhs->eval(ctxChain) : nyx::Value(nyx::Null);
     nyx::Value rhs =
-        this->rhs ? this->rhs->eval(gctx, lctx) : nyx::Value(nyx::Null);
+        this->rhs ? this->rhs->eval(ctxChain) : nyx::Value(nyx::Null);
     Token opt = this->opt;
     if (!lhs.isType<nyx::Null>() && rhs.isType<nyx::Null>()) {
         // Unary evaluating
@@ -179,28 +237,4 @@ nyx::Value BinaryExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
     }
     // Binary evaluating
     return calcBinaryExpr(lhs, opt, rhs);
-}
-nyx::Value FunCallExpr::eval(nyx::GlobalContext* gctx,
-                             nyx::LocalContext* lctx) {
-    nyx::Value result;
-    auto func = gctx->builtin[this->funcName];
-    std::vector<Value> arguments;
-    for (auto e : this->args) {
-        arguments.push_back(e->eval(gctx, lctx));
-    }
-    result = func(gctx, arguments);
-
-    return result;
-}
-
-nyx::Value AssignExpr::eval(nyx::GlobalContext* gctx, nyx::LocalContext* lctx) {
-    nyx::Value lhs = this->expr->eval(gctx, lctx);
-
-    auto* var = new nyx::Variable;
-
-    var->name = this->identName;
-    var->value = lhs;
-    gctx->vars.push_back(var);
-
-    return lhs;
 }
