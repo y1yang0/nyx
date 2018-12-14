@@ -38,7 +38,7 @@ private:
     std::tuple<Token, std::string> next();
 
     inline char getNextChar() {
-        columnCount++;
+        column++;
         return static_cast<char>(fs.get());
     }
 
@@ -60,7 +60,7 @@ private:
 
     std::fstream fs;
 
-    int lineCount = 1;
+    int line = 1;
 
-    int columnCount = 0;
+    int column = 0;
 };

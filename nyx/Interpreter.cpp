@@ -39,7 +39,10 @@ void NyxInterpreter::leaveContext(std::deque<nyx::LocalContext*>& ctxChain) {
 void IfStmt::interpret(std::deque<nyx::LocalContext*> ctxChain) {
     Value cond = this->cond->eval(ctxChain);
     if (!cond.isType<nyx::Bool>()) {
-        throw std::runtime_error("expect bool type in if condition");
+        panic(
+            "RuntimeError: expect bool type in while condition at line %d, "
+            "col %d\n",
+            line, column);
     }
     if (true == cond.value_cast<bool>()) {
         NyxInterpreter::enterContext(ctxChain);
@@ -68,7 +71,10 @@ void WhileStmt::interpret(std::deque<nyx::LocalContext*> ctxChain) {
         }
         cond = this->cond->eval(ctxChain);
         if (!cond.isType<nyx::Bool>()) {
-            throw std::runtime_error("expect bool type in while condition");
+            panic(
+                "RuntimeError: expect bool type in while condition at line %d, "
+                "col %d\n",
+                line, column);
         }
     }
     NyxInterpreter::leaveContext(ctxChain);
@@ -101,8 +107,8 @@ nyx::Value IdentExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
             return var->value;
         }
     }
-
-    return nyx::Value(nyx::Null);
+    panic("RuntimeError: use of undefined variable \"%s\" at line %d, col %d\n",
+          identName.c_str(), this->line, this->column);
 }
 
 nyx::Value AssignExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
@@ -113,13 +119,18 @@ nyx::Value AssignExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
     if (ctxChain.size() == 1) {
         assert(typeid(*ctxChain.back()) == typeid(GlobalContext));
     }
-    auto* ctx = ctxChain.back();
-    if (ctx->hasVariable(identName)) {
-        ctx->removeVariable(identName);
-        ctx->addVariable(identName, lhs);
-    } else {
-        ctx->addVariable(identName, lhs);
+
+    // If this variable was already defined in current context or prior contexts
+    // then reassign value to it
+    for (auto p = ctxChain.crbegin(); p != ctxChain.crend(); ++p) {
+        if ((*p)->hasVariable(identName)) {
+            (*p)->removeVariable(identName);
+            (*p)->addVariable(identName, lhs);
+            return lhs;
+        }
     }
+    // Otherwise, allocate variable within current context
+    (ctxChain.back())->addVariable(identName, lhs);
 
     return lhs;
 }
@@ -137,7 +148,8 @@ nyx::Value FunCallExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
     return result;
 }
 
-static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt) {
+static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
+                                int column) {
     switch (opt) {
         case TK_MINUS:
             switch (lhs.type) {
@@ -147,22 +159,30 @@ static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt) {
                     return nyx::Value(nyx::Double,
                                       -std::any_cast<double>(lhs.data));
                 default:
-                    throw std::runtime_error(
-                        "invalid - operations on given value");
+                    panic(
+                        "RuntimeError: invalid operand type for operator "
+                        "-(negative) at line %d, col %d\n",
+                        line, column);
             }
             break;
         case TK_LOGNOT:
             if (lhs.type == nyx::Bool) {
                 return nyx::Value(nyx::Bool, !std::any_cast<bool>(lhs.data));
             } else {
-                throw std::runtime_error("invalid ! operations on given value");
+                panic(
+                    "RuntimeError: invalid operand type for operator "
+                    "!(logical not) at line %d, col %d\n",
+                    line, column);
             }
             break;
         case TK_BITNOT:
             if (lhs.type == nyx::Int) {
                 return nyx::Value(nyx::Int, ~std::any_cast<int>(lhs.data));
             } else {
-                throw std::runtime_error("invalid ~ operations on given value");
+                panic(
+                    "RuntimeError: invalid operand type for operator "
+                    "~(bit not) at line %d, col %d\n",
+                    line, column);
             }
             break;
     }
@@ -171,7 +191,8 @@ static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt) {
     return lhs;
 }
 
-static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs) {
+static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs, int line,
+                                 int column) {
     nyx::Value result{nyx::Null};
 
     switch (opt) {
@@ -233,8 +254,8 @@ nyx::Value BinaryExpr::eval(std::deque<nyx::LocalContext*> ctxChain) {
     Token opt = this->opt;
     if (!lhs.isType<nyx::Null>() && rhs.isType<nyx::Null>()) {
         // Unary evaluating
-        return calcUnaryExpr(lhs, opt);
+        return calcUnaryExpr(lhs, opt, line, column);
     }
     // Binary evaluating
-    return calcBinaryExpr(lhs, opt, rhs);
+    return calcBinaryExpr(lhs, opt, rhs, line, column);
 }

@@ -63,7 +63,7 @@ nyx::Value nyx::Value::operator+(nyx::Value rhs) {
         result.type = nyx::String;
         result.data = valueToStdString(*this) + valueToStdString(rhs);
     } else {
-        throw std::runtime_error("unexpected arguments of +");
+        panic("TypeError: unexpected arguments of operator +");
     }
     return result;
 }
@@ -83,7 +83,7 @@ nyx::Value nyx::Value::operator-(nyx::Value rhs) {
         result.type = nyx::Double;
         result.data = value_cast<double>() - rhs.value_cast<int>();
     } else {
-        throw std::runtime_error("unexpected arguments of -");
+        panic("TypeError: unexpected arguments of operator -");
     }
 
     return result;
@@ -104,7 +104,7 @@ nyx::Value nyx::Value::operator*(nyx::Value rhs) {
         result.type = nyx::Double;
         result.data = value_cast<double>() * rhs.value_cast<int>();
     } else {
-        throw std::runtime_error("unexpected arguments of *");
+        panic("TypeError: unexpected arguments of operator *");
     }
     return result;
 }
@@ -124,7 +124,7 @@ nyx::Value nyx::Value::operator/(nyx::Value rhs) {
         result.type = nyx::Double;
         result.data = value_cast<double>() / rhs.value_cast<int>();
     } else {
-        throw std::runtime_error("unexpected arguments of /");
+        panic("TypeError: unexpected arguments of operator /");
     }
     return result;
 }
@@ -135,7 +135,7 @@ nyx::Value nyx::Value::operator%(nyx::Value rhs) {
         result.type = nyx::Int;
         result.data = (int)value_cast<int>() % rhs.value_cast<int>();
     } else {
-        throw std::runtime_error("unexpected arguments of %");
+        panic("TypeError: unexpected arguments of operator %");
     }
     return result;
 }
@@ -146,7 +146,7 @@ nyx::Value nyx::Value::operator&&(nyx::Value rhs) {
         result.type = nyx::Bool;
         result.data = (value_cast<bool>() && rhs.value_cast<bool>());
     } else {
-        throw std::runtime_error("unexpected arguments of &&");
+        panic("TypeError: unexpected arguments of operator &&");
     }
     return result;
 }
@@ -157,7 +157,7 @@ nyx::Value nyx::Value::operator||(nyx::Value rhs) {
         result.type = nyx::Bool;
         result.data = (value_cast<bool>() || rhs.value_cast<bool>());
     } else {
-        throw std::runtime_error("unexpected arguments of ||");
+        panic("TypeError: unexpected arguments of operator ||");
     }
     return result;
 }
@@ -183,7 +183,7 @@ nyx::Value nyx::Value::operator==(nyx::Value rhs) {
         result.type = nyx::Bool;
         result.data = std::make_any<bool>(true);
     } else {
-        throw std::runtime_error("unexpected arguments of ==");
+        panic("TypeError: unexpected arguments of operator ==");
     }
     return result;
 }
@@ -209,7 +209,7 @@ nyx::Value nyx::Value::operator!=(nyx::Value rhs) {
         result.type = nyx::Bool;
         result.data = std::make_any<bool>(false);
     } else {
-        throw std::runtime_error("unexpected arguments of !=");
+        panic("TypeError: unexpected arguments of operator !=");
     }
     return result;
 }
@@ -229,7 +229,7 @@ nyx::Value nyx::Value::operator>(nyx::Value rhs) {
         rhsStr = valueToStdString(rhs);
         result.data = (lhsStr > rhsStr);
     } else {
-        throw std::runtime_error("unexpected arguments of >");
+        panic("TypeError: unexpected arguments of operator >");
     }
     return result;
 }
@@ -249,7 +249,7 @@ nyx::Value nyx::Value::operator>=(nyx::Value rhs) {
         rhsStr = valueToStdString(rhs);
         result.data = (lhsStr >= rhsStr);
     } else {
-        throw std::runtime_error("unexpected arguments of >=");
+        panic("TypeError: unexpected arguments of operator >=");
     }
     return result;
 }
@@ -269,7 +269,7 @@ nyx::Value nyx::Value::operator<(nyx::Value rhs) {
         rhsStr = valueToStdString(rhs);
         result.data = (lhsStr < rhsStr);
     } else {
-        throw std::runtime_error("unexpected arguments of <");
+        panic("TypeError: unexpected arguments of operator <");
     }
     return result;
 }
@@ -289,7 +289,7 @@ nyx::Value nyx::Value::operator<=(nyx::Value rhs) {
         rhsStr = valueToStdString(rhs);
         result.data = (lhsStr <= rhsStr);
     } else {
-        throw std::runtime_error("unexpected arguments of <=");
+        panic("TypeError: unexpected arguments of operator <=");
     }
     return result;
 }
@@ -300,7 +300,7 @@ nyx::Value nyx::Value::operator&(nyx::Value rhs) {
         result.type = nyx::Int;
         result.data = (value_cast<int>() & rhs.value_cast<int>());
     } else {
-        throw std::runtime_error("unexpected arguments of &");
+        panic("TypeError: unexpected arguments of operator &");
     }
     return result;
 }
@@ -311,7 +311,7 @@ nyx::Value nyx::Value::operator|(nyx::Value rhs) {
         result.type = nyx::Int;
         result.data = (value_cast<int>() | rhs.value_cast<int>());
     } else {
-        throw std::runtime_error("unexpected arguments of |");
+        panic("TypeError: unexpected arguments of operator |");
     }
     return result;
 }

@@ -1,11 +1,11 @@
 #include <string.h>
 #include <iostream>
 #include "Interpreter.h"
+#include "Utils.hpp"
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cerr << "Feed your *.nyx source file to interpreter!\n";
-        return EXIT_FAILURE;
+        panic("Feed your *.nyx source file to interpreter!\n");
     }
 
     NyxInterpreter nyx(argv[1]);

@@ -23,8 +23,7 @@ Parser::Parser(const std::string& fileName)
                 {"func", KW_FUNC}}) {
     fs.open(fileName);
     if (!fs.is_open()) {
-        std::cerr << "[error] can not open source file\n";
-        exit(EXIT_FAILURE);
+        panic("ParserError: can not open source file");
     }
 }
 
@@ -40,10 +39,10 @@ Expression* Parser::parsePrimaryExpr() {
         currentToken = next();
         if (getCurrentToken() == TK_ASSIGN) {
             currentToken = next();
-            return new AssignExpr(ident, parseExpression());
+            return new AssignExpr(ident, parseExpression(), line, column);
         } else if (getCurrentToken() == TK_LPAREN) {
             currentToken = next();
-            auto val = new FunCallExpr;
+            auto val = new FunCallExpr(line, column);
             val->funcName = ident;
             while (getCurrentToken() != TK_RPAREN) {
                 val->args.push_back(parseExpression());
@@ -55,26 +54,26 @@ Expression* Parser::parsePrimaryExpr() {
             currentToken = next();
             return val;
         }
-        return new IdentExpr(ident);
+        return new IdentExpr(ident, line, column);
     } else if (getCurrentToken() == LIT_INT) {
         auto val = atoi(getCurrentLexeme().c_str());
         currentToken = next();
-        return new IntExpr(val);
+        return new IntExpr(val, line, column);
     } else if (getCurrentToken() == LIT_DOUBLE) {
         auto val = atof(getCurrentLexeme().c_str());
         currentToken = next();
-        return new DoubleExpr(val);
+        return new DoubleExpr(val, line, column);
     } else if (getCurrentToken() == LIT_STR) {
         auto val = getCurrentLexeme();
         currentToken = next();
-        return new StringExpr(val);
+        return new StringExpr(val, line, column);
     } else if (getCurrentToken() == KW_TRUE || getCurrentToken() == KW_FALSE) {
         auto val = KW_TRUE == getCurrentToken();
         currentToken = next();
-        return new BoolExpr(val);
+        return new BoolExpr(val, line, column);
     } else if (getCurrentToken() == KW_NULL) {
         currentToken = next();
-        return new NullExpr();
+        return new NullExpr(line, column);
     } else if (getCurrentToken() == TK_LPAREN) {
         currentToken = next();
         auto val = parseExpression();
@@ -87,7 +86,7 @@ Expression* Parser::parsePrimaryExpr() {
 
 Expression* Parser::parseUnaryExpr() {
     if (anyone(getCurrentToken(), TK_MINUS, TK_LOGNOT, TK_BITNOT)) {
-        auto val = new BinaryExpr;
+        auto val = new BinaryExpr(line, column);
         val->opt = getCurrentToken();
         currentToken = next();
         val->lhs = parseUnaryExpr();
@@ -109,7 +108,7 @@ Expression* Parser::parseExpression(short oldPrecedence) {
         if (oldPrecedence > currentPrecedence) {
             return p;
         }
-        auto tmp = new BinaryExpr;
+        auto tmp = new BinaryExpr(line, column);
         tmp->lhs = p;
         tmp->opt = getCurrentToken();
         currentToken = next();
@@ -122,13 +121,13 @@ Expression* Parser::parseExpression(short oldPrecedence) {
 ExpressionStmt* Parser::parseExpressionStmt() {
     ExpressionStmt* node = nullptr;
     if (auto p = parseExpression(); p != nullptr) {
-        node = new ExpressionStmt(p);
+        node = new ExpressionStmt(p, line, column);
     }
     return node;
 }
 
 IfStmt* Parser::parseIfStmt() {
-    IfStmt* node{new IfStmt};
+    auto* node = new IfStmt(line, column);
     currentToken = next();
     node->cond = parseExpression();
     assert(getCurrentToken() == TK_RPAREN);
@@ -142,7 +141,7 @@ IfStmt* Parser::parseIfStmt() {
 }
 
 WhileStmt* Parser::parseWhileStmt() {
-    WhileStmt* node{new WhileStmt};
+    auto* node = new WhileStmt(line, column);
     currentToken = next();
     node->cond = parseExpression();
     assert(getCurrentToken() == TK_RPAREN);
@@ -242,8 +241,8 @@ std::tuple<Token, std::string> Parser::next() {
     if (anyone(c, ' ', '\n', '\r', '\t')) {
         while (anyone(c, ' ', '\n', '\r', '\t')) {
             if (c == '\n') {
-                lineCount++;
-                columnCount = 0;
+                line++;
+                column = 0;
             }
             c = getNextChar();
         }
@@ -258,8 +257,8 @@ std::tuple<Token, std::string> Parser::next() {
         }
         // consume newlines
         while (c == '\n') {
-            lineCount++;
-            columnCount = 0;
+            line++;
+            column = 0;
             c = getNextChar();
         }
         if (c == EOF) {
@@ -388,7 +387,7 @@ std::tuple<Token, std::string> Parser::next() {
         }
         return std::make_tuple(TK_LT, "<");
     }
-    std::cerr << "[error] unknow token fed\n";
+    panic("SynxaxError: unknown token %c", c);
     return std::make_tuple(INVALID, "invalid");
 }
 

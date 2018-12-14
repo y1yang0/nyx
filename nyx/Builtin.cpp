@@ -24,8 +24,7 @@ nyx::Value nyx_builtin_input(nyx::GlobalContext* ctx, std::vector<Value> args) {
 nyx::Value nyx_builtin_typeof(nyx::GlobalContext* ctx,
                               std::vector<nyx::Value> args) {
     if (args.size() != 1) {
-        throw std::runtime_error("typeof expects one argument but got" +
-                                 args.size());
+        panic("ArgumentError: expects one argument but got %d", args.size());
     }
     switch (args[0].type) {
         case nyx::Bool:

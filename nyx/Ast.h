@@ -1,7 +1,11 @@
 #pragma once
 #include <deque>
+#include <map>
 #include "Nyx.hpp"
 
+//===----------------------------------------------------------------------===//
+// Token definitions of nyx
+//===----------------------------------------------------------------------===//
 enum Token {
     INVALID = 0,  // <invalid>
 
@@ -56,18 +60,32 @@ using nyx::Value;
 struct Expression;
 struct Statement;
 
+struct AstNode {
+    explicit AstNode(int line, int column) : line(line), column(column) {}
+    virtual ~AstNode() = default;
+
+    virtual std::string astString() { return "AstNode()"; }
+
+    int line = -1;
+    int column = 1;
+};
+
+//===----------------------------------------------------------------------===//
 // Expression
-struct Expression {
+//===----------------------------------------------------------------------===//
+struct Expression : public AstNode {
+    using AstNode::AstNode;
+
     virtual ~Expression() = default;
 
-    virtual nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) {
-        return nyx::Value(nyx::Null);
-    }
-    virtual std::string astString();
+    virtual nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain);
+
+    std::string astString() override;
 };
 
 struct BoolExpr : public Expression {
-    explicit BoolExpr(bool literal) : literal(literal) {}
+    explicit BoolExpr(bool literal, int line, int column)
+        : Expression(line, column), literal(literal) {}
     bool literal;
 
     nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
@@ -75,14 +93,15 @@ struct BoolExpr : public Expression {
     std::string astString() override;
 };
 struct NullExpr : public Expression {
-    explicit NullExpr() = default;
+    explicit NullExpr(int line, int column) : Expression(line, column) {}
 
     nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
     std::string astString() override;
 };
 struct IntExpr : public Expression {
-    explicit IntExpr(int literal) : literal(literal) {}
+    explicit IntExpr(int literal, int line, int column)
+        : Expression(line, column), literal(literal) {}
     int literal;
 
     nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
@@ -91,7 +110,8 @@ struct IntExpr : public Expression {
 };
 
 struct DoubleExpr : public Expression {
-    explicit DoubleExpr(double literal) : literal(literal) {}
+    explicit DoubleExpr(double literal, int line, int column)
+        : Expression(line, column), literal(literal) {}
     double literal;
     nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
@@ -99,7 +119,8 @@ struct DoubleExpr : public Expression {
 };
 
 struct StringExpr : public Expression {
-    explicit StringExpr(std::string literal) : literal(std::move(literal)) {}
+    explicit StringExpr(std::string literal, int line, int column)
+        : Expression(line, column), literal(std::move(literal)) {}
     std::string literal;
     nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
@@ -107,8 +128,8 @@ struct StringExpr : public Expression {
 };
 
 struct IdentExpr : public Expression {
-    explicit IdentExpr(std::string identName)
-        : identName(std::move(identName)) {}
+    explicit IdentExpr(std::string identName, int line, int column)
+        : Expression(line, column), identName(std::move(identName)) {}
     std::string identName;
     nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
 
@@ -116,6 +137,7 @@ struct IdentExpr : public Expression {
 };
 
 struct BinaryExpr : public Expression {
+    explicit BinaryExpr(int line, int column) : Expression(line, column) {}
     Expression* lhs{};
     Token opt{};
     Expression* rhs{};
@@ -125,6 +147,7 @@ struct BinaryExpr : public Expression {
 };
 
 struct FunCallExpr : public Expression {
+    explicit FunCallExpr(int line, int column) : Expression(line, column) {}
     std::string funcName;
     std::vector<Expression*> args;
     nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
@@ -132,8 +155,11 @@ struct FunCallExpr : public Expression {
 };
 
 struct AssignExpr : public Expression {
-    explicit AssignExpr(std::string identName, Expression* expr)
-        : identName(std::move(identName)), expr(expr) {}
+    explicit AssignExpr(std::string identName, Expression* expr, int line,
+                        int column)
+        : Expression(line, column),
+          identName(std::move(identName)),
+          expr(expr) {}
     std::string identName;
     Expression* expr{};
     nyx::Value eval(std::deque<nyx::LocalContext*> ctxChain) override;
@@ -141,13 +167,17 @@ struct AssignExpr : public Expression {
     std::string astString() override;
 };
 
+//===----------------------------------------------------------------------===//
 // Statement
-struct Statement {
+//===----------------------------------------------------------------------===//
+struct Statement : public AstNode {
+    using AstNode::AstNode;
+
     virtual ~Statement() = default;
 
     virtual void interpret(std::deque<nyx::LocalContext*> ctxChain) {}
 
-    virtual std::string astString() { return "Stmt"; }
+    std::string astString() override;
 };
 struct Block {
     explicit Block() = default;
@@ -155,7 +185,9 @@ struct Block {
     std::vector<Statement*> stmts;
 };
 struct ExpressionStmt : public Statement {
-    explicit ExpressionStmt(Expression* expr) : expr(expr) {}
+    explicit ExpressionStmt(Expression* expr, int line, int column)
+        : Statement(line, column), expr(expr) {}
+
     Expression* expr{};
     void interpret(std::deque<nyx::LocalContext*> ctxChain) override;
 
@@ -163,6 +195,8 @@ struct ExpressionStmt : public Statement {
 };
 
 struct IfStmt : public Statement {
+    explicit IfStmt(int line, int column) : Statement(line, column) {}
+
     Expression* cond{};
     Block* block{};
     Block* elseBlock{};
@@ -172,6 +206,7 @@ struct IfStmt : public Statement {
 };
 
 struct WhileStmt : public Statement {
+    explicit WhileStmt(int line, int column) : Statement(line, column) {}
     Expression* cond{};
     Block* block{};
 

@@ -1,6 +1,14 @@
 #include "Ast.h"
+#include "Utils.hpp"
+
+nyx::Value Expression::eval(std::deque<nyx::LocalContext*> ctxChain) {
+    panic("RuntimeError: can not abstract expression at line %d, column %d\n",
+          line, column);
+}
 
 std::string Expression::astString() { return "Expr()"; }
+
+std::string Statement::astString() { return "Stmt()"; }
 
 std::string BoolExpr::astString() {
     return "BoolExpr(" + std::to_string(literal) + ")";

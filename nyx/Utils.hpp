@@ -10,3 +10,5 @@ template <typename _DesireType, typename... _ArgumentType>
 inline bool anyone(_DesireType k, _ArgumentType... args) {
     return ((args == k) || ...);
 }
+
+[[noreturn]] void panic(char const* const format, ...);

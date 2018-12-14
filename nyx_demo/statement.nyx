@@ -26,3 +26,12 @@ print("counter:"+a)
 a=1+a
 }
 
+b = 1
+if(b==1){
+    c = b+1
+    if(c==2){
+        print("c is"+c)
+        c = c-1
+    }
+    print("now c is "+c)
+}

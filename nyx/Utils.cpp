@@ -1,3 +1,4 @@
+#include <cstdarg>
 #include "Nyx.hpp"
 #include "Utils.hpp"
 
@@ -15,4 +16,12 @@ std::string valueToStdString(nyx::Value v) {
             return std::any_cast<std::string>(v.data);
     }
     return "unknown";
+}
+
+[[noreturn]] void panic(char const* const format, ...) {
+    va_list args;
+    va_start(args, format);
+    vfprintf(stdout, format, args);
+    va_end(args);
+    exit(EXIT_FAILURE);
 }
