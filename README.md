@@ -1,8 +1,9 @@
 # nyx
 [![Build Status](https://travis-ci.org/racaljk/nyx.svg?branch=master)](https://travis-ci.org/racaljk/nyx) | 
 [![Build status](https://ci.appveyor.com/api/projects/status/ptqln5210xp6gupc?svg=true)](https://ci.appveyor.com/project/racaljk/nyx) |
-[![Documentation Status](https://readthedocs.org/projects/nyx-lang/badge/?version=latest)](https://nyx-lang.readthedocs.io/zh/latest/?badge=latest)
-  
+[![Documentation Status](https://readthedocs.org/projects/nyx-lang/badge/?version=latest)](https://nyx-lang.readthedocs.io/zh/latest/?badge=latest) |
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f75d53319a8f46d3866a41f32b2874a9)](https://www.codacy.com/app/racaljk/nyx?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=racaljk/nyx&amp;utm_campaign=Badge_Grade)
+
 
 又一门动态类型的脚本语言
 希望**nyx**有python的语法灵活，c系的语法形式，以及非理想主义者的哲学 ：——）

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stdio.h>
 #include <any>
 #include <deque>
 #include <string>
@@ -85,21 +84,20 @@ private:
 };
 
 class NyxContext {
+    using BuiltinFuncType = Value (*)(NyxContext*, std::deque<Context*>,
+                                      std::vector<Value>);
+
 public:
     explicit NyxContext();
 
     bool hasBuiltinFunction(const std::string& name);
-    Value (*getBuiltinFunction(const std::string& name))(NyxContext*,
-                                                         std::deque<Context*>,
-                                                         std::vector<Value>);
-    void addStatement(Statement* stmt);
+    BuiltinFuncType getBuiltinFunction(const std::string& name);
 
+    void addStatement(Statement* stmt);
     std::vector<Statement*> getStatements();
 
 private:
-    std::unordered_map<std::string, Value (*)(NyxContext*, std::deque<Context*>,
-                                              std::vector<Value>)>
-        builtin;
+    std::unordered_map<std::string, BuiltinFuncType> builtin;
     std::vector<Statement*> stmts;
 };
 

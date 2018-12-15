@@ -16,8 +16,18 @@ Interpreter::~Interpreter() {
 
 nyx::Value Expression::eval(nyx::NyxContext* nyxCtx,
                             std::deque<nyx::Context*> ctxChain) {
-    panic("RuntimeError: can not abstract expression at line %d, column %d\n",
-          line, column);
+    panic(
+        "RuntimeError: can not evaluate abstract expression at line %d, column "
+        "%d\n",
+        line, column);
+}
+
+void Statement::interpret(nyx::NyxContext* nyxCtx,
+                          std::deque<nyx::Context*> ctxChain) {
+    panic(
+        "RuntimeError: can not interpret abstract statement at line %d, column "
+        "%d\n",
+        line, column);
 }
 
 void Interpreter::prepareContext() {
@@ -163,31 +173,35 @@ nyx::Value FunCallExpr::eval(nyx::NyxContext* nyxCtx,
         result = builtinFunc(nyxCtx, ctxChain, arguments);
         return result;
     }
-    auto* ctx = ctxChain.front();
-    if (auto* f = ctx->getFunction(this->funcName); f != nullptr) {
-        if (f->params.size() != this->args.size()) {
-            panic("ArgumentError: expects %d arguments but got %d",
-                  f->params.size(), this->args.size());
+
+    for (int i = 0; i < ctxChain.size(); i--) {
+        auto* ctx = ctxChain[i];
+        if (auto* f = ctx->getFunction(this->funcName); f != nullptr) {
+            if (f->params.size() != this->args.size()) {
+                panic("ArgumentError: expects %d arguments but got %d",
+                      f->params.size(), this->args.size());
+            }
+
+            std::deque<nyx::Context*> funcCtxChain;
+            Interpreter::enterContext(funcCtxChain);
+
+            auto* funcCtx = funcCtxChain.back();
+            for (int i = 0; i < f->params.size(); i++) {
+                std::string paramName = f->params[i];
+                nyx::Value argValue = this->args[i]->eval(nyxCtx, funcCtxChain);
+                funcCtx->addVariable(f->params[i], argValue);
+            }
+
+            for (auto& stmt : f->block->stmts) {
+                stmt->interpret(nyxCtx, funcCtxChain);
+            }
+
+            Interpreter::leaveContext(funcCtxChain);
+            // Return null since nyx does not support return value current:(
+            return nyx::Value(nyx::Null);
         }
-
-        std::deque<nyx::Context*> funcCtxChain;
-        Interpreter::enterContext(funcCtxChain);
-
-        auto* funcCtx = funcCtxChain.back();
-        for (int i = 0; i < f->params.size(); i++) {
-            std::string paramName = f->params[i];
-            nyx::Value argValue = this->args[i]->eval(nyxCtx, funcCtxChain);
-            funcCtx->addVariable(f->params[i], argValue);
-        }
-
-        for (auto& stmt : f->block->stmts) {
-            stmt->interpret(nyxCtx, funcCtxChain);
-        }
-
-        Interpreter::leaveContext(funcCtxChain);
-        // Return null since nyx does not support return value current:(
-        return nyx::Value(nyx::Null);
     }
+
     panic(
         "RuntimeError: can not find function definition of %s in both "
         "built-in "

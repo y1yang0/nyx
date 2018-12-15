@@ -185,7 +185,8 @@ struct Statement : public AstNode {
 
     virtual ~Statement() = default;
     virtual void interpret(nyx::NyxContext* nyxCtx,
-                           std::deque<nyx::Context*> ctxChain) {}
+                           std::deque<nyx::Context*> ctxChain);
+
     std::string astString() override;
 };
 struct Block {

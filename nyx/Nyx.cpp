@@ -2,7 +2,9 @@
 #include "Nyx.hpp"
 #include "Utils.hpp"
 
-nyx::Context::~Context() {
+namespace nyx {
+
+Context::~Context() {
     for (auto v : vars) {
         delete v.second;
     }
@@ -18,8 +20,8 @@ bool nyx::NyxContext::hasBuiltinFunction(const std::string& name) {
     return builtin.count(name) == 1;
 }
 
-nyx::Value (*nyx::NyxContext::getBuiltinFunction(const std::string& name))(
-    nyx::NyxContext*, std::deque<nyx::Context*>, std::vector<nyx::Value>) {
+nyx::NyxContext::BuiltinFuncType nyx::NyxContext::getBuiltinFunction(
+    const std::string& name) {
     if (auto res = builtin.find(name); res != builtin.end()) {
         return res->second;
     }
@@ -30,47 +32,47 @@ void nyx::NyxContext::addStatement(Statement* stmt) { stmts.push_back(stmt); }
 
 std::vector<Statement*> nyx::NyxContext::getStatements() { return stmts; }
 
-bool nyx::Context::removeVariable(const std::string& identName) {
+bool Context::removeVariable(const std::string& identName) {
     auto* found = getVariable(identName);
     delete found;
     return vars.erase(identName);
 }
 
-bool nyx::Context::hasVariable(const std::string& identName) {
+bool Context::hasVariable(const std::string& identName) {
     return vars.count(identName) == 1;
 }
 
-void nyx::Context::addVariable(const std::string& identName, nyx::Value value) {
+void Context::addVariable(const std::string& identName, Value value) {
     auto* var = new nyx::Variable;
     var->name = identName;
     var->value = value;
     vars.emplace(identName, var);
 }
 
-nyx::Variable* nyx::Context::getVariable(const std::string& identName) {
+nyx::Variable* Context::getVariable(const std::string& identName) {
     if (auto res = vars.find(identName); res != vars.end()) {
         return res->second;
     }
     return nullptr;
 }
 
-void nyx::Context::addFunction(const std::string& name, Function* f) {
+void Context::addFunction(const std::string& name, Function* f) {
     funcs.insert(std::make_pair(name, f));
 }
 
-bool nyx::Context::hasFunction(const std::string& name) {
+bool Context::hasFunction(const std::string& name) {
     return funcs.count(name) == 1;
 }
 
-nyx::Function* nyx::Context::getFunction(const std::string& name) {
+Function* Context::getFunction(const std::string& name) {
     if (auto f = funcs.find(name); f != funcs.end()) {
         return f->second;
     }
     return nullptr;
 }
 
-nyx::Value nyx::Value::operator+(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator+(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
         result.data = value_cast<int>() + rhs.value_cast<int>();
@@ -92,8 +94,8 @@ nyx::Value nyx::Value::operator+(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator-(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator-(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
         result.data = value_cast<int>() - rhs.value_cast<int>();
@@ -113,8 +115,8 @@ nyx::Value nyx::Value::operator-(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator*(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator*(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
         result.data = value_cast<int>() * rhs.value_cast<int>();
@@ -133,8 +135,8 @@ nyx::Value nyx::Value::operator*(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator/(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator/(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
         result.data = value_cast<int>() / rhs.value_cast<int>();
@@ -153,8 +155,8 @@ nyx::Value nyx::Value::operator/(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator%(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator%(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
         result.data = (int)value_cast<int>() % rhs.value_cast<int>();
@@ -164,8 +166,8 @@ nyx::Value nyx::Value::operator%(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator&&(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator&&(Value rhs) {
+    Value result;
     if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
         result.type = nyx::Bool;
         result.data = (value_cast<bool>() && rhs.value_cast<bool>());
@@ -175,8 +177,8 @@ nyx::Value nyx::Value::operator&&(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator||(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator||(Value rhs) {
+    Value result;
     if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
         result.type = nyx::Bool;
         result.data = (value_cast<bool>() || rhs.value_cast<bool>());
@@ -186,8 +188,8 @@ nyx::Value nyx::Value::operator||(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator==(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator==(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
         result.data = (value_cast<int>() == rhs.value_cast<int>());
@@ -212,8 +214,8 @@ nyx::Value nyx::Value::operator==(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator!=(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator!=(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
         result.data = (value_cast<int>() != rhs.value_cast<int>());
@@ -238,8 +240,8 @@ nyx::Value nyx::Value::operator!=(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator>(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator>(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
         result.data = (value_cast<int>() > rhs.value_cast<int>());
@@ -258,8 +260,8 @@ nyx::Value nyx::Value::operator>(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator>=(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator>=(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
         result.data = (value_cast<int>() >= rhs.value_cast<int>());
@@ -278,8 +280,8 @@ nyx::Value nyx::Value::operator>=(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator<(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator<(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
         result.data = (value_cast<int>() < rhs.value_cast<int>());
@@ -298,8 +300,8 @@ nyx::Value nyx::Value::operator<(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator<=(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator<=(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
         result.data = (value_cast<int>() <= rhs.value_cast<int>());
@@ -318,8 +320,8 @@ nyx::Value nyx::Value::operator<=(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator&(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator&(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
         result.data = (value_cast<int>() & rhs.value_cast<int>());
@@ -329,8 +331,8 @@ nyx::Value nyx::Value::operator&(nyx::Value rhs) {
     return result;
 }
 
-nyx::Value nyx::Value::operator|(nyx::Value rhs) {
-    nyx::Value result;
+Value Value::operator|(Value rhs) {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
         result.data = (value_cast<int>() | rhs.value_cast<int>());
@@ -339,3 +341,5 @@ nyx::Value nyx::Value::operator|(nyx::Value rhs) {
     }
     return result;
 }
+
+}  // namespace nyx
