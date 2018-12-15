@@ -12,8 +12,7 @@ void Parser::printLex(const std::string& fileName) {
 }
 
 Parser::Parser(const std::string& fileName)
-    : context(new nyx::GlobalContext),
-      keywords({{"if", KW_IF},
+    : keywords({{"if", KW_IF},
                 {"else", KW_ELSE},
                 {"while", KW_WHILE},
                 {"null", KW_NULL},
@@ -207,9 +206,16 @@ std::vector<std::string> Parser::parseParameterList() {
     return move(node);
 }
 
-nyx::Function* Parser::parseFuncDef() {
+nyx::Function* Parser::parseFuncDef(nyx::Context* context) {
     assert(getCurrentToken() == KW_FUNC);
     currentToken = next();
+
+    // Check if function was already be defined
+    if (context->hasFunction(getCurrentLexeme())) {
+        panic("SyntaxError: multiply function definitions of %s found",
+              getCurrentLexeme().c_str());
+    }
+
     auto* node = new nyx::Function;
     node->name = getCurrentLexeme();
     currentToken = next();
@@ -220,16 +226,16 @@ nyx::Function* Parser::parseFuncDef() {
     return node;
 }
 
-GlobalContext* Parser::parse() {
+void Parser::parse(nyx::NyxContext* nyxCtx, nyx::Context* context) {
     currentToken = next();
     do {
         if (getCurrentToken() == KW_FUNC) {
-            context->funcs.push_back(parseFuncDef());
+            auto* f = parseFuncDef(context);
+            context->addFunction(f->name, f);
         } else {
-            context->stmts.push_back(parseStatement());
+            nyxCtx->addStatement(parseStatement());
         }
     } while (getCurrentToken() != TK_EOF);
-    return this->context;
 }
 
 std::tuple<Token, std::string> Parser::next() {

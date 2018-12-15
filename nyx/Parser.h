@@ -16,7 +16,7 @@ public:
     ~Parser();
 
 public:
-    nyx::GlobalContext* parse();
+    void parse(nyx::NyxContext* nyxCtx, nyx::Context* context);
     static void printLex(const std::string& fileName);
     short precedence(Token op);
 
@@ -32,7 +32,7 @@ private:
     std::vector<Statement*> parseStatementList();
     Block* parseBlock();
     std::vector<std::string> parseParameterList();
-    nyx::Function* parseFuncDef();
+    nyx::Function* parseFuncDef(nyx::Context* context);
 
 private:
     std::tuple<Token, std::string> next();
@@ -55,8 +55,6 @@ private:
     const std::map<std::string, Token> keywords;
 
     std::tuple<Token, std::string> currentToken;
-
-    nyx::GlobalContext* context;
 
     std::fstream fs;
 

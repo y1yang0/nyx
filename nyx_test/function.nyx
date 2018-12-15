@@ -1,0 +1,9 @@
+func repeat(a,str){
+    i = 0
+    while(i<a){
+        print(str)
+        i = i+1
+    }
+}
+
+repeat(10,"greeting!")

@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <any>
+#include <deque>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -63,30 +64,43 @@ struct Variable {
     Value value;
 };
 
-class LocalContext {
+class Context {
 public:
-    explicit LocalContext() = default;
-    virtual ~LocalContext();
+    explicit Context() = default;
+    virtual ~Context();
 
     bool removeVariable(const std::string& identName);
     bool hasVariable(const std::string& identName);
     void addVariable(const std::string& identName, nyx::Value value);
 
-    nyx::Variable* findVariable(const std::string& identName);
+    nyx::Variable* getVariable(const std::string& identName);
+
+    void addFunction(const std::string& name, Function* f);
+    bool hasFunction(const std::string& name);
+    Function* getFunction(const std::string& name);
 
 private:
     std::unordered_map<std::string, Variable*> vars;
+    std::unordered_map<std::string, Function*> funcs;
 };
 
-struct GlobalContext : public LocalContext {
-    explicit GlobalContext();
-    ~GlobalContext() override;
+class NyxContext {
+public:
+    explicit NyxContext();
 
-    std::vector<Function*> funcs;
-    std::vector<Statement*> stmts;
-    std::unordered_map<std::string,
-                       Value (*)(GlobalContext*, std::vector<Value>)>
+    bool hasBuiltinFunction(const std::string& name);
+    Value (*getBuiltinFunction(const std::string& name))(NyxContext*,
+                                                         std::deque<Context*>,
+                                                         std::vector<Value>);
+    void addStatement(Statement* stmt);
+
+    std::vector<Statement*> getStatements();
+
+private:
+    std::unordered_map<std::string, Value (*)(NyxContext*, std::deque<Context*>,
+                                              std::vector<Value>)>
         builtin;
+    std::vector<Statement*> stmts;
 };
 
 template <int _NyxType>

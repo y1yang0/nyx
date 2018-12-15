@@ -3,21 +3,25 @@
 #include "Nyx.hpp"
 #include "Parser.h"
 
-class NyxInterpreter {
+class Interpreter {
 public:
-    explicit NyxInterpreter(const std::string& fileName);
-    ~NyxInterpreter();
+    explicit Interpreter(const std::string& fileName);
+    ~Interpreter();
 
 public:
+    void prepareContext();
+
     void execute();
 
-    static void enterContext(std::deque<nyx::LocalContext*>& ctxChain);
+    static void enterContext(std::deque<nyx::Context*>& ctxChain);
 
-    static void leaveContext(std::deque<nyx::LocalContext*>& ctxChain);
+    static void leaveContext(std::deque<nyx::Context*>& ctxChain);
 
 private:
     void parseCommandOption(int argc, char* argv) {}
 
 private:
+    std::deque<nyx::Context*> ctxChain;
+    nyx::NyxContext* nyxCtx;
     Parser* p;
 };

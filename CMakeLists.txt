@@ -7,7 +7,7 @@ set(NYX_SRC nyx/Builtin.cpp nyx/Interpreter.cpp nyx/Main.cpp nyx/Parser.cpp nyx/
 add_executable(nyx ${NYX_SRC})
 
 enable_testing()
-file(GLOB test_file_name ${PROJECT_SOURCE_DIR}/nyx_demo/*.nyx)
+file(GLOB test_file_name ${PROJECT_SOURCE_DIR}/nyx_test/*.nyx)
 
 foreach(each_file ${test_file_name})
  string(REGEX REPLACE ".*/(.*)\.nyx" "\\1" curated_name ${each_file})

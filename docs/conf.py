@@ -18,8 +18,13 @@
 
 
 # -- Project information -----------------------------------------------------
+from recommonmark.parser import CommonMarkParser
 
-project = 'nyx'
+source_parsers = {
+    '.md': CommonMarkParser,
+}
+
+project = 'nyx-lang'
 copyright = '2018, racaljk'
 author = 'racaljk'
 
@@ -39,7 +44,6 @@ release = ''
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.todo',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -49,7 +53,7 @@ templates_path = ['_templates']
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = '.md'
 
 # The master toctree document.
 master_doc = 'index'
@@ -102,7 +106,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'nyxdoc'
+htmlhelp_basename = 'nyx-langdoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -129,7 +133,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'nyx.tex', 'nyx Documentation',
+    (master_doc, 'nyx-lang.tex', 'nyx-lang Documentation',
      'racaljk', 'manual'),
 ]
 
@@ -139,7 +143,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'nyx', 'nyx Documentation',
+    (master_doc, 'nyx-lang', 'nyx-lang Documentation',
      [author], 1)
 ]
 
@@ -150,8 +154,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'nyx', 'nyx Documentation',
-     author, 'nyx', 'One line description of project.',
+    (master_doc, 'nyx-lang', 'nyx-lang Documentation',
+     author, 'nyx-lang', 'One line description of project.',
      'Miscellaneous'),
 ]
 
@@ -172,11 +176,3 @@ epub_title = project
 
 # A list of files that should not be packed into the epub file.
 epub_exclude_files = ['search.html']
-
-
-# -- Extension configuration -------------------------------------------------
-
-# -- Options for todo extension ----------------------------------------------
-
-# If true, `todo` and `todoList` produce output, else they produce nothing.
-todo_include_todos = True

@@ -5,14 +5,18 @@
 #include "Nyx.hpp"
 #include "Utils.hpp"
 
-nyx::Value nyx_builtin_print(nyx::GlobalContext* ctx, std::vector<Value> args) {
+nyx::Value nyx_builtin_print(nyx::NyxContext* nyxCtx,
+                             std::deque<nyx::Context*> ctxChain,
+                             std::vector<nyx::Value> args) {
     for (auto arg : args) {
         std::cout << valueToStdString(arg) << "\n";
     }
     return nyx::Value(nyx::Int, (int)args.size());
 }
 
-nyx::Value nyx_builtin_input(nyx::GlobalContext* ctx, std::vector<Value> args) {
+nyx::Value nyx_builtin_input(nyx::NyxContext* nyxCtx,
+                             std::deque<nyx::Context*> ctxChain,
+                             std::vector<nyx::Value> args) {
     nyx::Value result{nyx::String};
 
     std::string str;
@@ -21,7 +25,8 @@ nyx::Value nyx_builtin_input(nyx::GlobalContext* ctx, std::vector<Value> args) {
     return result;
 }
 
-nyx::Value nyx_builtin_typeof(nyx::GlobalContext* ctx,
+nyx::Value nyx_builtin_typeof(nyx::NyxContext* nyxCtx,
+                              std::deque<nyx::Context*> ctxChain,
                               std::vector<nyx::Value> args) {
     if (args.size() != 1) {
         panic("ArgumentError: expects one argument but got %d", args.size());

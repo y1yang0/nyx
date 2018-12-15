@@ -2,45 +2,69 @@
 #include "Nyx.hpp"
 #include "Utils.hpp"
 
-nyx::GlobalContext::GlobalContext() {
-    builtin["print"] = &nyx_builtin_print;
-    builtin["typeof"] = &nyx_builtin_typeof;
-    builtin["input"] = &nyx_builtin_input;
-}
-
-nyx::GlobalContext::~GlobalContext() {
-    for (auto* f : funcs) {
-        delete f;
-    }
-}
-
-nyx::LocalContext::~LocalContext() {
+nyx::Context::~Context() {
     for (auto v : vars) {
         delete v.second;
     }
 }
 
-bool nyx::LocalContext::removeVariable(const std::string& identName) {
-    auto* found = findVariable(identName);
+nyx::NyxContext::NyxContext() {
+    builtin["print"] = &nyx_builtin_print;
+    builtin["typeof"] = &nyx_builtin_typeof;
+    builtin["input"] = &nyx_builtin_input;
+}
+
+bool nyx::NyxContext::hasBuiltinFunction(const std::string& name) {
+    return builtin.count(name) == 1;
+}
+
+nyx::Value (*nyx::NyxContext::getBuiltinFunction(const std::string& name))(
+    nyx::NyxContext*, std::deque<nyx::Context*>, std::vector<nyx::Value>) {
+    if (auto res = builtin.find(name); res != builtin.end()) {
+        return res->second;
+    }
+    return builtin[name];
+}
+
+void nyx::NyxContext::addStatement(Statement* stmt) { stmts.push_back(stmt); }
+
+std::vector<Statement*> nyx::NyxContext::getStatements() { return stmts; }
+
+bool nyx::Context::removeVariable(const std::string& identName) {
+    auto* found = getVariable(identName);
     delete found;
     return vars.erase(identName);
 }
 
-bool nyx::LocalContext::hasVariable(const std::string& identName) {
+bool nyx::Context::hasVariable(const std::string& identName) {
     return vars.count(identName) == 1;
 }
 
-void nyx::LocalContext::addVariable(const std::string& identName,
-                                    nyx::Value value) {
+void nyx::Context::addVariable(const std::string& identName, nyx::Value value) {
     auto* var = new nyx::Variable;
     var->name = identName;
     var->value = value;
     vars.emplace(identName, var);
 }
 
-nyx::Variable* nyx::LocalContext::findVariable(const std::string& identName) {
+nyx::Variable* nyx::Context::getVariable(const std::string& identName) {
     if (auto res = vars.find(identName); res != vars.end()) {
         return res->second;
+    }
+    return nullptr;
+}
+
+void nyx::Context::addFunction(const std::string& name, Function* f) {
+    funcs.insert(std::make_pair(name, f));
+}
+
+bool nyx::Context::hasFunction(const std::string& name) {
+    return funcs.count(name) == 1;
+}
+
+nyx::Function* nyx::Context::getFunction(const std::string& name) {
+    if (auto f = funcs.find(name); f != funcs.end()) {
+        return f->second;
     }
     return nullptr;
 }
