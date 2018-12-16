@@ -45,4 +45,37 @@ func force(){
     }
 }
 
+func force1(){
+    i = 0
+    while(true){
+        if(i<10){
+            print("ok")
+        }else{
+            print("break")
+            break
+        }
+        i = i+1
+    }
+    while(i<20){
+        print("once again")
+        i = i +1
+    }
+    return i
+}
+
+
 force()
+res = force1()
+print(res)
+
+func upto10(){
+    i=0
+    while(true){
+        if(i==10){
+            break
+        }
+        print("up")
+        i = i+1
+    }
+}
+upto10()

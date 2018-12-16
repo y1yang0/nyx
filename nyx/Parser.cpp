@@ -20,7 +20,8 @@ Parser::Parser(const std::string& fileName)
                 {"false", KW_FALSE},
                 {"for", KW_FALSE},
                 {"func", KW_FUNC},
-                {"return", KW_RETURN}}) {
+                {"return", KW_RETURN},
+                {"break", KW_BREAK}}) {
     fs.open(fileName);
     if (!fs.is_open()) {
         panic("ParserError: can not open source file");
@@ -166,6 +167,10 @@ Statement* Parser::parseStatement() {
         case KW_RETURN:
             currentToken = next();
             node = parseReturnStmt();
+            break;
+        case KW_BREAK:
+            currentToken = next();
+            node = new BreakStmt(line, column);
             break;
         default:
             node = parseExpressionStmt();

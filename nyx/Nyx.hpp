@@ -7,10 +7,11 @@
 #include <vector>
 
 struct Statement;
+struct Expression;
 
 namespace nyx {
 enum ValueType { Int, Double, String, Bool, Null };
-enum ExecutionResultType { ExecNormal, ExecReturn };
+enum ExecutionResultType { ExecNormal, ExecReturn, ExecBreak };
 
 struct Block {
     explicit Block() = default;

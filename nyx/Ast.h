@@ -53,6 +53,7 @@ enum Token {
     KW_NULL,    // null
     KW_FUNC,    // func
     KW_RETURN,  // return
+    KW_BREAK,   // break
 };
 
 using nyx::Block;
@@ -179,6 +180,13 @@ struct Statement : public AstNode {
     virtual ~Statement() = default;
     virtual ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain);
 
+    std::string astString() override;
+};
+
+struct BreakStmt : public Statement {
+    explicit BreakStmt(int line, int column) : Statement(line, column) {}
+
+    ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 

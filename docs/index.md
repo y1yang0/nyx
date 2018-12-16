@@ -117,6 +117,20 @@ func toStar(str){
 print(toStar("i come i see i conquer"))
 # **********************
 ```
+`break`跳出最近一层循环：
+```nyx
+func upto10(){
+    i=0
+    while(true){
+        if(i==10){
+            break
+        }
+        print("up")
+        i = i+1
+    }
+}
+upto10()
+```
 这里没有魔法。
 
 ## 6.内置函数

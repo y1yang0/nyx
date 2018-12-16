@@ -160,3 +160,5 @@ std::string ReturnStmt::astString() {
     str += ")";
     return str;
 }
+
+std::string BreakStmt::astString() { return "BreakStmt()"; }

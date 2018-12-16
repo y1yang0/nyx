@@ -80,6 +80,8 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == nyx::ExecReturn) {
                 break;
+            } else if (ret.execType == nyx::ExecBreak) {
+                break;
             }
         }
         Interpreter::leaveContext(ctxChain);
@@ -90,6 +92,8 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
                 // std::cout << stmt->astString() << "\n";
                 ret = elseStmt->interpret(rt, ctxChain);
                 if (ret.execType == nyx::ExecReturn) {
+                    break;
+                } else if (ret.execType == nyx::ExecBreak) {
                     break;
                 }
             }
@@ -110,7 +114,9 @@ nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
             // std::cout << stmt->astString() << "\n";
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == nyx::ExecReturn) {
-                goto break_loop;
+                goto outside;
+            } else if (ret.execType == nyx::ExecBreak) {
+                goto outside;
             }
         }
         cond = this->cond->eval(rt, ctxChain);
@@ -122,7 +128,7 @@ nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
         }
     }
 
-break_loop:
+outside:
     Interpreter::leaveContext(ctxChain);
     return ret;
 }
@@ -134,10 +140,15 @@ nyx::ExecResult ExpressionStmt::interpret(nyx::Runtime* rt,
     return nyx::ExecResult(nyx::ExecNormal);
 }
 
-nyx::ExecResult ReturnStmt::interpret(Runtime* rt,
-                                      std::deque<Context*> ctxChain) {
+nyx::ExecResult ReturnStmt::interpret(nyx::Runtime* rt,
+                                      std::deque<nyx::Context*> ctxChain) {
     Value retVal = this->ret->eval(rt, ctxChain);
     return nyx::ExecResult(nyx::ExecReturn, retVal);
+}
+
+nyx::ExecResult BreakStmt::interpret(nyx::Runtime* rt,
+                                     std::deque<nyx::Context*> ctxChain) {
+    return nyx::ExecResult(nyx::ExecBreak);
 }
 
 //===----------------------------------------------------------------------===//
@@ -193,6 +204,31 @@ nyx::Value AssignExpr::eval(nyx::Runtime* rt,
     return lhs;
 }
 
+static nyx::Value callFunction(nyx::Runtime* rt, nyx::Function* f,
+                               std::vector<Expression*> args) {
+    // Execute user defined function
+    std::deque<nyx::Context*> funcCtxChain;
+    Interpreter::enterContext(funcCtxChain);
+
+    auto* funcCtx = funcCtxChain.back();
+    for (int i = 0; i < f->params.size(); i++) {
+        std::string paramName = f->params[i];
+        nyx::Value argValue = args[i]->eval(rt, funcCtxChain);
+        funcCtx->addVariable(f->params[i], argValue);
+    }
+
+    nyx::ExecResult ret(nyx::ExecNormal);
+    for (auto& stmt : f->block->stmts) {
+        ret = stmt->interpret(rt, funcCtxChain);
+        if (ret.execType == nyx::ExecReturn) {
+            break;
+        }
+    }
+    Interpreter::leaveContext(funcCtxChain);
+
+    return ret.retValue;
+}
+
 nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
                              std::deque<nyx::Context*> ctxChain) {
     if (auto* builtinFunc = rt->getBuiltinFunction(this->funcName);
@@ -211,27 +247,7 @@ nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
                 panic("ArgumentError: expects %d arguments but got %d",
                       f->params.size(), this->args.size());
             }
-
-            std::deque<nyx::Context*> funcCtxChain;
-            Interpreter::enterContext(funcCtxChain);
-
-            auto* funcCtx = funcCtxChain.back();
-            for (int i = 0; i < f->params.size(); i++) {
-                std::string paramName = f->params[i];
-                nyx::Value argValue = this->args[i]->eval(rt, funcCtxChain);
-                funcCtx->addVariable(f->params[i], argValue);
-            }
-            nyx::ExecResult ret(nyx::ExecNormal);
-            for (auto& stmt : f->block->stmts) {
-                ret = stmt->interpret(rt, funcCtxChain);
-                if (ret.execType == nyx::ExecReturn) {
-                    break;
-                }
-            }
-
-            Interpreter::leaveContext(funcCtxChain);
-
-            return ret.retValue;
+            return callFunction(rt, f, this->args);
         }
     }
 
@@ -281,7 +297,6 @@ static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
             break;
     }
 
-    // Maybe a FunCallExpr or IdentExpr
     return lhs;
 }
 
