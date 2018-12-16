@@ -55,7 +55,7 @@ enum Token {
 };
 
 using nyx::Context;
-using nyx::NyxContext;
+using nyx::Runtime;
 using nyx::Value;
 struct Expression;
 struct Statement;
@@ -78,8 +78,7 @@ struct Expression : public AstNode {
 
     virtual ~Expression() = default;
 
-    virtual nyx::Value eval(nyx::NyxContext* nyxCtx,
-                            std::deque<nyx::Context*> ctxChain);
+    virtual Value eval(Runtime* rt, std::deque<Context*> ctxChain);
 
     std::string astString() override;
 };
@@ -89,15 +88,13 @@ struct BoolExpr : public Expression {
         : Expression(line, column), literal(literal) {}
     bool literal;
 
-    nyx::Value eval(nyx::NyxContext* nyxCtx,
-                    std::deque<nyx::Context*> ctxChain) override;
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 struct NullExpr : public Expression {
     explicit NullExpr(int line, int column) : Expression(line, column) {}
 
-    nyx::Value eval(nyx::NyxContext* nyxCtx,
-                    std::deque<nyx::Context*> ctxChain) override;
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 struct IntExpr : public Expression {
@@ -106,8 +103,7 @@ struct IntExpr : public Expression {
 
     int literal;
 
-    nyx::Value eval(nyx::NyxContext* nyxCtx,
-                    std::deque<nyx::Context*> ctxChain) override;
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 
@@ -117,8 +113,7 @@ struct DoubleExpr : public Expression {
 
     double literal;
 
-    nyx::Value eval(nyx::NyxContext* nyxCtx,
-                    std::deque<nyx::Context*> ctxChain) override;
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 
@@ -128,8 +123,7 @@ struct StringExpr : public Expression {
 
     std::string literal;
 
-    nyx::Value eval(nyx::NyxContext* nyxCtx,
-                    std::deque<nyx::Context*> ctxChain) override;
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString();
 };
 
@@ -137,8 +131,7 @@ struct IdentExpr : public Expression {
     explicit IdentExpr(std::string identName, int line, int column)
         : Expression(line, column), identName(std::move(identName)) {}
     std::string identName;
-    nyx::Value eval(nyx::NyxContext* nyxCtx,
-                    std::deque<nyx::Context*> ctxChain) override;
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
 
     std::string astString() override;
 };
@@ -148,8 +141,7 @@ struct BinaryExpr : public Expression {
     Expression* lhs{};
     Token opt{};
     Expression* rhs{};
-    nyx::Value eval(nyx::NyxContext* nyxCtx,
-                    std::deque<nyx::Context*> ctxChain) override;
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
 
     std::string astString() override;
 };
@@ -158,8 +150,7 @@ struct FunCallExpr : public Expression {
     explicit FunCallExpr(int line, int column) : Expression(line, column) {}
     std::string funcName;
     std::vector<Expression*> args;
-    nyx::Value eval(nyx::NyxContext* nyxCtx,
-                    std::deque<nyx::Context*> ctxChain) override;
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 
@@ -171,8 +162,7 @@ struct AssignExpr : public Expression {
           expr(expr) {}
     std::string identName;
     Expression* expr{};
-    nyx::Value eval(nyx::NyxContext* nyxCtx,
-                    std::deque<nyx::Context*> ctxChain) override;
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
 
     std::string astString() override;
 };
@@ -184,8 +174,7 @@ struct Statement : public AstNode {
     using AstNode::AstNode;
 
     virtual ~Statement() = default;
-    virtual void interpret(nyx::NyxContext* nyxCtx,
-                           std::deque<nyx::Context*> ctxChain);
+    virtual void interpret(Runtime* rt, std::deque<Context*> ctxChain);
 
     std::string astString() override;
 };
@@ -200,8 +189,7 @@ struct ExpressionStmt : public Statement {
 
     Expression* expr{};
 
-    void interpret(nyx::NyxContext* nyxCtx,
-                   std::deque<nyx::Context*> ctxChain) override;
+    void interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 
@@ -212,8 +200,7 @@ struct IfStmt : public Statement {
     Block* block{};
     Block* elseBlock{};
 
-    void interpret(nyx::NyxContext* nyxCtx,
-                   std::deque<nyx::Context*> ctxChain) override;
+    void interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 
@@ -223,7 +210,6 @@ struct WhileStmt : public Statement {
     Expression* cond{};
     Block* block{};
 
-    void interpret(nyx::NyxContext* nyxCtx,
-                   std::deque<nyx::Context*> ctxChain) override;
+    void interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };

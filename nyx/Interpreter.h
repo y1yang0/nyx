@@ -22,6 +22,6 @@ private:
 
 private:
     std::deque<nyx::Context*> ctxChain;
-    nyx::NyxContext* nyxCtx;
+    nyx::Runtime* rt;
     Parser* p;
 };

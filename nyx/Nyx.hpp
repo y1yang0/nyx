@@ -31,7 +31,7 @@ struct Value {
     inline bool isType();
 
     template <typename _CastingType>
-    inline _CastingType value_cast();
+    inline _CastingType cast();
 
     Value operator+(Value rhs);
     Value operator-(Value rhs);
@@ -70,9 +70,8 @@ public:
 
     bool removeVariable(const std::string& identName);
     bool hasVariable(const std::string& identName);
-    void addVariable(const std::string& identName, nyx::Value value);
-
-    nyx::Variable* getVariable(const std::string& identName);
+    void addVariable(const std::string& identName, Value value);
+    Variable* getVariable(const std::string& identName);
 
     void addFunction(const std::string& name, Function* f);
     bool hasFunction(const std::string& name);
@@ -83,12 +82,12 @@ private:
     std::unordered_map<std::string, Function*> funcs;
 };
 
-class NyxContext {
-    using BuiltinFuncType = Value (*)(NyxContext*, std::deque<Context*>,
+class Runtime {
+    using BuiltinFuncType = Value (*)(Runtime*, std::deque<Context*>,
                                       std::vector<Value>);
 
 public:
-    explicit NyxContext();
+    explicit Runtime();
 
     bool hasBuiltinFunction(const std::string& name);
     BuiltinFuncType getBuiltinFunction(const std::string& name);
@@ -107,7 +106,7 @@ inline bool Value::isType() {
 }
 
 template <typename _CastingType>
-inline _CastingType Value::value_cast() {
+inline _CastingType Value::cast() {
     return std::any_cast<_CastingType>(data);
 }
 }  // namespace nyx

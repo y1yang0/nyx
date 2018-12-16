@@ -7,14 +7,14 @@
 #include "Utils.hpp"
 
 Interpreter::Interpreter(const std::string& fileName)
-    : p(new Parser(fileName)) {}
+    : p(new Parser(fileName)), rt(new nyx::Runtime) {}
 
 Interpreter::~Interpreter() {
     delete p;
-    delete nyxCtx;
+    delete rt;
 }
 
-nyx::Value Expression::eval(nyx::NyxContext* nyxCtx,
+nyx::Value Expression::eval(nyx::Runtime* rt,
                             std::deque<nyx::Context*> ctxChain) {
     panic(
         "RuntimeError: can not evaluate abstract expression at line %d, column "
@@ -22,7 +22,7 @@ nyx::Value Expression::eval(nyx::NyxContext* nyxCtx,
         line, column);
 }
 
-void Statement::interpret(nyx::NyxContext* nyxCtx,
+void Statement::interpret(nyx::Runtime* rt,
                           std::deque<nyx::Context*> ctxChain) {
     panic(
         "RuntimeError: can not interpret abstract statement at line %d, column "
@@ -31,19 +31,18 @@ void Statement::interpret(nyx::NyxContext* nyxCtx,
 }
 
 void Interpreter::prepareContext() {
-    this->nyxCtx = new nyx::NyxContext;
-
     nyx::Context* ctx = new nyx::Context;
-    this->p->parse(nyxCtx, ctx);
+    this->p->parse(this->rt, ctx);
     this->ctxChain.push_back(ctx);
 }
 
 void Interpreter::execute() {
     prepareContext();
 
-    auto stmts = nyxCtx->getStatements();
+    auto stmts = rt->getStatements();
     for (auto stmt : stmts) {
-        stmt->interpret(nyxCtx, ctxChain);
+        // std::cout << stmt->astString() << "\n";
+        stmt->interpret(rt, ctxChain);
     }
 }
 
@@ -58,42 +57,44 @@ void Interpreter::leaveContext(std::deque<nyx::Context*>& ctxChain) {
     delete tempContext;
 }
 
-void IfStmt::interpret(nyx::NyxContext* nyxCtx,
-                       std::deque<nyx::Context*> ctxChain) {
-    Value cond = this->cond->eval(nyxCtx, ctxChain);
+void IfStmt::interpret(nyx::Runtime* rt, std::deque<nyx::Context*> ctxChain) {
+    Value cond = this->cond->eval(rt, ctxChain);
     if (!cond.isType<nyx::Bool>()) {
         panic(
             "RuntimeError: expect bool type in while condition at line %d, "
             "col %d\n",
             line, column);
     }
-    if (true == cond.value_cast<bool>()) {
+    if (true == cond.cast<bool>()) {
         Interpreter::enterContext(ctxChain);
         for (auto& stmt : block->stmts) {
-            stmt->interpret(nyxCtx, ctxChain);
+            // std::cout << stmt->astString() << "\n";
+            stmt->interpret(rt, ctxChain);
         }
         Interpreter::leaveContext(ctxChain);
     } else {
         if (elseBlock != nullptr) {
             Interpreter::enterContext(ctxChain);
             for (auto& elseStmt : elseBlock->stmts) {
-                elseStmt->interpret(nyxCtx, ctxChain);
+                // std::cout << stmt->astString() << "\n";
+                elseStmt->interpret(rt, ctxChain);
             }
             Interpreter::leaveContext(ctxChain);
         }
     }
 }
 
-void WhileStmt::interpret(nyx::NyxContext* nyxCtx,
+void WhileStmt::interpret(nyx::Runtime* rt,
                           std::deque<nyx::Context*> ctxChain) {
-    Value cond = this->cond->eval(nyxCtx, ctxChain);
+    Value cond = this->cond->eval(rt, ctxChain);
 
     Interpreter::enterContext(ctxChain);
-    while (true == cond.value_cast<bool>()) {
+    while (true == cond.cast<bool>()) {
         for (auto& stmt : block->stmts) {
-            stmt->interpret(nyxCtx, ctxChain);
+            // std::cout << stmt->astString() << "\n";
+            stmt->interpret(rt, ctxChain);
         }
-        cond = this->cond->eval(nyxCtx, ctxChain);
+        cond = this->cond->eval(rt, ctxChain);
         if (!cond.isType<nyx::Bool>()) {
             panic(
                 "RuntimeError: expect bool type in while condition at line %d, "
@@ -104,33 +105,32 @@ void WhileStmt::interpret(nyx::NyxContext* nyxCtx,
     Interpreter::leaveContext(ctxChain);
 }
 
-void ExpressionStmt::interpret(nyx::NyxContext* nyxCtx,
+void ExpressionStmt::interpret(nyx::Runtime* rt,
                                std::deque<nyx::Context*> ctxChain) {
     // std::cout << this->expr->astString() << "\n";
-    this->expr->eval(nyxCtx, ctxChain);
+    this->expr->eval(rt, ctxChain);
 }
 
-nyx::Value NullExpr::eval(nyx::NyxContext* nyxCtx,
+nyx::Value NullExpr::eval(nyx::Runtime* rt,
                           std::deque<nyx::Context*> ctxChain) {
     return nyx::Value(nyx::Null);
 }
-nyx::Value BoolExpr::eval(nyx::NyxContext* nyxCtx,
+nyx::Value BoolExpr::eval(nyx::Runtime* rt,
                           std::deque<nyx::Context*> ctxChain) {
     return nyx::Value(nyx::Bool, this->literal);
 }
-nyx::Value IntExpr::eval(nyx::NyxContext* nyxCtx,
-                         std::deque<nyx::Context*> ctxChain) {
+nyx::Value IntExpr::eval(nyx::Runtime* rt, std::deque<nyx::Context*> ctxChain) {
     return nyx::Value(nyx::Int, this->literal);
 }
-nyx::Value DoubleExpr::eval(nyx::NyxContext* nyxCtx,
+nyx::Value DoubleExpr::eval(nyx::Runtime* rt,
                             std::deque<nyx::Context*> ctxChain) {
     return nyx::Value(nyx::Double, this->literal);
 }
-nyx::Value StringExpr::eval(nyx::NyxContext* nyxCtx,
+nyx::Value StringExpr::eval(nyx::Runtime* rt,
                             std::deque<nyx::Context*> ctxChain) {
     return nyx::Value(nyx::String, this->literal);
 }
-nyx::Value IdentExpr::eval(nyx::NyxContext* nyxCtx,
+nyx::Value IdentExpr::eval(nyx::Runtime* rt,
                            std::deque<nyx::Context*> ctxChain) {
     for (auto p = ctxChain.crbegin(); p != ctxChain.crend(); ++p) {
         auto* ctx = *p;
@@ -142,9 +142,9 @@ nyx::Value IdentExpr::eval(nyx::NyxContext* nyxCtx,
           identName.c_str(), this->line, this->column);
 }
 
-nyx::Value AssignExpr::eval(nyx::NyxContext* nyxCtx,
+nyx::Value AssignExpr::eval(nyx::Runtime* rt,
                             std::deque<nyx::Context*> ctxChain) {
-    nyx::Value lhs = this->expr->eval(nyxCtx, ctxChain);
+    nyx::Value lhs = this->expr->eval(rt, ctxChain);
 
     // If this variable was already defined in current context or prior contexts
     // then reassign value to it
@@ -161,16 +161,16 @@ nyx::Value AssignExpr::eval(nyx::NyxContext* nyxCtx,
     return lhs;
 }
 
-nyx::Value FunCallExpr::eval(nyx::NyxContext* nyxCtx,
+nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
                              std::deque<nyx::Context*> ctxChain) {
     nyx::Value result;
-    if (auto* builtinFunc = nyxCtx->getBuiltinFunction(this->funcName);
+    if (auto* builtinFunc = rt->getBuiltinFunction(this->funcName);
         builtinFunc != nullptr) {
         std::vector<Value> arguments;
         for (auto e : this->args) {
-            arguments.push_back(e->eval(nyxCtx, ctxChain));
+            arguments.push_back(e->eval(rt, ctxChain));
         }
-        result = builtinFunc(nyxCtx, ctxChain, arguments);
+        result = builtinFunc(rt, ctxChain, arguments);
         return result;
     }
 
@@ -188,12 +188,12 @@ nyx::Value FunCallExpr::eval(nyx::NyxContext* nyxCtx,
             auto* funcCtx = funcCtxChain.back();
             for (int i = 0; i < f->params.size(); i++) {
                 std::string paramName = f->params[i];
-                nyx::Value argValue = this->args[i]->eval(nyxCtx, funcCtxChain);
+                nyx::Value argValue = this->args[i]->eval(rt, funcCtxChain);
                 funcCtx->addVariable(f->params[i], argValue);
             }
 
             for (auto& stmt : f->block->stmts) {
-                stmt->interpret(nyxCtx, funcCtxChain);
+                stmt->interpret(rt, funcCtxChain);
             }
 
             Interpreter::leaveContext(funcCtxChain);
@@ -307,12 +307,12 @@ static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs, int line,
     return result;
 }
 
-nyx::Value BinaryExpr::eval(nyx::NyxContext* nyxCtx,
+nyx::Value BinaryExpr::eval(nyx::Runtime* rt,
                             std::deque<nyx::Context*> ctxChain) {
     nyx::Value lhs =
-        this->lhs ? this->lhs->eval(nyxCtx, ctxChain) : nyx::Value(nyx::Null);
+        this->lhs ? this->lhs->eval(rt, ctxChain) : nyx::Value(nyx::Null);
     nyx::Value rhs =
-        this->rhs ? this->rhs->eval(nyxCtx, ctxChain) : nyx::Value(nyx::Null);
+        this->rhs ? this->rhs->eval(rt, ctxChain) : nyx::Value(nyx::Null);
     Token opt = this->opt;
     if (!lhs.isType<nyx::Null>() && rhs.isType<nyx::Null>()) {
         // Unary evaluating

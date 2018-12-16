@@ -16,7 +16,7 @@ public:
     ~Parser();
 
 public:
-    void parse(nyx::NyxContext* nyxCtx, nyx::Context* context);
+    void parse(nyx::Runtime* rt, nyx::Context* context);
     static void printLex(const std::string& fileName);
     short precedence(Token op);
 
