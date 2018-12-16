@@ -49,3 +49,16 @@ nyx::Value nyx_builtin_typeof(nyx::Runtime* rt,
                               std::make_any<std::string>("unknown"));
     }
 }
+
+nyx::Value nyx_builtin_length(nyx::Runtime* rt,
+                              std::deque<nyx::Context*> ctxChain,
+                              std::vector<nyx::Value> args) {
+    if (args.size() != 1) {
+        panic("ArgumentError: expects one argument but got %d", args.size());
+    }
+    if (args[0].type != nyx::String) {
+        panic("TypeError: unexpected type of arguments, requires string type");
+    }
+    return nyx::Value(nyx::Int,
+                      std::make_any<int>(args[0].cast<std::string>().length()));
+}

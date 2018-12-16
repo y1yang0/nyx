@@ -6,6 +6,9 @@
 #include "Nyx.hpp"
 #include "Utils.hpp"
 
+//===----------------------------------------------------------------------===//
+// Internal interpreter
+//===----------------------------------------------------------------------===//
 Interpreter::Interpreter(const std::string& fileName)
     : p(new Parser(fileName)), rt(new nyx::Runtime) {}
 
@@ -22,8 +25,8 @@ nyx::Value Expression::eval(nyx::Runtime* rt,
         line, column);
 }
 
-void Statement::interpret(nyx::Runtime* rt,
-                          std::deque<nyx::Context*> ctxChain) {
+nyx::ExecResult Statement::interpret(nyx::Runtime* rt,
+                                     std::deque<nyx::Context*> ctxChain) {
     panic(
         "RuntimeError: can not interpret abstract statement at line %d, column "
         "%d\n",
@@ -57,7 +60,12 @@ void Interpreter::leaveContext(std::deque<nyx::Context*>& ctxChain) {
     delete tempContext;
 }
 
-void IfStmt::interpret(nyx::Runtime* rt, std::deque<nyx::Context*> ctxChain) {
+//===----------------------------------------------------------------------===//
+// interpret various statements
+//===----------------------------------------------------------------------===//
+nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
+                                  std::deque<nyx::Context*> ctxChain) {
+    nyx::ExecResult ret(nyx::ExecNormal);
     Value cond = this->cond->eval(rt, ctxChain);
     if (!cond.isType<nyx::Bool>()) {
         panic(
@@ -69,7 +77,10 @@ void IfStmt::interpret(nyx::Runtime* rt, std::deque<nyx::Context*> ctxChain) {
         Interpreter::enterContext(ctxChain);
         for (auto& stmt : block->stmts) {
             // std::cout << stmt->astString() << "\n";
-            stmt->interpret(rt, ctxChain);
+            ret = stmt->interpret(rt, ctxChain);
+            if (ret.execType == nyx::ExecReturn) {
+                break;
+            }
         }
         Interpreter::leaveContext(ctxChain);
     } else {
@@ -77,22 +88,30 @@ void IfStmt::interpret(nyx::Runtime* rt, std::deque<nyx::Context*> ctxChain) {
             Interpreter::enterContext(ctxChain);
             for (auto& elseStmt : elseBlock->stmts) {
                 // std::cout << stmt->astString() << "\n";
-                elseStmt->interpret(rt, ctxChain);
+                ret = elseStmt->interpret(rt, ctxChain);
+                if (ret.execType == nyx::ExecReturn) {
+                    break;
+                }
             }
             Interpreter::leaveContext(ctxChain);
         }
     }
+    return ret;
 }
 
-void WhileStmt::interpret(nyx::Runtime* rt,
-                          std::deque<nyx::Context*> ctxChain) {
+nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
+                                     std::deque<nyx::Context*> ctxChain) {
+    nyx::ExecResult ret;
     Value cond = this->cond->eval(rt, ctxChain);
 
     Interpreter::enterContext(ctxChain);
     while (true == cond.cast<bool>()) {
         for (auto& stmt : block->stmts) {
             // std::cout << stmt->astString() << "\n";
-            stmt->interpret(rt, ctxChain);
+            ret = stmt->interpret(rt, ctxChain);
+            if (ret.execType == nyx::ExecReturn) {
+                goto break_loop;
+            }
         }
         cond = this->cond->eval(rt, ctxChain);
         if (!cond.isType<nyx::Bool>()) {
@@ -102,15 +121,28 @@ void WhileStmt::interpret(nyx::Runtime* rt,
                 line, column);
         }
     }
+
+break_loop:
     Interpreter::leaveContext(ctxChain);
+    return ret;
 }
 
-void ExpressionStmt::interpret(nyx::Runtime* rt,
-                               std::deque<nyx::Context*> ctxChain) {
+nyx::ExecResult ExpressionStmt::interpret(nyx::Runtime* rt,
+                                          std::deque<nyx::Context*> ctxChain) {
     // std::cout << this->expr->astString() << "\n";
     this->expr->eval(rt, ctxChain);
+    return nyx::ExecResult(nyx::ExecNormal);
 }
 
+nyx::ExecResult ReturnStmt::interpret(Runtime* rt,
+                                      std::deque<Context*> ctxChain) {
+    Value retVal = this->ret->eval(rt, ctxChain);
+    return nyx::ExecResult(nyx::ExecReturn, retVal);
+}
+
+//===----------------------------------------------------------------------===//
+// evaulate expressions
+//===----------------------------------------------------------------------===//
 nyx::Value NullExpr::eval(nyx::Runtime* rt,
                           std::deque<nyx::Context*> ctxChain) {
     return nyx::Value(nyx::Null);
@@ -163,15 +195,13 @@ nyx::Value AssignExpr::eval(nyx::Runtime* rt,
 
 nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
                              std::deque<nyx::Context*> ctxChain) {
-    nyx::Value result;
     if (auto* builtinFunc = rt->getBuiltinFunction(this->funcName);
         builtinFunc != nullptr) {
         std::vector<Value> arguments;
         for (auto e : this->args) {
             arguments.push_back(e->eval(rt, ctxChain));
         }
-        result = builtinFunc(rt, ctxChain, arguments);
-        return result;
+        return builtinFunc(rt, ctxChain, arguments);
     }
 
     for (int i = 0; i < ctxChain.size(); i--) {
@@ -191,14 +221,17 @@ nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
                 nyx::Value argValue = this->args[i]->eval(rt, funcCtxChain);
                 funcCtx->addVariable(f->params[i], argValue);
             }
-
+            nyx::ExecResult ret(nyx::ExecNormal);
             for (auto& stmt : f->block->stmts) {
-                stmt->interpret(rt, funcCtxChain);
+                ret = stmt->interpret(rt, funcCtxChain);
+                if (ret.execType == nyx::ExecReturn) {
+                    break;
+                }
             }
 
             Interpreter::leaveContext(funcCtxChain);
-            // Return null since nyx does not support return value current:(
-            return nyx::Value(nyx::Null);
+
+            return ret.retValue;
         }
     }
 

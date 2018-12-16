@@ -19,18 +19,15 @@ Parser::Parser(const std::string& fileName)
                 {"true", KW_TRUE},
                 {"false", KW_FALSE},
                 {"for", KW_FALSE},
-                {"func", KW_FUNC}}) {
+                {"func", KW_FUNC},
+                {"return", KW_RETURN}}) {
     fs.open(fileName);
     if (!fs.is_open()) {
         panic("ParserError: can not open source file");
     }
 }
 
-Parser::~Parser() {
-    // It will be released by destruction behavior of local std::deque
-    // delete context;
-    fs.close();
-}
+Parser::~Parser() { fs.close(); }
 
 Expression* Parser::parsePrimaryExpr() {
     if (getCurrentToken() == TK_IDENT) {
@@ -149,6 +146,12 @@ WhileStmt* Parser::parseWhileStmt() {
     return node;
 }
 
+ReturnStmt* Parser::parseReturnStmt() {
+    auto* node = new ReturnStmt(line, column);
+    node->ret = parseExpression();
+    return node;
+}
+
 Statement* Parser::parseStatement() {
     Statement* node;
     switch (getCurrentToken()) {
@@ -159,6 +162,10 @@ Statement* Parser::parseStatement() {
         case KW_WHILE:
             currentToken = next();
             node = parseWhileStmt();
+            break;
+        case KW_RETURN:
+            currentToken = next();
+            node = parseReturnStmt();
             break;
         default:
             node = parseExpressionStmt();

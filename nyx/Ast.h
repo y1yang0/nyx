@@ -44,17 +44,20 @@ enum Token {
     TK_LBRACKET,  // [
     TK_RBRACKET,  // ]
 
-    KW_IF,     // if
-    KW_ELSE,   // else
-    KW_TRUE,   // true
-    KW_FALSE,  // false
-    KW_WHILE,  // while
-    KW_FOR,    // for
-    KW_NULL,   // null
-    KW_FUNC,   // func
+    KW_IF,      // if
+    KW_ELSE,    // else
+    KW_TRUE,    // true
+    KW_FALSE,   // false
+    KW_WHILE,   // while
+    KW_FOR,     // for
+    KW_NULL,    // null
+    KW_FUNC,    // func
+    KW_RETURN,  // return
 };
 
+using nyx::Block;
 using nyx::Context;
+using nyx::ExecResult;
 using nyx::Runtime;
 using nyx::Value;
 struct Expression;
@@ -174,22 +177,27 @@ struct Statement : public AstNode {
     using AstNode::AstNode;
 
     virtual ~Statement() = default;
-    virtual void interpret(Runtime* rt, std::deque<Context*> ctxChain);
+    virtual ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain);
 
     std::string astString() override;
 };
-struct Block {
-    explicit Block() = default;
 
-    std::vector<Statement*> stmts;
-};
 struct ExpressionStmt : public Statement {
     explicit ExpressionStmt(Expression* expr, int line, int column)
         : Statement(line, column), expr(expr) {}
 
     Expression* expr{};
 
-    void interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
+    ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
+    std::string astString() override;
+};
+
+struct ReturnStmt : public Statement {
+    explicit ReturnStmt(int line, int column) : Statement(line, column) {}
+
+    Expression* ret{};
+
+    ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 
@@ -200,7 +208,7 @@ struct IfStmt : public Statement {
     Block* block{};
     Block* elseBlock{};
 
-    void interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
+    ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 
@@ -210,6 +218,6 @@ struct WhileStmt : public Statement {
     Expression* cond{};
     Block* block{};
 
-    void interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
+    ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };

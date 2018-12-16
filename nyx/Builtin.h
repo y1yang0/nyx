@@ -15,3 +15,7 @@ nyx::Value nyx_builtin_input(nyx::Runtime* rt,
 nyx::Value nyx_builtin_typeof(nyx::Runtime* rt,
                               std::deque<nyx::Context*> ctxChain,
                               std::vector<nyx::Value> args);
+
+nyx::Value nyx_builtin_length(nyx::Runtime* rt,
+                              std::deque<nyx::Context*> ctxChain,
+                              std::vector<nyx::Value> args);

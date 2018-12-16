@@ -14,14 +14,14 @@ Runtime::Runtime() {
     builtin["print"] = &nyx_builtin_print;
     builtin["typeof"] = &nyx_builtin_typeof;
     builtin["input"] = &nyx_builtin_input;
+    builtin["length"] = &nyx_builtin_length;
 }
 
 bool Runtime::hasBuiltinFunction(const std::string& name) {
     return builtin.count(name) == 1;
 }
 
-Runtime::BuiltinFuncType Runtime::getBuiltinFunction(
-    const std::string& name) {
+Runtime::BuiltinFuncType Runtime::getBuiltinFunction(const std::string& name) {
     if (auto res = builtin.find(name); res != builtin.end()) {
         return res->second;
     }

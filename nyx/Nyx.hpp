@@ -6,11 +6,17 @@
 #include <unordered_map>
 #include <vector>
 
-struct Block;
 struct Statement;
 
 namespace nyx {
 enum ValueType { Int, Double, String, Bool, Null };
+enum ExecutionResultType { ExecNormal, ExecReturn };
+
+struct Block {
+    explicit Block() = default;
+
+    std::vector<Statement*> stmts;
+};
 
 struct Function {
     explicit Function() = default;
@@ -19,10 +25,11 @@ struct Function {
     std::string name;
     std::vector<std::string> params;
     Block* block{};
+    Expression* retExpr{};
 };
 
 struct Value {
-    explicit Value() = default;
+    explicit Value() {}
     explicit Value(nyx::ValueType type) : type(type) {}
     explicit Value(nyx::ValueType type, std::any data)
         : type(type), data(std::move(data)) {}
@@ -54,6 +61,16 @@ struct Value {
 
     nyx::ValueType type{};
     std::any data;
+};
+
+struct ExecResult {
+    explicit ExecResult() : execType(ExecNormal) {}
+    explicit ExecResult(ExecutionResultType execType) : execType(execType) {}
+    explicit ExecResult(ExecutionResultType execType, Value retValue)
+        : execType(execType), retValue(retValue) {}
+
+    ExecutionResultType execType;
+    Value retValue;
 };
 
 struct Variable {

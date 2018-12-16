@@ -109,18 +109,36 @@ func repeat(a,str){
 
 repeat(10,"greeting!")
 ```
+关键字`return`用于控制返回
+```nyx
+func toStar(str){
+    result = ""
+    i =0
+    while(i<length(str)){
+        result = result+"*"
+        i = i+1
+    }
+    return result
+}
+
+print(toStar("i come i see i conquer"))
+# **********************
+```
 这里没有魔法。
 
 ## 6.内置函数
 ```nyx
 # 接受任意数目的参数，向stdout输出
-func print(a,b,c...)
+func print(a:any,b:any,c:any...)
 
 # 无参数。接受stdin输入并返回输入字符串
 func input()
 
 # 接受一个参数，返回一个字符串用以表示实参类型
-func typeof(a)
+func typeof(a:any) b:string
+
+# 接受字符串类型，返回字符串长度
+func length(a:string) b:int
 ```
 
 # 开源协议

@@ -150,3 +150,13 @@ std::string IfStmt::astString() {
     str += "])";
     return str;
 }
+
+std::string ReturnStmt::astString() {
+    std::string str = "ReturnStmt(";
+    if (ret) {
+        str += "ret=";
+        str += ret->astString();
+    }
+    str += ")";
+    return str;
+}
