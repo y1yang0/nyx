@@ -19,6 +19,7 @@
 + **string** 字符串类型，如`"string"`,`"test"`,`""`
 + **bool** 布尔类型，值域只有字面值`true`和`false`
 + **null** 空值类型，用于指示该变量不具有值，值域只有字面值`null`
++ **char** 字符类型，表示单个字符
 
 ## 3.运算符
 ### 3.1 四则运算
@@ -32,9 +33,12 @@ print(a,b,c,d)
 q = (((((((((((((((((((1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1)+1
 print(q)
 ```
-对字符类型进行`+`运算得到的是两个字符串拼接后的结果:
+字符串类型的运算符效果不同于数值类型。
+对字符串类型进行`+`运算得到的是两个字符串拼接后的结果；
+`*`表示N次重复字符串：
 ```nyx
-print("hello,"+"world") #will print hello,world
+print("hello,"+"world") # will print hello,world
+print("test" * 3 )      # will print testtesttest
 ```
 
 ### 3.2 逻辑运算

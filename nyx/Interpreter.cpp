@@ -69,7 +69,7 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
     Value cond = this->cond->eval(rt, ctxChain);
     if (!cond.isType<nyx::Bool>()) {
         panic(
-            "RuntimeError: expect bool type in while condition at line %d, "
+            "TypeError: expects bool type in while condition at line %d, "
             "col %d\n",
             line, column);
     }
@@ -122,7 +122,7 @@ nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
         cond = this->cond->eval(rt, ctxChain);
         if (!cond.isType<nyx::Bool>()) {
             panic(
-                "RuntimeError: expect bool type in while condition at line %d, "
+                "TypeError: expects bool type in while condition at line %d, "
                 "col %d\n",
                 line, column);
         }
@@ -158,21 +158,31 @@ nyx::Value NullExpr::eval(nyx::Runtime* rt,
                           std::deque<nyx::Context*> ctxChain) {
     return nyx::Value(nyx::Null);
 }
+
 nyx::Value BoolExpr::eval(nyx::Runtime* rt,
                           std::deque<nyx::Context*> ctxChain) {
     return nyx::Value(nyx::Bool, this->literal);
 }
+
+nyx::Value CharExpr::eval(nyx::Runtime* rt,
+                          std::deque<nyx::Context*> ctxChain) {
+    return nyx::Value(nyx::Char, this->literal);
+}
+
 nyx::Value IntExpr::eval(nyx::Runtime* rt, std::deque<nyx::Context*> ctxChain) {
     return nyx::Value(nyx::Int, this->literal);
 }
+
 nyx::Value DoubleExpr::eval(nyx::Runtime* rt,
                             std::deque<nyx::Context*> ctxChain) {
     return nyx::Value(nyx::Double, this->literal);
 }
+
 nyx::Value StringExpr::eval(nyx::Runtime* rt,
                             std::deque<nyx::Context*> ctxChain) {
     return nyx::Value(nyx::String, this->literal);
 }
+
 nyx::Value IdentExpr::eval(nyx::Runtime* rt,
                            std::deque<nyx::Context*> ctxChain) {
     for (auto p = ctxChain.crbegin(); p != ctxChain.crend(); ++p) {
@@ -270,7 +280,7 @@ static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
                                       -std::any_cast<double>(lhs.data));
                 default:
                     panic(
-                        "RuntimeError: invalid operand type for operator "
+                        "TypeError: invalid operand type for operator "
                         "-(negative) at line %d, col %d\n",
                         line, column);
             }
@@ -280,7 +290,7 @@ static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
                 return nyx::Value(nyx::Bool, !std::any_cast<bool>(lhs.data));
             } else {
                 panic(
-                    "RuntimeError: invalid operand type for operator "
+                    "TypeError: invalid operand type for operator "
                     "!(logical not) at line %d, col %d\n",
                     line, column);
             }
@@ -290,7 +300,7 @@ static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
                 return nyx::Value(nyx::Int, ~std::any_cast<int>(lhs.data));
             } else {
                 panic(
-                    "RuntimeError: invalid operand type for operator "
+                    "TypeError: invalid operand type for operator "
                     "~(bit not) at line %d, col %d\n",
                     line, column);
             }

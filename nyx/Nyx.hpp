@@ -10,7 +10,7 @@ struct Statement;
 struct Expression;
 
 namespace nyx {
-enum ValueType { Int, Double, String, Bool, Null };
+enum ValueType { Int, Double, String, Bool, Char, Null };
 enum ExecutionResultType { ExecNormal, ExecReturn, ExecBreak };
 
 struct Block {
@@ -40,6 +40,9 @@ struct Value {
 
     template <typename _CastingType>
     inline _CastingType cast();
+
+    template <typename _DataType>
+    inline void set(_DataType data);
 
     Value operator+(Value rhs);
     Value operator-(Value rhs);
@@ -126,5 +129,10 @@ inline bool Value::isType() {
 template <typename _CastingType>
 inline _CastingType Value::cast() {
     return std::any_cast<_CastingType>(data);
+}
+
+template <typename _DataType>
+inline void Value::set(_DataType data) {
+    this->data = std::make_any<_DataType>(std::move(data));
 }
 }  // namespace nyx

@@ -9,6 +9,10 @@ std::string BoolExpr::astString() {
     return "BoolExpr(" + std::to_string(literal) + ")";
 }
 
+std::string CharExpr::astString() {
+    return "CharExpr(" + std::to_string(literal) + ")";
+}
+
 std::string NullExpr::astString() { return "NullExpr()"; }
 
 std::string IntExpr::astString() {

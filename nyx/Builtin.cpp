@@ -31,23 +31,30 @@ nyx::Value nyx_builtin_typeof(nyx::Runtime* rt,
     if (args.size() != 1) {
         panic("ArgumentError: expects one argument but got %d", args.size());
     }
+    nyx::Value result(nyx::String);
     switch (args[0].type) {
         case nyx::Bool:
-            return nyx::Value(nyx::String, std::make_any<std::string>("bool"));
+            result.set<std::string>("bool");
+            break;
         case nyx::Double:
-            return nyx::Value(nyx::String,
-                              std::make_any<std::string>("double"));
+            result.set<std::string>("double");
+            break;
         case nyx::Int:
-            return nyx::Value(nyx::String, std::make_any<std::string>("int"));
+            result.set<std::string>("int");
+            break;
         case nyx::String:
-            return nyx::Value(nyx::String,
-                              std::make_any<std::string>("string"));
+            result.set<std::string>("string");
+            break;
         case nyx::Null:
-            return nyx::Value(nyx::String, std::make_any<std::string>("null"));
+            result.set<std::string>("null");
+            break;
+        case nyx::Char:
+            result.set<std::string>("char");
+            break;
         default:
-            return nyx::Value(nyx::String,
-                              std::make_any<std::string>("unknown"));
+            panic("TypeError: unknown type!");
     }
+    return result;
 }
 
 nyx::Value nyx_builtin_length(nyx::Runtime* rt,

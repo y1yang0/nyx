@@ -5,17 +5,30 @@
 std::string valueToStdString(nyx::Value v) {
     switch (v.type) {
         case nyx::Bool:
-            return std::any_cast<bool>(v.data) ? "true" : "false";
+            return v.cast<bool>() ? "true" : "false";
         case nyx::Double:
-            return std::to_string(std::any_cast<double>(v.data));
+            return std::to_string(v.cast<double>());
         case nyx::Int:
-            return std::to_string(std::any_cast<int>(v.data));
+            return std::to_string(v.cast<int>());
         case nyx::Null:
             return "null";
+        case nyx::Char: {
+            std::string str;
+            str += v.cast<char>();
+            return str;
+        }
         case nyx::String:
-            return std::any_cast<std::string>(v.data);
+            return v.cast<std::string>();
     }
     return "unknown";
+}
+
+std::string repeatString(int count, const std::string& str) {
+    std::string result;
+    for (int i = 0; i < count; i++) {
+        result += str;
+    }
+    return result;
 }
 
 [[noreturn]] void panic(char const* const format, ...) {

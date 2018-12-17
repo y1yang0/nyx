@@ -14,6 +14,7 @@ enum Token {
     LIT_INT,     // <integer>
     LIT_STR,     // <string>
     LIT_DOUBLE,  // <decimal>
+    LIT_CHAR,    // <character>
 
     TK_BITAND,  // &
     TK_BITOR,   // |
@@ -95,12 +96,24 @@ struct BoolExpr : public Expression {
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
+
+struct CharExpr : public Expression {
+    explicit CharExpr(char literal, int line, int column)
+        : Expression(line, column), literal(literal) {}
+
+    char literal;
+
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
+    std::string astString() override;
+};
+
 struct NullExpr : public Expression {
     explicit NullExpr(int line, int column) : Expression(line, column) {}
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
+
 struct IntExpr : public Expression {
     explicit IntExpr(int literal, int line, int column)
         : Expression(line, column), literal(literal) {}

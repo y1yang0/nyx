@@ -64,6 +64,10 @@ Expression* Parser::parsePrimaryExpr() {
         auto val = getCurrentLexeme();
         currentToken = next();
         return new StringExpr(val, line, column);
+    } else if (getCurrentToken() == LIT_CHAR) {
+        auto val = getCurrentLexeme();
+        currentToken = next();
+        return new CharExpr(val[0], line, column);
     } else if (getCurrentToken() == KW_TRUE || getCurrentToken() == KW_FALSE) {
         auto val = KW_TRUE == getCurrentToken();
         currentToken = next();
@@ -88,8 +92,8 @@ Expression* Parser::parseUnaryExpr() {
         currentToken = next();
         val->lhs = parseUnaryExpr();
         return val;
-    } else if (anyone(getCurrentToken(), LIT_DOUBLE, LIT_INT, LIT_STR, TK_IDENT,
-                      TK_LPAREN, KW_TRUE, KW_FALSE, KW_NULL)) {
+    } else if (anyone(getCurrentToken(), LIT_DOUBLE, LIT_INT, LIT_STR, LIT_CHAR,
+                      TK_IDENT, TK_LPAREN, KW_TRUE, KW_FALSE, KW_NULL)) {
         return parsePrimaryExpr();
     }
     return nullptr;
@@ -313,6 +317,18 @@ std::tuple<Token, std::string> Parser::next() {
                    ? std::make_tuple(result->second, lexeme)
                    : std::make_tuple(TK_IDENT, lexeme);
     }
+
+    if (c == '\'') {
+        std::string lexeme;
+        lexeme += getNextChar();
+        if (peekNextChar() != '\'') {
+            panic(
+                "SynxaxError: a character literal should surround with "
+                "single-quote");
+        }
+        c = getNextChar();
+        return std::make_tuple(LIT_CHAR, lexeme);
+    }
     if (c == '"') {
         std::string lexeme;
         char cn = peekNextChar();
@@ -321,7 +337,7 @@ std::tuple<Token, std::string> Parser::next() {
             lexeme += c;
             cn = peekNextChar();
         }
-        getNextChar();
+        c = getNextChar();
         return std::make_tuple(LIT_STR, lexeme);
     }
     if (c == '[') {
