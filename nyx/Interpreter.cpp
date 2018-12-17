@@ -7,7 +7,9 @@
 #include "Utils.hpp"
 
 //===----------------------------------------------------------------------===//
-// Internal interpreter
+// Nyx interpreter, as its name described, will interpret all statements within
+// top-level source file. This part defines internal functions of interpreter
+// and leave actually staement executing in later.
 //===----------------------------------------------------------------------===//
 Interpreter::Interpreter(const std::string& fileName)
     : p(new Parser(fileName)), rt(new nyx::Runtime) {}
@@ -56,7 +58,9 @@ void Interpreter::leaveContext(std::deque<nyx::Context*>& ctxChain) {
 }
 
 //===----------------------------------------------------------------------===//
-// interpret various statements
+// Interpret various statement within given runtime and context chain. Runtime
+// holds all necessary data in which widely used in every context. Context chain
+// saves contexts of current execution flow.
 //===----------------------------------------------------------------------===//
 nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
                                   std::deque<nyx::Context*> ctxChain) {
@@ -77,6 +81,8 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
                 break;
             } else if (ret.execType == nyx::ExecBreak) {
                 break;
+            } else if (ret.execType == nyx::ExecContinue) {
+                break;
             }
         }
         Interpreter::leaveContext(ctxChain);
@@ -89,6 +95,8 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
                 if (ret.execType == nyx::ExecReturn) {
                     break;
                 } else if (ret.execType == nyx::ExecBreak) {
+                    break;
+                } else if (ret.execType == nyx::ExecContinue) {
                     break;
                 }
             }
@@ -112,6 +120,8 @@ nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
                 goto outside;
             } else if (ret.execType == nyx::ExecBreak) {
                 goto outside;
+            } else if (ret.execType == nyx::ExecContinue) {
+                break;
             }
         }
         cond = this->cond->eval(rt, ctxChain);
@@ -146,8 +156,15 @@ nyx::ExecResult BreakStmt::interpret(nyx::Runtime* rt,
     return nyx::ExecResult(nyx::ExecBreak);
 }
 
+nyx::ExecResult ContinueStmt::interpret(nyx::Runtime* rt,
+                                        std::deque<nyx::Context*> ctxChain) {
+    return nyx::ExecResult(nyx::ExecContinue);
+}
+
 //===----------------------------------------------------------------------===//
-// evaulate expressions
+// Evaulate all expressions and return a nyx::Value structure, this object
+// contains evaulated data and corresponding data type, it represents sorts
+// of(also all) data type in nyx and can get value by interpreter directly.
 //===----------------------------------------------------------------------===//
 nyx::Value NullExpr::eval(nyx::Runtime* rt,
                           std::deque<nyx::Context*> ctxChain) {

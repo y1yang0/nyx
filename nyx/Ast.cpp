@@ -166,3 +166,5 @@ std::string ReturnStmt::astString() {
 }
 
 std::string BreakStmt::astString() { return "BreakStmt()"; }
+
+std::string ContinueStmt::astString() { return "ContinueStmt()"; }

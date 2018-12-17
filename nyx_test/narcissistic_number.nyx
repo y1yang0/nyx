@@ -15,7 +15,7 @@ func Main(){
     count = 0
     while(count != 6){
         if(isNarcissicsticNumber(num)){
-            print("the number "+ num +h "is a Narcissistic number")
+            print("the number "+ num + " is a Narcissistic number")
             count = count +1
         }
         num = num +1

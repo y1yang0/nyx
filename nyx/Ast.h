@@ -45,16 +45,17 @@ enum Token {
     TK_LBRACKET,  // [
     TK_RBRACKET,  // ]
 
-    KW_IF,      // if
-    KW_ELSE,    // else
-    KW_TRUE,    // true
-    KW_FALSE,   // false
-    KW_WHILE,   // while
-    KW_FOR,     // for
-    KW_NULL,    // null
-    KW_FUNC,    // func
-    KW_RETURN,  // return
-    KW_BREAK,   // break
+    KW_IF,        // if
+    KW_ELSE,      // else
+    KW_TRUE,      // true
+    KW_FALSE,     // false
+    KW_WHILE,     // while
+    KW_FOR,       // for
+    KW_NULL,      // null
+    KW_FUNC,      // func
+    KW_RETURN,    // return
+    KW_BREAK,     // break
+    KW_CONTINUE,  // continue
 };
 
 using nyx::Block;
@@ -198,6 +199,13 @@ struct Statement : public AstNode {
 
 struct BreakStmt : public Statement {
     explicit BreakStmt(int line, int column) : Statement(line, column) {}
+
+    ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
+    std::string astString() override;
+};
+
+struct ContinueStmt : public Statement {
+    explicit ContinueStmt(int line, int column) : Statement(line, column) {}
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;

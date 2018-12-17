@@ -11,7 +11,7 @@ struct Expression;
 
 namespace nyx {
 enum ValueType { Int, Double, String, Bool, Char, Null };
-enum ExecutionResultType { ExecNormal, ExecReturn, ExecBreak };
+enum ExecutionResultType { ExecNormal, ExecReturn, ExecBreak, ExecContinue };
 
 struct Block {
     explicit Block() = default;

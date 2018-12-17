@@ -21,7 +21,8 @@ Parser::Parser(const std::string& fileName)
                 {"for", KW_FALSE},
                 {"func", KW_FUNC},
                 {"return", KW_RETURN},
-                {"break", KW_BREAK}}) {
+                {"break", KW_BREAK},
+                {"continue", KW_CONTINUE}}) {
     fs.open(fileName);
     if (!fs.is_open()) {
         panic("ParserError: can not open source file");
@@ -176,6 +177,10 @@ Statement* Parser::parseStatement() {
             currentToken = next();
             node = new BreakStmt(line, column);
             break;
+        case KW_CONTINUE:
+            currentToken = next();
+            node = new ContinueStmt(line, column);
+            break;
         default:
             node = parseExpressionStmt();
             break;
@@ -303,11 +308,11 @@ std::tuple<Token, std::string> Parser::next() {
         return !isDouble ? make_tuple(LIT_INT, lexeme)
                          : make_tuple(LIT_DOUBLE, lexeme);
     }
-    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) {
+    if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_') {
         std::string lexeme{c};
         char cn = peekNextChar();
         while ((cn >= 'a' && cn <= 'z') || (cn >= 'A' && cn <= 'Z') ||
-               (cn >= '0' && cn <= '9')) {
+               (cn >= '0' && cn <= '9') || cn == '_') {
             c = getNextChar();
             lexeme += c;
             cn = peekNextChar();
