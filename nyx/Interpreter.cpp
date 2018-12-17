@@ -58,9 +58,9 @@ void Interpreter::leaveContext(std::deque<nyx::Context*>& ctxChain) {
 }
 
 //===----------------------------------------------------------------------===//
-// Interpret various statement within given runtime and context chain. Runtime
+// Interpret various statements within given runtime and context chain. Runtime
 // holds all necessary data in which widely used in every context. Context chain
-// saves contexts of current execution flow.
+// saves a linked contexts of current execution flow.
 //===----------------------------------------------------------------------===//
 nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
                                   std::deque<nyx::Context*> ctxChain) {
