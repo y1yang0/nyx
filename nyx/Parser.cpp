@@ -242,12 +242,12 @@ nyx::Function* Parser::parseFuncDef(nyx::Context* context) {
     return node;
 }
 
-void Parser::parse(nyx::Runtime* rt, nyx::Context* context) {
+void Parser::parse(nyx::Runtime* rt) {
     currentToken = next();
     do {
         if (getCurrentToken() == KW_FUNC) {
-            auto* f = parseFuncDef(context);
-            context->addFunction(f->name, f);
+            auto* f = parseFuncDef(rt);
+            rt->addFunction(f->name, f);
         } else {
             rt->addStatement(parseStatement());
         }

@@ -33,14 +33,9 @@ nyx::ExecResult Statement::interpret(nyx::Runtime* rt,
         line, column);
 }
 
-void Interpreter::prepareContext() {
-    nyx::Context* ctx = new nyx::Context;
-    this->p->parse(this->rt, ctx);
-    this->ctxChain.push_back(ctx);
-}
-
 void Interpreter::execute() {
-    prepareContext();
+    this->p->parse(this->rt);
+    this->ctxChain.push_back(new nyx::Context);
 
     auto stmts = rt->getStatements();
     for (auto stmt : stmts) {
@@ -215,6 +210,7 @@ nyx::Value AssignExpr::eval(nyx::Runtime* rt,
 }
 
 static nyx::Value callFunction(nyx::Runtime* rt, nyx::Function* f,
+                               std::deque<nyx::Context*> previousCtxChain,
                                std::vector<Expression*> args) {
     // Execute user defined function
     std::deque<nyx::Context*> funcCtxChain;
@@ -223,7 +219,8 @@ static nyx::Value callFunction(nyx::Runtime* rt, nyx::Function* f,
     auto* funcCtx = funcCtxChain.back();
     for (int i = 0; i < f->params.size(); i++) {
         std::string paramName = f->params[i];
-        nyx::Value argValue = args[i]->eval(rt, funcCtxChain);
+        // Evaluate argument values from previouse context chain
+        nyx::Value argValue = args[i]->eval(rt, previousCtxChain);
         funcCtx->addVariable(f->params[i], argValue);
     }
 
@@ -249,8 +246,16 @@ nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
         }
         return builtinFunc(rt, ctxChain, arguments);
     }
+    if (auto* func = rt->getFunction(this->funcName); func != nullptr) {
+        if (func->params.size() != this->args.size()) {
+            panic("ArgumentError: expects %d arguments but got %d",
+                  func->params.size(), this->args.size());
+        }
+        return callFunction(rt, func, ctxChain, this->args);
+    }
 
-    for (int i = 0; i < ctxChain.size(); i--) {
+    // find lambda functions , remain for later use
+    /*for (int i = 0; i < ctxChain.size(); i++) {
         auto* ctx = ctxChain[i];
         if (auto* f = ctx->getFunction(this->funcName); f != nullptr) {
             if (f->params.size() != this->args.size()) {
@@ -259,7 +264,7 @@ nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
             }
             return callFunction(rt, f, this->args);
         }
-    }
+    }*/
 
     panic(
         "RuntimeError: can not find function definition of %s in both "

@@ -9,8 +9,6 @@ public:
     ~Interpreter();
 
 public:
-    void prepareContext();
-
     void execute();
 
     static void enterContext(std::deque<nyx::Context*>& ctxChain);

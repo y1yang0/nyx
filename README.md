@@ -112,6 +112,21 @@ func repeat(a,str){
 }
 
 repeat(10,"greeting!")
+
+func isNarcissicsticNumber(num)
+{
+    old = num
+    accumulate = 0
+    while(0!=num){
+        n = num%10
+        accumulate = accumulate + n*n*n
+        num = num/10
+        
+    }
+    return accumulate==old
+}
+
+isNarcissicsticNumber(153)
 ```
 关键字`return`用于控制返回
 ```nyx

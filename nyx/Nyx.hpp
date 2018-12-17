@@ -103,7 +103,7 @@ private:
     std::unordered_map<std::string, Function*> funcs;
 };
 
-class Runtime {
+class Runtime : public Context {
     using BuiltinFuncType = Value (*)(Runtime*, std::deque<Context*>,
                                       std::vector<Value>);
 

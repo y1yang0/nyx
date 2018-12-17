@@ -1,0 +1,25 @@
+func isNarcissicsticNumber(num){
+    old = num
+    accumulate = 0
+    while(0!=num){
+        n = num%10
+        accumulate = accumulate + n*n*n
+        num = num/10
+        
+    }
+    return accumulate==old
+}
+
+func Main(){
+    num = 0
+    count = 0
+    while(count != 6){
+        if(isNarcissicsticNumber(num)){
+            print("the number "+ num +h "is a Narcissistic number")
+            count = count +1
+        }
+        num = num +1
+    }
+}
+
+Main()
