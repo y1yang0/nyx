@@ -3,6 +3,8 @@ jobs:
   build_gcc_latest:
     docker:
       - image: gcc:latest
+      - image: cmake:latest
+
     steps:
       - checkout
       - run: mkdir build && cd build
