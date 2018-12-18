@@ -101,7 +101,7 @@ Expression* Parser::parseUnaryExpr() {
 }
 
 Expression* Parser::parseExpression(short oldPrecedence) {
-    auto p = parseUnaryExpr();
+    auto* p = parseUnaryExpr();
 
     while (anyone(getCurrentToken(), TK_BITOR, TK_BITAND, TK_BITNOT, TK_LOGOR,
                   TK_LOGAND, TK_LOGNOT, TK_EQ, TK_NE, TK_GT, TK_GE, TK_LT,
@@ -430,7 +430,7 @@ std::tuple<Token, std::string> Parser::next() {
     return std::make_tuple(INVALID, "invalid");
 }
 
-inline short Parser::precedence(Token op) {
+short Parser::precedence(Token op) {
     switch (op) {
         case TK_LOGOR:
             return 1;
