@@ -9,8 +9,22 @@ nyx::Value nyx_builtin_print(nyx::Runtime* rt,
                              std::deque<nyx::Context*> ctxChain,
                              std::vector<nyx::Value> args) {
     for (auto arg : args) {
-        std::cout << valueToStdString(arg) << "\n";
+        std::cout << valueToStdString(arg);
     }
+    return nyx::Value(nyx::Int, (int)args.size());
+}
+
+nyx::Value nyx_builtin_println(nyx::Runtime* rt,
+                               std::deque<nyx::Context*> ctxChain,
+                               std::vector<nyx::Value> args) {
+    if (args.size() != 0) {
+        for (auto arg : args) {
+            std::cout << valueToStdString(arg) << "\n";
+        }
+    } else {
+        std::cout << "\n";
+    }
+
     return nyx::Value(nyx::Int, (int)args.size());
 }
 

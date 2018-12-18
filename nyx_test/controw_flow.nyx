@@ -1,0 +1,10 @@
+a = 1
+while(a<=9){
+    b = 1
+    while(b<=a){
+        print(b+"x"+a+"="+a*b+" ")
+        b  = b +1
+    }
+    println()
+    a = a+1 
+}

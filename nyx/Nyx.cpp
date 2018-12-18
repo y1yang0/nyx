@@ -12,6 +12,7 @@ Context::~Context() {
 
 Runtime::Runtime() {
     builtin["print"] = &nyx_builtin_print;
+    builtin["println"] = &nyx_builtin_println;
     builtin["typeof"] = &nyx_builtin_typeof;
     builtin["input"] = &nyx_builtin_input;
     builtin["length"] = &nyx_builtin_length;

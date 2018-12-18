@@ -8,6 +8,10 @@ nyx::Value nyx_builtin_print(nyx::Runtime* rt,
                              std::deque<nyx::Context*> ctxChain,
                              std::vector<nyx::Value> args);
 
+nyx::Value nyx_builtin_println(nyx::Runtime* rt,
+                               std::deque<nyx::Context*> ctxChain,
+                               std::vector<nyx::Value> args);
+
 nyx::Value nyx_builtin_input(nyx::Runtime* rt,
                              std::deque<nyx::Context*> ctxChain,
                              std::vector<nyx::Value> args);

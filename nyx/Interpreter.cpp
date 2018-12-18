@@ -119,8 +119,12 @@ nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
             if (ret.execType == nyx::ExecReturn) {
                 goto outside;
             } else if (ret.execType == nyx::ExecBreak) {
+                // Disable propagating through the whole chain
+                ret.execType = nyx::ExecNormal;
                 goto outside;
             } else if (ret.execType == nyx::ExecContinue) {
+                // Disable propagating through the whole chain
+                ret.execType = nyx::ExecNormal;
                 break;
             }
         }

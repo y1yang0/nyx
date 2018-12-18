@@ -1,7 +1,7 @@
 func repeat(a,str){
     i = 0
     while(i<a){
-        print(str)
+        println(str)
         i = i+1
     }
 }
@@ -28,17 +28,17 @@ func toStar(str){
 }
 
 repeat(10,"greeting!")
-print(repeat1("concatenation!"))
-print(repeat1("new"))
-print(toStar("i come i see i conquer"))
+println(repeat1("concatenation!"))
+println(repeat1("new"))
+println(toStar("i come i see i conquer"))
 
 func force(){
     i = 0
     while(true){
         if(i<10){
-            print("ok")
+            println("ok")
         }else{
-            print("return")
+            println("return")
             return i
         }
         i = i+1
@@ -49,15 +49,15 @@ func force1(){
     i = 0
     while(true){
         if(i<10){
-            print("ok")
+            println("ok")
         }else{
-            print("break")
+            println("break")
             break
         }
         i = i+1
     }
     while(i<20){
-        print("once again")
+        println("once again")
         i = i +1
     }
     return i
@@ -66,7 +66,7 @@ func force1(){
 
 force()
 res = force1()
-print(res)
+println(res)
 
 func upto10(){
     i=0
@@ -74,7 +74,7 @@ func upto10(){
         if(i==10){
             break
         }
-        print("up")
+        println("up")
         i = i+1
     }
 }
@@ -88,7 +88,7 @@ func filter_odd(limit)
             i = i+1
             continue
         }
-        print(i)
+        println(i)
         i = i+1
     }
 }

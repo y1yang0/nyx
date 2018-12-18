@@ -3,9 +3,9 @@ b = 3.14
 c = "hello"
 d = null
 e = true
-print(typeof(a))
-print(typeof(b))
-print(typeof(c))
-print(typeof(d))
-print(typeof(e))
-#print(input())
+println(typeof(a))
+println(typeof(b))
+println(typeof(c))
+println(typeof(d))
+println(typeof(e))
+#println(input())
