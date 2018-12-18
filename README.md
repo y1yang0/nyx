@@ -2,8 +2,8 @@
 [![Build Status](https://travis-ci.org/racaljk/nyx-lang.svg?branch=master)](https://travis-ci.org/racaljk/nyx) | 
 [![Build status](https://ci.appveyor.com/api/projects/status/ptqln5210xp6gupc?svg=true)](https://ci.appveyor.com/project/racaljk/nyx) |
 [![Documentation Status](https://readthedocs.org/projects/nyx-lang/badge/?version=latest)](https://nyx-lang.readthedocs.io/zh/latest/?badge=latest) |
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f75d53319a8f46d3866a41f32b2874a9)](https://www.codacy.com/app/racaljk/nyx?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=racaljk/nyx&amp;utm_campaign=Badge_Grade)
-
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f75d53319a8f46d3866a41f32b2874a9)](https://www.codacy.com/app/racaljk/nyx?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=racaljk/nyx&amp;utm_campaign=Badge_Grade) |
+[![CodeFactor](https://www.codefactor.io/repository/github/racaljk/nyx-lang/badge)](https://www.codefactor.io/repository/github/racaljk/nyx-lang)
 
 对的，**nyx**是又一门看似**动态类型**实则有着**严格类型系统**的脚本语言
 
