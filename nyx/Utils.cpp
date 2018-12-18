@@ -17,6 +17,15 @@ std::string valueToStdString(nyx::Value v) {
             str += v.cast<char>();
             return str;
         }
+        case nyx::Array: {
+            std::string str = "[";
+            for (auto e : v.cast<std::vector<nyx::Value>>()) {
+                str += valueToStdString(e);
+                str += ",";
+            }
+            str += "]";
+            return str;
+        }
         case nyx::String:
             return v.cast<std::string>();
     }

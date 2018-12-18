@@ -25,7 +25,25 @@ std::string DoubleExpr::astString() {
 
 std::string StringExpr::astString() { return "StringExpr(" + literal + ")"; }
 
+std::string ArrayExpr::astString() {
+    std::string str = "ArrayExpr(elements=[";
+    if (literal.size() != 0) {
+        for (auto& e : literal) {
+            str += e->astString();
+        }
+    }
+    str += "])";
+    return str;
+}
+
 std::string IdentExpr::astString() { return "IdentExpr(" + identName + ")"; }
+
+std::string IndexExpr::astString() {
+    std::string str = "IndexExpr(index=";
+    str += index->astString();
+    str += ")";
+    return str;
+}
 
 std::string BinaryExpr::astString() {
     std::string str = "BinaryExpr(";

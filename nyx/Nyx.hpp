@@ -10,7 +10,7 @@ struct Statement;
 struct Expression;
 
 namespace nyx {
-enum ValueType { Int, Double, String, Bool, Char, Null };
+enum ValueType { Int, Double, String, Bool, Char, Null, Array };
 enum ExecutionResultType { ExecNormal, ExecReturn, ExecBreak, ExecContinue };
 
 struct Block {

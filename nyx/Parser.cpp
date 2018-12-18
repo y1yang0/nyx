@@ -35,24 +35,39 @@ Expression* Parser::parsePrimaryExpr() {
     if (getCurrentToken() == TK_IDENT) {
         auto ident = getCurrentLexeme();
         currentToken = next();
-        if (getCurrentToken() == TK_ASSIGN) {
-            currentToken = next();
-            return new AssignExpr(ident, parseExpression(), line, column);
-        } else if (getCurrentToken() == TK_LPAREN) {
-            currentToken = next();
-            auto val = new FunCallExpr(line, column);
-            val->funcName = ident;
-            while (getCurrentToken() != TK_RPAREN) {
-                val->args.push_back(parseExpression());
-                if (getCurrentToken() == TK_COMMA) {
-                    currentToken = next();
-                }
+        switch (getCurrentToken()) {
+            case TK_ASSIGN: {
+                currentToken = next();
+                return new AssignExpr(ident, parseExpression(), line, column);
             }
-            assert(getCurrentToken() == TK_RPAREN);
-            currentToken = next();
-            return val;
+            case TK_LPAREN: {
+                currentToken = next();
+                auto* val = new FunCallExpr(line, column);
+                val->funcName = ident;
+                while (getCurrentToken() != TK_RPAREN) {
+                    val->args.push_back(parseExpression());
+                    if (getCurrentToken() == TK_COMMA) {
+                        currentToken = next();
+                    }
+                }
+                assert(getCurrentToken() == TK_RPAREN);
+                currentToken = next();
+                return val;
+            }
+            case TK_LBRACKET: {
+                currentToken = next();
+                auto* val = new IndexExpr(line, column);
+                val->identName = ident;
+                val->index = parseExpression();
+                assert(val->index != nullptr);
+                assert(getCurrentToken() == TK_RBRACKET);
+                currentToken = next();
+                return val;
+            }
+            default: {
+                return new IdentExpr(ident, line, column);
+            }
         }
-        return new IdentExpr(ident, line, column);
     } else if (getCurrentToken() == LIT_INT) {
         auto val = atoi(getCurrentLexeme().c_str());
         currentToken = next();
@@ -82,6 +97,24 @@ Expression* Parser::parsePrimaryExpr() {
         assert(getCurrentToken() == TK_RPAREN);
         currentToken = next();
         return val;
+    } else if (getCurrentToken() == TK_LBRACKET) {
+        currentToken = next();
+        auto* ret = new ArrayExpr(line, column);
+        if (getCurrentToken() != TK_RBRACKET) {
+            while (getCurrentToken() != TK_RBRACKET) {
+                ret->literal.push_back(parseExpression());
+                if (getCurrentToken() == TK_COMMA) {
+                    currentToken = next();
+                }
+            }
+            assert(getCurrentToken() == TK_RBRACKET);
+            currentToken = next();
+            return ret;
+        } else {
+            currentToken = next();
+            // It's an empty array literal
+            return ret;
+        }
     }
     return nullptr;
 }
@@ -94,7 +127,8 @@ Expression* Parser::parseUnaryExpr() {
         val->lhs = parseUnaryExpr();
         return val;
     } else if (anyone(getCurrentToken(), LIT_DOUBLE, LIT_INT, LIT_STR, LIT_CHAR,
-                      TK_IDENT, TK_LPAREN, KW_TRUE, KW_FALSE, KW_NULL)) {
+                      TK_IDENT, TK_LPAREN, TK_LBRACKET, KW_TRUE, KW_FALSE,
+                      KW_NULL)) {
         return parsePrimaryExpr();
     }
     return nullptr;

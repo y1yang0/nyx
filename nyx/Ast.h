@@ -145,12 +145,31 @@ struct StringExpr : public Expression {
     std::string astString();
 };
 
+struct ArrayExpr : public Expression {
+    explicit ArrayExpr(int line, int column) : Expression(line, column) {}
+
+    std::vector<Expression*> literal;
+
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
+    std::string astString();
+};
+
 struct IdentExpr : public Expression {
     explicit IdentExpr(std::string identName, int line, int column)
         : Expression(line, column), identName(std::move(identName)) {}
     std::string identName;
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
 
+    std::string astString() override;
+};
+
+struct IndexExpr : public Expression {
+    explicit IndexExpr(int line, int column) : Expression(line, column) {}
+
+    std::string identName;
+    Expression* index;
+
+    Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 

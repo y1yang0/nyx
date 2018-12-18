@@ -1,5 +1,6 @@
 #include <deque>
 #include <memory>
+#include <vector>
 #include "Ast.h"
 #include "Builtin.h"
 #include "Interpreter.h"
@@ -199,12 +200,46 @@ nyx::Value StringExpr::eval(nyx::Runtime* rt,
     return nyx::Value(nyx::String, this->literal);
 }
 
+nyx::Value ArrayExpr::eval(nyx::Runtime* rt,
+                           std::deque<nyx::Context*> ctxChain) {
+    std::vector<nyx::Value> elements;
+    for (auto& e : this->literal) {
+        elements.push_back(e->eval(rt, ctxChain));
+    }
+
+    return nyx::Value(nyx::Array, elements);
+}
+
 nyx::Value IdentExpr::eval(nyx::Runtime* rt,
                            std::deque<nyx::Context*> ctxChain) {
     for (auto p = ctxChain.crbegin(); p != ctxChain.crend(); ++p) {
         auto* ctx = *p;
         if (auto* var = ctx->getVariable(this->identName); var != nullptr) {
             return var->value;
+        }
+    }
+    panic("RuntimeError: use of undefined variable \"%s\" at line %d, col %d\n",
+          identName.c_str(), this->line, this->column);
+}
+
+nyx::Value IndexExpr::eval(nyx::Runtime* rt,
+                           std::deque<nyx::Context*> ctxChain) {
+    for (auto p = ctxChain.crbegin(); p != ctxChain.crend(); ++p) {
+        auto* ctx = *p;
+        if (auto* var = ctx->getVariable(this->identName); var != nullptr) {
+            auto idx = this->index->eval(rt, ctxChain);
+            if (!idx.isType<nyx::Int>()) {
+                panic(
+                    "TypeError: expects int type within indexing expression at "
+                    "line %d, col %d\n",
+                    line, column);
+            }
+            if (idx.cast<int>() >
+                var->value.cast<std::vector<nyx::Value>>().size()) {
+                panic("IndexError: index %d out of range at line %d, col %d\n",
+                      this->index, line, column);
+            }
+            return var->value.cast<std::vector<nyx::Value>>()[idx.cast<int>()];
         }
     }
     panic("RuntimeError: use of undefined variable \"%s\" at line %d, col %d\n",
@@ -274,18 +309,6 @@ nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
         }
         return callFunction(rt, func, ctxChain, this->args);
     }
-
-    // find lambda functions , remain for later use
-    /*for (int i = 0; i < ctxChain.size(); i++) {
-        auto* ctx = ctxChain[i];
-        if (auto* f = ctx->getFunction(this->funcName); f != nullptr) {
-            if (f->params.size() != this->args.size()) {
-                panic("ArgumentError: expects %d arguments but got %d",
-                      f->params.size(), this->args.size());
-            }
-            return callFunction(rt, f, this->args);
-        }
-    }*/
 
     panic(
         "RuntimeError: can not find function definition of %s in both "

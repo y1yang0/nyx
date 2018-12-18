@@ -65,6 +65,9 @@ nyx::Value nyx_builtin_typeof(nyx::Runtime* rt,
         case nyx::Char:
             result.set<std::string>("char");
             break;
+        case nyx::Array:
+            result.set<std::string>("array");
+            break;
         default:
             panic("TypeError: unknown type!");
     }
@@ -77,9 +80,18 @@ nyx::Value nyx_builtin_length(nyx::Runtime* rt,
     if (args.size() != 1) {
         panic("ArgumentError: expects one argument but got %d", args.size());
     }
-    if (args[0].type != nyx::String) {
-        panic("TypeError: unexpected type of arguments, requires string type");
+
+    if (args[0].isType<nyx::String>()) {
+        return nyx::Value(
+            nyx::Int, std::make_any<int>(args[0].cast<std::string>().length()));
     }
-    return nyx::Value(nyx::Int,
-                      std::make_any<int>(args[0].cast<std::string>().length()));
+    if (args[0].isType<nyx::Array>()) {
+        return nyx::Value(
+            nyx::Int,
+            std::make_any<int>(args[0].cast<std::vector<nyx::Value>>().size()));
+    }
+
+    panic(
+        "TypeError: unexpected type of arguments, requires string type or "
+        "array type");
 }
