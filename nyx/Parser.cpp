@@ -71,23 +71,33 @@ Expression* Parser::parsePrimaryExpr() {
     } else if (getCurrentToken() == LIT_INT) {
         auto val = atoi(getCurrentLexeme().c_str());
         currentToken = next();
-        return new IntExpr(val, line, column);
+        auto* ret = new IntExpr(line, column);
+        ret->literal = val;
+        return ret;
     } else if (getCurrentToken() == LIT_DOUBLE) {
         auto val = atof(getCurrentLexeme().c_str());
         currentToken = next();
-        return new DoubleExpr(val, line, column);
+        auto* ret = new DoubleExpr(line, column);
+        ret->literal = val;
+        return ret;
     } else if (getCurrentToken() == LIT_STR) {
         auto val = getCurrentLexeme();
         currentToken = next();
-        return new StringExpr(val, line, column);
+        auto* ret = new StringExpr(line, column);
+        ret->literal = val;
+        return ret;
     } else if (getCurrentToken() == LIT_CHAR) {
         auto val = getCurrentLexeme();
         currentToken = next();
-        return new CharExpr(val[0], line, column);
+        auto* ret = new CharExpr(line, column);
+        ret->literal = val[0];
+        return ret;
     } else if (getCurrentToken() == KW_TRUE || getCurrentToken() == KW_FALSE) {
-        auto val = KW_TRUE == getCurrentToken();
+        auto val = (KW_TRUE == getCurrentToken());
         currentToken = next();
-        return new BoolExpr(val, line, column);
+        auto* ret = new BoolExpr(line, column);
+        ret->literal = val;
+        return ret;
     } else if (getCurrentToken() == KW_NULL) {
         currentToken = next();
         return new NullExpr(line, column);

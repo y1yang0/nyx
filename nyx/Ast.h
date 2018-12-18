@@ -90,8 +90,7 @@ struct Expression : public AstNode {
 };
 
 struct BoolExpr : public Expression {
-    explicit BoolExpr(bool literal, int line, int column)
-        : Expression(line, column), literal(literal) {}
+    explicit BoolExpr(int line, int column) : Expression(line, column) {}
     bool literal;
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
@@ -99,8 +98,7 @@ struct BoolExpr : public Expression {
 };
 
 struct CharExpr : public Expression {
-    explicit CharExpr(char literal, int line, int column)
-        : Expression(line, column), literal(literal) {}
+    explicit CharExpr(int line, int column) : Expression(line, column) {}
 
     char literal;
 
@@ -116,8 +114,7 @@ struct NullExpr : public Expression {
 };
 
 struct IntExpr : public Expression {
-    explicit IntExpr(int literal, int line, int column)
-        : Expression(line, column), literal(literal) {}
+    explicit IntExpr(int line, int column) : Expression(line, column) {}
 
     int literal;
 
@@ -126,8 +123,7 @@ struct IntExpr : public Expression {
 };
 
 struct DoubleExpr : public Expression {
-    explicit DoubleExpr(double literal, int line, int column)
-        : Expression(line, column), literal(literal) {}
+    explicit DoubleExpr(int line, int column) : Expression(line, column) {}
 
     double literal;
 
@@ -136,8 +132,7 @@ struct DoubleExpr : public Expression {
 };
 
 struct StringExpr : public Expression {
-    explicit StringExpr(std::string literal, int line, int column)
-        : Expression(line, column), literal(std::move(literal)) {}
+    explicit StringExpr(int line, int column) : Expression(line, column) {}
 
     std::string literal;
 
