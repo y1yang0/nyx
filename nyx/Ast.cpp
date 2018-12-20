@@ -134,10 +134,10 @@ std::string FunCallExpr::astString() {
 }
 
 std::string AssignExpr::astString() {
-    std::string str = "AssignExpr(identName=";
-    str += identName;
+    std::string str = "AssignExpr(lhs=";
+    str += lhs->astString();
     str += ",rhs=";
-    str += expr->astString();
+    str += rhs->astString();
     str += ")";
     return str;
 }

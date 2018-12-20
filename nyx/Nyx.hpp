@@ -89,9 +89,8 @@ public:
     explicit Context() = default;
     virtual ~Context();
 
-    bool removeVariable(const std::string& identName);
     bool hasVariable(const std::string& identName);
-    void addVariable(const std::string& identName, Value value);
+    void createVariable(const std::string& identName, Value value);
     Variable* getVariable(const std::string& identName);
 
     void addFunction(const std::string& name, Function* f);

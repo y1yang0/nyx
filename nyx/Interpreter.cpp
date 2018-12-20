@@ -10,7 +10,7 @@
 //===----------------------------------------------------------------------===//
 // Nyx interpreter, as its name described, will interpret all statements within
 // top-level source file. This part defines internal functions of interpreter
-// and leave actually staement executing in later.
+// and leaves actually statement performing later.
 //===----------------------------------------------------------------------===//
 Interpreter::Interpreter(const std::string& fileName)
     : p(new Parser(fileName)), rt(new nyx::Runtime) {}
@@ -58,9 +58,133 @@ void Interpreter::leaveContext(std::deque<nyx::Context*>& ctxChain) {
     delete tempContext;
 }
 
+nyx::Value Interpreter::callFunction(nyx::Runtime* rt, nyx::Function* f,
+                                     std::deque<nyx::Context*> previousCtxChain,
+                                     std::vector<Expression*> args) {
+    // Execute user defined function
+    std::deque<nyx::Context*> funcCtxChain;
+    Interpreter::enterContext(funcCtxChain);
+
+    auto* funcCtx = funcCtxChain.back();
+    for (int i = 0; i < f->params.size(); i++) {
+        std::string paramName = f->params[i];
+        // Evaluate argument values from previouse context chain
+        nyx::Value argValue = args[i]->eval(rt, previousCtxChain);
+        funcCtx->createVariable(f->params[i], argValue);
+    }
+
+    nyx::ExecResult ret(nyx::ExecNormal);
+    for (auto& stmt : f->block->stmts) {
+        ret = stmt->interpret(rt, funcCtxChain);
+        if (ret.execType == nyx::ExecReturn) {
+            break;
+        }
+    }
+    Interpreter::leaveContext(funcCtxChain);
+
+    return ret.retValue;
+}
+
+nyx::Value Interpreter::calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
+                                      int column) {
+    switch (opt) {
+        case TK_MINUS:
+            switch (lhs.type) {
+                case nyx::Int:
+                    return nyx::Value(nyx::Int, -std::any_cast<int>(lhs.data));
+                case nyx::Double:
+                    return nyx::Value(nyx::Double,
+                                      -std::any_cast<double>(lhs.data));
+                default:
+                    panic(
+                        "TypeError: invalid operand type for operator "
+                        "-(negative) at line %d, col %d\n",
+                        line, column);
+            }
+            break;
+        case TK_LOGNOT:
+            if (lhs.type == nyx::Bool) {
+                return nyx::Value(nyx::Bool, !std::any_cast<bool>(lhs.data));
+            } else {
+                panic(
+                    "TypeError: invalid operand type for operator "
+                    "!(logical not) at line %d, col %d\n",
+                    line, column);
+            }
+            break;
+        case TK_BITNOT:
+            if (lhs.type == nyx::Int) {
+                return nyx::Value(nyx::Int, ~std::any_cast<int>(lhs.data));
+            } else {
+                panic(
+                    "TypeError: invalid operand type for operator "
+                    "~(bit not) at line %d, col %d\n",
+                    line, column);
+            }
+            break;
+    }
+
+    return lhs;
+}
+
+nyx::Value Interpreter::calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs,
+                                       int line, int column) {
+    nyx::Value result{nyx::Null};
+
+    switch (opt) {
+        case TK_PLUS:
+            result = (lhs + rhs);
+            break;
+        case TK_MINUS:
+            result = (lhs - rhs);
+            break;
+        case TK_TIMES:
+            result = (lhs * rhs);
+            break;
+        case TK_DIV:
+            result = (lhs / rhs);
+            break;
+        case TK_MOD:
+            result = (lhs % rhs);
+            break;
+        case TK_LOGAND:
+            result = (lhs && rhs);
+            break;
+        case TK_LOGOR:
+            result = (lhs || rhs);
+            break;
+        case TK_EQ:
+            result = (lhs == rhs);
+            break;
+        case TK_NE:
+            result = (lhs != rhs);
+            break;
+        case TK_GT:
+            result = (lhs > rhs);
+            break;
+        case TK_GE:
+            result = (lhs >= rhs);
+            break;
+        case TK_LT:
+            result = (lhs < rhs);
+            break;
+        case TK_LE:
+            result = (lhs <= rhs);
+            break;
+        case TK_BITAND:
+            result = (lhs & rhs);
+            break;
+        case TK_BITOR:
+            result = (lhs | rhs);
+            break;
+    }
+
+    return result;
+}
+
 //===----------------------------------------------------------------------===//
 // Interpret various statements within given runtime and context chain. Runtime
-// holds all necessary data in which widely used in every context. Context chain
+// holds all necessary data that widely used in every context. Context chain
 // saves a linked contexts of current execution flow.
 //===----------------------------------------------------------------------===//
 nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
@@ -234,10 +358,10 @@ nyx::Value IndexExpr::eval(nyx::Runtime* rt,
                     "line %d, col %d\n",
                     line, column);
             }
-            if (idx.cast<int>() >
+            if (idx.cast<int>() >=
                 var->value.cast<std::vector<nyx::Value>>().size()) {
                 panic("IndexError: index %d out of range at line %d, col %d\n",
-                      this->index, line, column);
+                      idx.cast<int>(), line, column);
             }
             return var->value.cast<std::vector<nyx::Value>>()[idx.cast<int>()];
         }
@@ -248,48 +372,50 @@ nyx::Value IndexExpr::eval(nyx::Runtime* rt,
 
 nyx::Value AssignExpr::eval(nyx::Runtime* rt,
                             std::deque<nyx::Context*> ctxChain) {
-    nyx::Value lhs = this->expr->eval(rt, ctxChain);
+    nyx::Value rhs = this->rhs->eval(rt, ctxChain);
 
-    // If this variable was already defined in current context or prior contexts
-    // then reassign value to it
-    for (auto p = ctxChain.crbegin(); p != ctxChain.crend(); ++p) {
-        if ((*p)->hasVariable(identName)) {
-            (*p)->removeVariable(identName);
-            (*p)->addVariable(identName, lhs);
-            return lhs;
+    if (typeid(*lhs) == typeid(IdentExpr)) {
+        std::string identName = dynamic_cast<IdentExpr*>(lhs)->identName;
+
+        for (auto p = ctxChain.crbegin(); p != ctxChain.crend(); ++p) {
+            if (auto* var = (*p)->getVariable(identName); var != nullptr) {
+                var->value = rhs;
+                return rhs;
+            }
         }
-    }
-    // Otherwise, allocate variable within current context
-    (ctxChain.back())->addVariable(identName, lhs);
 
-    return lhs;
-}
-
-static nyx::Value callFunction(nyx::Runtime* rt, nyx::Function* f,
-                               std::deque<nyx::Context*> previousCtxChain,
-                               std::vector<Expression*> args) {
-    // Execute user defined function
-    std::deque<nyx::Context*> funcCtxChain;
-    Interpreter::enterContext(funcCtxChain);
-
-    auto* funcCtx = funcCtxChain.back();
-    for (int i = 0; i < f->params.size(); i++) {
-        std::string paramName = f->params[i];
-        // Evaluate argument values from previouse context chain
-        nyx::Value argValue = args[i]->eval(rt, previousCtxChain);
-        funcCtx->addVariable(f->params[i], argValue);
-    }
-
-    nyx::ExecResult ret(nyx::ExecNormal);
-    for (auto& stmt : f->block->stmts) {
-        ret = stmt->interpret(rt, funcCtxChain);
-        if (ret.execType == nyx::ExecReturn) {
-            break;
+        (ctxChain.back())->createVariable(identName, rhs);
+    } else if (typeid(*lhs) == typeid(IndexExpr)) {
+        std::string identName = dynamic_cast<IndexExpr*>(lhs)->identName;
+        nyx::Value index =
+            dynamic_cast<IndexExpr*>(lhs)->index->eval(rt, ctxChain);
+        if (!index.isType<nyx::Int>()) {
+            panic(
+                "TypeError: expects int type when applying indexing "
+                "to variable %s at line %d, col %d\n",
+                identName.c_str(), line, column);
         }
-    }
-    Interpreter::leaveContext(funcCtxChain);
+        for (auto p = ctxChain.crbegin(); p != ctxChain.crend(); ++p) {
+            if (auto* var = (*p)->getVariable(identName); var != nullptr) {
+                if (!var->value.isType<nyx::Array>()) {
+                    panic(
+                        "TypeError: expects array type of variable %s "
+                        "at line %d, col %d\n",
+                        identName.c_str(), line, column);
+                }
+                auto&& temp = var->value.cast<std::vector<nyx::Value>>();
+                temp[index.cast<int>()] = rhs;
+                var->value.data = std::move(temp);
+                return rhs;
+            }
+        }
 
-    return ret.retValue;
+        (ctxChain.back())->createVariable(identName, rhs);
+    } else {
+        panic("SyntaxError: can not assign to %s at line %d, col %d\n",
+              typeid(lhs).name(), line, column);
+    }
+    return rhs;
 }
 
 nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
@@ -307,7 +433,7 @@ nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
             panic("ArgumentError: expects %d arguments but got %d",
                   func->params.size(), this->args.size());
         }
-        return callFunction(rt, func, ctxChain, this->args);
+        return Interpreter::callFunction(rt, func, ctxChain, this->args);
     }
 
     panic(
@@ -317,103 +443,6 @@ nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
         this->funcName.c_str());
 }
 
-static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
-                                int column) {
-    switch (opt) {
-        case TK_MINUS:
-            switch (lhs.type) {
-                case nyx::Int:
-                    return nyx::Value(nyx::Int, -std::any_cast<int>(lhs.data));
-                case nyx::Double:
-                    return nyx::Value(nyx::Double,
-                                      -std::any_cast<double>(lhs.data));
-                default:
-                    panic(
-                        "TypeError: invalid operand type for operator "
-                        "-(negative) at line %d, col %d\n",
-                        line, column);
-            }
-            break;
-        case TK_LOGNOT:
-            if (lhs.type == nyx::Bool) {
-                return nyx::Value(nyx::Bool, !std::any_cast<bool>(lhs.data));
-            } else {
-                panic(
-                    "TypeError: invalid operand type for operator "
-                    "!(logical not) at line %d, col %d\n",
-                    line, column);
-            }
-            break;
-        case TK_BITNOT:
-            if (lhs.type == nyx::Int) {
-                return nyx::Value(nyx::Int, ~std::any_cast<int>(lhs.data));
-            } else {
-                panic(
-                    "TypeError: invalid operand type for operator "
-                    "~(bit not) at line %d, col %d\n",
-                    line, column);
-            }
-            break;
-    }
-
-    return lhs;
-}
-
-static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs, int line,
-                                 int column) {
-    nyx::Value result{nyx::Null};
-
-    switch (opt) {
-        case TK_PLUS:
-            result = (lhs + rhs);
-            break;
-        case TK_MINUS:
-            result = (lhs - rhs);
-            break;
-        case TK_TIMES:
-            result = (lhs * rhs);
-            break;
-        case TK_DIV:
-            result = (lhs / rhs);
-            break;
-        case TK_MOD:
-            result = (lhs % rhs);
-            break;
-        case TK_LOGAND:
-            result = (lhs && rhs);
-            break;
-        case TK_LOGOR:
-            result = (lhs || rhs);
-            break;
-        case TK_EQ:
-            result = (lhs == rhs);
-            break;
-        case TK_NE:
-            result = (lhs != rhs);
-            break;
-        case TK_GT:
-            result = (lhs > rhs);
-            break;
-        case TK_GE:
-            result = (lhs >= rhs);
-            break;
-        case TK_LT:
-            result = (lhs < rhs);
-            break;
-        case TK_LE:
-            result = (lhs <= rhs);
-            break;
-        case TK_BITAND:
-            result = (lhs & rhs);
-            break;
-        case TK_BITOR:
-            result = (lhs | rhs);
-            break;
-    }
-
-    return result;
-}
-
 nyx::Value BinaryExpr::eval(nyx::Runtime* rt,
                             std::deque<nyx::Context*> ctxChain) {
     nyx::Value lhs =
@@ -421,10 +450,10 @@ nyx::Value BinaryExpr::eval(nyx::Runtime* rt,
     nyx::Value rhs =
         this->rhs ? this->rhs->eval(rt, ctxChain) : nyx::Value(nyx::Null);
     Token opt = this->opt;
+
     if (!lhs.isType<nyx::Null>() && rhs.isType<nyx::Null>()) {
-        // Unary evaluating
-        return calcUnaryExpr(lhs, opt, line, column);
+        return Interpreter::calcUnaryExpr(lhs, opt, line, column);
     }
-    // Binary evaluating
-    return calcBinaryExpr(lhs, opt, rhs, line, column);
+
+    return Interpreter::calcBinaryExpr(lhs, opt, rhs, line, column);
 }

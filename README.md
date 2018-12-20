@@ -1,5 +1,5 @@
 # nyx
-[![Build Status](https://travis-ci.org/racaljk/nyx-lang.svg?branch=master)](https://travis-ci.org/racaljk/nyx) | 
+[![Build Status](https://travis-ci.org/racaljk/nyx-lang.svg?branch=master)](https://travis-ci.org/racaljk/nyx-lang) | 
 [![Build status](https://ci.appveyor.com/api/projects/status/ptqln5210xp6gupc?svg=true)](https://ci.appveyor.com/project/racaljk/nyx) |
 [![CircleCI](https://circleci.com/gh/racaljk/nyx-lang.svg?style=svg)](https://circleci.com/gh/racaljk/nyx-lang) |
 [![Documentation Status](https://readthedocs.org/projects/nyx-lang/badge/?version=latest)](https://nyx-lang.readthedocs.io/zh/latest/?badge=latest) 
@@ -33,11 +33,18 @@
 **array** 数组类型，用于创建一个数组，数组元素可以是**任意类型**，如`[2.718,"hell",null,false,'u']`
 
 ### 1.3 变量
+真不不敢想象没有变量的世界。我们得先介绍它。
 `name = value`即定义名为**name**的变量，具有**value**值。
+如果`name`是索引表达式，相应的就是更新数组索引值而不是添加它，也就是说，向数组中一个不存在的索引赋值是错误。
 由于赋值是**表达式**而不是**语句**，所以它也可以出现在任何表达式可以出现的地方：
 ```nyx
 print(ff=15&5|12) # print the result of 15&5|12, that is, 13
+a = [1,3,4]
+println(a) # print [1,3,4]
+a[0] = 5
+println(a) # print [5,3,4]
 ```
+
 
 ## 2.运算符
 ### 2.1 计算基石

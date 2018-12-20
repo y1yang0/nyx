@@ -33,17 +33,11 @@ void Runtime::addStatement(Statement* stmt) { stmts.push_back(stmt); }
 
 std::vector<Statement*> Runtime::getStatements() { return stmts; }
 
-bool Context::removeVariable(const std::string& identName) {
-    auto* found = getVariable(identName);
-    delete found;
-    return vars.erase(identName);
-}
-
 bool Context::hasVariable(const std::string& identName) {
     return vars.count(identName) == 1;
 }
 
-void Context::addVariable(const std::string& identName, Value value) {
+void Context::createVariable(const std::string& identName, Value value) {
     auto* var = new Variable;
     var->name = identName;
     var->value = value;

@@ -3,9 +3,19 @@ b = 3.14
 c = "hello"
 d = null
 e = true
+f = []
+g='x'
 println(typeof(a))
 println(typeof(b))
 println(typeof(c))
 println(typeof(d))
 println(typeof(e))
+println(typeof(f))
+println(typeof(g))
+println(length(f)==0)
+println(length(f)==0)
+println(length([1,2,3])==3)
+println(typeof([1,2,3])=="array")
+println(length("test")==4)
+println(typeof("test")=="string")
 #println(input())

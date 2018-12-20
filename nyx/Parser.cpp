@@ -1,3 +1,4 @@
+#include <typeinfo>
 #include "Nyx.hpp"
 #include "Parser.h"
 #include "Utils.hpp"
@@ -36,10 +37,6 @@ Expression* Parser::parsePrimaryExpr() {
         auto ident = getCurrentLexeme();
         currentToken = next();
         switch (getCurrentToken()) {
-            case TK_ASSIGN: {
-                currentToken = next();
-                return new AssignExpr(ident, parseExpression(), line, column);
-            }
             case TK_LPAREN: {
                 currentToken = next();
                 auto* val = new FunCallExpr(line, column);
@@ -146,6 +143,17 @@ Expression* Parser::parseUnaryExpr() {
 
 Expression* Parser::parseExpression(short oldPrecedence) {
     auto* p = parseUnaryExpr();
+    if (anyone(getCurrentToken(), TK_ASSIGN)) {
+        if (typeid(*p) != typeid(IdentExpr) &&
+            typeid(*p) != typeid(IndexExpr)) {
+            panic("SyntaxError: can not assign to %s", typeid(*p).name());
+        }
+        currentToken = next();
+        auto* assignExpr = new AssignExpr(line, column);
+        assignExpr->lhs = p;
+        assignExpr->rhs = parseExpression();
+        return assignExpr;
+    }
 
     while (anyone(getCurrentToken(), TK_BITOR, TK_BITAND, TK_BITNOT, TK_LOGOR,
                   TK_LOGAND, TK_LOGNOT, TK_EQ, TK_NE, TK_GT, TK_GE, TK_LT,
@@ -293,6 +301,9 @@ nyx::Function* Parser::parseFuncDef(nyx::Context* context) {
 
 void Parser::parse(nyx::Runtime* rt) {
     currentToken = next();
+    if (getCurrentToken() == TK_EOF) {
+        return;
+    }
     do {
         if (getCurrentToken() == KW_FUNC) {
             auto* f = parseFuncDef(rt);

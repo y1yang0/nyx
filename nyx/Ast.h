@@ -187,13 +187,11 @@ struct FunCallExpr : public Expression {
 };
 
 struct AssignExpr : public Expression {
-    explicit AssignExpr(std::string identName, Expression* expr, int line,
-                        int column)
-        : Expression(line, column),
-          identName(std::move(identName)),
-          expr(expr) {}
-    std::string identName;
-    Expression* expr{};
+    explicit AssignExpr(int line, int column) : Expression(line, column) {}
+
+    Expression* lhs{};
+    Expression* rhs{};
+
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
 
     std::string astString() override;
