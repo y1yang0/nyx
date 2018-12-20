@@ -173,12 +173,12 @@ Value Value::operator*(Value rhs) {
     // Array
     else if (isType<nyx::Int>() && rhs.isType<nyx::Array>()) {
         result.type = nyx::Array;
-        result.data =
-            repeatArray(cast<int>(), rhs.cast<std::vector<nyx::Value>>());
+        result.data = repeatArray(
+            cast<int>(), std::move(rhs.cast<std::vector<nyx::Value>>()));
     } else if (isType<nyx::Array>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Array;
-        result.data =
-            repeatArray(rhs.cast<int>(), cast<std::vector<nyx::Value>>());
+        result.data = repeatArray(rhs.cast<int>(),
+                                  std::move(cast<std::vector<nyx::Value>>()));
     } else {
         panic("TypeError: unexpected arguments of operator *");
     }

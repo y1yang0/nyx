@@ -7,9 +7,15 @@ set(NYX_SRC nyx/Builtin.cpp nyx/Interpreter.cpp nyx/Main.cpp nyx/Parser.cpp nyx/
 add_executable(nyx ${NYX_SRC})
 
 enable_testing()
-file(GLOB test_file_name ${PROJECT_SOURCE_DIR}/nyx_test/*.nyx)
+file(GLOB test_file_namea ${PROJECT_SOURCE_DIR}/nyx_test/interesting/*.nyx)
 
-foreach(each_file ${test_file_name})
+foreach(each_file ${test_file_namea})
  string(REGEX REPLACE ".*/(.*)\.nyx" "\\1" curated_name ${each_file})
-    add_test(NAME test_${curated_name} COMMAND nyx ${each_file})
-endforeach(each_file ${test_file_name})
+    add_test(NAME interesting_${curated_name} COMMAND nyx ${each_file})
+endforeach(each_file ${test_file_namea})
+
+file(GLOB test_file_nameb ${PROJECT_SOURCE_DIR}/nyx_test/tiresome/*.nyx)
+foreach(each_file ${test_file_nameb})
+ string(REGEX REPLACE ".*/(.*)\.nyx" "\\1" curated_name ${each_file})
+    add_test(NAME tiresome_${curated_name} COMMAND nyx ${each_file})
+endforeach(each_file ${test_file_nameb})

@@ -19,9 +19,13 @@ std::string valueToStdString(nyx::Value v) {
         }
         case nyx::Array: {
             std::string str = "[";
-            for (auto e : v.cast<std::vector<nyx::Value>>()) {
-                str += valueToStdString(e);
-                str += ",";
+            auto elements = v.cast<std::vector<nyx::Value>>();
+            for (int i = 0; i < elements.size(); i++) {
+                str += valueToStdString(elements[i]);
+
+                if (i != elements.size() - 1) {
+                    str += ",";
+                }
             }
             str += "]";
             return str;
@@ -40,7 +44,7 @@ std::string repeatString(int count, const std::string& str) {
     return result;
 }
 
-std::vector<nyx::Value> repeatArray(int count, std::vector<nyx::Value>& arr) {
+std::vector<nyx::Value> repeatArray(int count, std::vector<nyx::Value>&& arr) {
     std::vector<nyx::Value> result;
     for (int i = 0; i < count; i++) {
         result.insert(result.begin(), arr.begin(), arr.end());
