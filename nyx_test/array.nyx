@@ -16,3 +16,14 @@ println("the size of array f is "+length(f))
 println(a)
 a[2] = 2
 println(a)
+b = [1,2,3]
+println(b)
+b = [3,4,5]
+println(b)
+println(b+[3,4,6])
+b = b+4
+println(b)
+b = b*3
+b = 5*b
+println(b)
+println([1,3,4]*4)

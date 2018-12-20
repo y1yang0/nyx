@@ -68,6 +68,7 @@ Function* Context::getFunction(const std::string& name) {
 
 Value Value::operator+(Value rhs) {
     Value result;
+    // Basic
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
         result.data = cast<int>() + rhs.cast<int>();
@@ -80,12 +81,6 @@ Value Value::operator+(Value rhs) {
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Double;
         result.data = cast<double>() + rhs.cast<int>();
-    }
-    // One of operands has string type, we say, the result value was a string
-    // value.
-    else if (isType<nyx::String>() || rhs.isType<nyx::String>()) {
-        result.type = nyx::String;
-        result.data = valueToStdString(*this) + valueToStdString(rhs);
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Char;
         result.data = static_cast<char>(cast<char>() + rhs.cast<int>());
@@ -95,7 +90,27 @@ Value Value::operator+(Value rhs) {
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Char>()) {
         result.type = nyx::Char;
         result.data = static_cast<char>(cast<char>() + rhs.cast<char>());
-    } else {
+    }
+    // String
+    // One of operands has string type, we say the result value was a string
+    else if (isType<nyx::String>() || rhs.isType<nyx::String>()) {
+        result.type = nyx::String;
+        result.data = valueToStdString(*this) + valueToStdString(rhs);
+    }
+    // Array
+    else if (isType<nyx::Array>()) {
+        result.type = nyx::Array;
+        auto resultArr = this->cast<std::vector<nyx::Value>>();
+        resultArr.push_back(rhs);
+        result.data = resultArr;
+    } else if (rhs.isType<nyx::Array>()) {
+        result.type = nyx::Array;
+        auto resultArr = rhs.cast<std::vector<nyx::Value>>();
+        resultArr.push_back(*this);
+        result.data = resultArr;
+    }
+    // Invalid
+    else {
         panic("TypeError: unexpected arguments of operator +");
     }
     return result;
@@ -133,6 +148,7 @@ Value Value::operator-(Value rhs) {
 
 Value Value::operator*(Value rhs) {
     Value result;
+    // Basic
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
         result.data = cast<int>() * rhs.cast<int>();
@@ -145,12 +161,24 @@ Value Value::operator*(Value rhs) {
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Double;
         result.data = cast<double>() * rhs.cast<int>();
-    } else if (isType<nyx::String>() && rhs.isType<nyx::Int>()) {
+    }
+    // String
+    else if (isType<nyx::String>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::String;
         result.data = repeatString(rhs.cast<int>(), cast<std::string>());
     } else if (isType<nyx::Int>() && rhs.isType<nyx::String>()) {
         result.type = nyx::String;
         result.data = repeatString(cast<int>(), rhs.cast<std::string>());
+    }
+    // Array
+    else if (isType<nyx::Int>() && rhs.isType<nyx::Array>()) {
+        result.type = nyx::Array;
+        result.data =
+            repeatArray(cast<int>(), rhs.cast<std::vector<nyx::Value>>());
+    } else if (isType<nyx::Array>() && rhs.isType<nyx::Int>()) {
+        result.type = nyx::Array;
+        result.data =
+            repeatArray(rhs.cast<int>(), cast<std::vector<nyx::Value>>());
     } else {
         panic("TypeError: unexpected arguments of operator *");
     }

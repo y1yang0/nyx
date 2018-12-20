@@ -40,6 +40,14 @@ std::string repeatString(int count, const std::string& str) {
     return result;
 }
 
+std::vector<nyx::Value> repeatArray(int count, std::vector<nyx::Value>& arr) {
+    std::vector<nyx::Value> result;
+    for (int i = 0; i < count; i++) {
+        result.insert(result.begin(), arr.begin(), arr.end());
+    }
+    return result;
+}
+
 [[noreturn]] void panic(char const* const format, ...) {
     va_list args;
     va_start(args, format);
