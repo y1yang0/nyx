@@ -182,6 +182,26 @@ nyx::Value Interpreter::calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs,
     return result;
 }
 
+nyx::Value Interpreter::assignSwitch(Token opt, nyx::Value lhs,
+                                     nyx::Value rhs) {
+    switch (opt) {
+        case TK_ASSIGN:
+            return rhs;
+        case TK_PLUS_AGN:
+            return lhs + rhs;
+        case TK_MINUS_AGN:
+            return lhs - rhs;
+        case TK_TIMES_AGN:
+            return lhs * rhs;
+        case TK_DIV_AGN:
+            return lhs / rhs;
+        case TK_MOD_AGN:
+            return lhs % rhs;
+        default:
+            panic("InteralError: unexpects branch reached");
+    }
+}
+
 //===----------------------------------------------------------------------===//
 // Interpret various statements within given runtime and context chain. Runtime
 // holds all necessary data that widely used in every context. Context chain
@@ -379,7 +399,8 @@ nyx::Value AssignExpr::eval(nyx::Runtime* rt,
 
         for (auto p = ctxChain.crbegin(); p != ctxChain.crend(); ++p) {
             if (auto* var = (*p)->getVariable(identName); var != nullptr) {
-                var->value = rhs;
+                var->value =
+                    Interpreter::assignSwitch(this->opt, var->value, rhs);
                 return rhs;
             }
         }
@@ -404,7 +425,8 @@ nyx::Value AssignExpr::eval(nyx::Runtime* rt,
                         identName.c_str(), line, column);
                 }
                 auto&& temp = var->value.cast<std::vector<nyx::Value>>();
-                temp[index.cast<int>()] = rhs;
+                temp[index.cast<int>()] = Interpreter::assignSwitch(
+                    this->opt, temp[index.cast<int>()], rhs);
                 var->value.data = std::move(temp);
                 return rhs;
             }

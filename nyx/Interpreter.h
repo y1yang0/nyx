@@ -11,6 +11,7 @@ public:
 public:
     void execute();
 
+public:
     static void enterContext(std::deque<nyx::Context*>& ctxChain);
 
     static void leaveContext(std::deque<nyx::Context*>& ctxChain);
@@ -24,6 +25,7 @@ public:
 
     static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
                                     int column);
+    static nyx::Value assignSwitch(Token opt, nyx::Value lhs, nyx::Value rhs);
 
 private:
     void parseCommandOption(int argc, char* argv) {}

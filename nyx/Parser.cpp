@@ -143,14 +143,17 @@ Expression* Parser::parseUnaryExpr() {
 
 Expression* Parser::parseExpression(short oldPrecedence) {
     auto* p = parseUnaryExpr();
-    if (anyone(getCurrentToken(), TK_ASSIGN)) {
+
+    if (anyone(getCurrentToken(), TK_ASSIGN, TK_PLUS_AGN, TK_MINUS_AGN,
+               TK_TIMES_AGN, TK_DIV_AGN, TK_MOD_AGN)) {
         if (typeid(*p) != typeid(IdentExpr) &&
             typeid(*p) != typeid(IndexExpr)) {
             panic("SyntaxError: can not assign to %s", typeid(*p).name());
         }
-        currentToken = next();
         auto* assignExpr = new AssignExpr(line, column);
+        assignExpr->opt = getCurrentToken();
         assignExpr->lhs = p;
+        currentToken = next();
         assignExpr->rhs = parseExpression();
         return assignExpr;
     }
@@ -334,6 +337,7 @@ std::tuple<Token, std::string> Parser::next() {
     }
 
     if (c == '#') {
+    another_comment:
         while (c != '\n' && c != EOF) {
             c = getNextChar();
         }
@@ -342,6 +346,9 @@ std::tuple<Token, std::string> Parser::next() {
             line++;
             column = 0;
             c = getNextChar();
+        }
+        if (c == '#') {
+            goto another_comment;
         }
         if (c == EOF) {
             return std::make_tuple(TK_EOF, "");
@@ -422,18 +429,38 @@ std::tuple<Token, std::string> Parser::next() {
         return std::make_tuple(TK_COMMA, ",");
     }
     if (c == '+') {
+        if (peekNextChar() == '=') {
+            c = getNextChar();
+            return std::make_tuple(TK_PLUS_AGN, "+=");
+        }
         return std::make_tuple(TK_PLUS, "+");
     }
     if (c == '-') {
+        if (peekNextChar() == '=') {
+            c = getNextChar();
+            return std::make_tuple(TK_MINUS_AGN, "-=");
+        }
         return std::make_tuple(TK_MINUS, "-");
     }
     if (c == '*') {
+        if (peekNextChar() == '=') {
+            c = getNextChar();
+            return std::make_tuple(TK_TIMES_AGN, "*=");
+        }
         return std::make_tuple(TK_TIMES, "*");
     }
     if (c == '/') {
+        if (peekNextChar() == '=') {
+            c = getNextChar();
+            return std::make_tuple(TK_DIV_AGN, "/=");
+        }
         return std::make_tuple(TK_DIV, "/");
     }
     if (c == '%') {
+        if (peekNextChar() == '=') {
+            c = getNextChar();
+            return std::make_tuple(TK_MOD_AGN, "%=");
+        }
         return std::make_tuple(TK_MOD, "%");
     }
     if (c == '~') {

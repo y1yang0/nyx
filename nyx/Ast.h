@@ -36,14 +36,19 @@ enum Token {
     TK_LT,  // <
     TK_LE,  // <=
 
-    TK_ASSIGN,    // =
-    TK_COMMA,     // ,
-    TK_LPAREN,    // (
-    TK_RPAREN,    // )
-    TK_LBRACE,    // {
-    TK_RBRACE,    // }
-    TK_LBRACKET,  // [
-    TK_RBRACKET,  // ]
+    TK_ASSIGN,     // =
+    TK_PLUS_AGN,   // +=
+    TK_MINUS_AGN,  // -=
+    TK_TIMES_AGN,  // *=
+    TK_DIV_AGN,    // /=
+    TK_MOD_AGN,    // %=
+    TK_COMMA,      // ,
+    TK_LPAREN,     // (
+    TK_RPAREN,     // )
+    TK_LBRACE,     // {
+    TK_RBRACE,     // }
+    TK_LBRACKET,   // [
+    TK_RBRACKET,   // ]
 
     KW_IF,        // if
     KW_ELSE,      // else
@@ -190,6 +195,7 @@ struct AssignExpr : public Expression {
     explicit AssignExpr(int line, int column) : Expression(line, column) {}
 
     Expression* lhs{};
+    Token opt;
     Expression* rhs{};
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
