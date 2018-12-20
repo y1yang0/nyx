@@ -53,7 +53,7 @@ private:
     }
 
 private:
-    const std::map<std::string, Token> keywords;
+    const std::unordered_map<std::string, Token> keywords;
 
     std::tuple<Token, std::string> currentToken;
 
