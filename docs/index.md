@@ -33,6 +33,17 @@ a = [1,3,4]
 println(a) # print [1,3,4]
 a[0] = 5
 println(a) # print [5,3,4]
+a = 1
+a += 1
+println(a==2)
+a -= 3
+println(a==-1)
+a *= 4
+println(a==-4)
+a /= 2
+println(a==-2)
+a %= 2
+println(a==0)
 ```
 
 ## 2.运算符
