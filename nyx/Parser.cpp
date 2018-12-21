@@ -2,7 +2,7 @@
 #include "Nyx.hpp"
 #include "Parser.h"
 #include "Utils.hpp"
-
+namespace nyx {
 void Parser::printLex(const std::string& fileName) {
     Parser p(fileName);
     std::tuple<Token, std::string> tk;
@@ -539,3 +539,4 @@ short Parser::precedence(Token op) {
             return 0;
     }
 }
+}  // namespace nyx

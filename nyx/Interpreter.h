@@ -3,6 +3,7 @@
 #include "Nyx.hpp"
 #include "Parser.h"
 
+namespace nyx {
 class Interpreter {
 public:
     explicit Interpreter(const std::string& fileName);
@@ -35,3 +36,5 @@ private:
     nyx::Runtime* rt;
     Parser* p;
 };
+
+}  // namespace nyx

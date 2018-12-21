@@ -6,37 +6,21 @@
 #include "Interpreter.h"
 #include "Nyx.hpp"
 #include "Utils.hpp"
-
 //===----------------------------------------------------------------------===//
 // Nyx interpreter, as its name described, will interpret all statements within
 // top-level source file. This part defines internal functions of interpreter
 // and leaves actually statement performing later.
 //===----------------------------------------------------------------------===//
-Interpreter::Interpreter(const std::string& fileName)
+namespace nyx {
+nyx::Interpreter::Interpreter(const std::string& fileName)
     : p(new Parser(fileName)), rt(new nyx::Runtime) {}
 
-Interpreter::~Interpreter() {
+nyx::Interpreter::~Interpreter() {
     delete p;
     delete rt;
 }
 
-nyx::Value Expression::eval(nyx::Runtime* rt,
-                            std::deque<nyx::Context*> ctxChain) {
-    panic(
-        "RuntimeError: can not evaluate abstract expression at line %d, column "
-        "%d\n",
-        line, column);
-}
-
-nyx::ExecResult Statement::interpret(nyx::Runtime* rt,
-                                     std::deque<nyx::Context*> ctxChain) {
-    panic(
-        "RuntimeError: can not interpret abstract statement at line %d, column "
-        "%d\n",
-        line, column);
-}
-
-void Interpreter::execute() {
+void nyx::Interpreter::execute() {
     this->p->parse(this->rt);
     this->ctxChain.push_back(new nyx::Context);
 
@@ -47,23 +31,23 @@ void Interpreter::execute() {
     }
 }
 
-void Interpreter::enterContext(std::deque<nyx::Context*>& ctxChain) {
+void nyx::Interpreter::enterContext(std::deque<nyx::Context*>& ctxChain) {
     auto* tempContext = new Context;
     ctxChain.push_back(tempContext);
 }
 
-void Interpreter::leaveContext(std::deque<nyx::Context*>& ctxChain) {
+void nyx::Interpreter::leaveContext(std::deque<nyx::Context*>& ctxChain) {
     auto* tempContext = ctxChain.back();
     ctxChain.pop_back();
     delete tempContext;
 }
 
-nyx::Value Interpreter::callFunction(nyx::Runtime* rt, nyx::Function* f,
-                                     std::deque<nyx::Context*> previousCtxChain,
-                                     std::vector<Expression*> args) {
+nyx::Value nyx::Interpreter::callFunction(
+    nyx::Runtime* rt, nyx::Function* f,
+    std::deque<nyx::Context*> previousCtxChain, std::vector<Expression*> args) {
     // Execute user defined function
     std::deque<nyx::Context*> funcCtxChain;
-    Interpreter::enterContext(funcCtxChain);
+    nyx::Interpreter::enterContext(funcCtxChain);
 
     auto* funcCtx = funcCtxChain.back();
     for (int i = 0; i < f->params.size(); i++) {
@@ -80,13 +64,13 @@ nyx::Value Interpreter::callFunction(nyx::Runtime* rt, nyx::Function* f,
             break;
         }
     }
-    Interpreter::leaveContext(funcCtxChain);
+    nyx::Interpreter::leaveContext(funcCtxChain);
 
     return ret.retValue;
 }
 
-nyx::Value Interpreter::calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
-                                      int column) {
+nyx::Value nyx::Interpreter::calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
+                                           int column) {
     switch (opt) {
         case TK_MINUS:
             switch (lhs.type) {
@@ -127,8 +111,8 @@ nyx::Value Interpreter::calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
     return lhs;
 }
 
-nyx::Value Interpreter::calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs,
-                                       int line, int column) {
+nyx::Value nyx::Interpreter::calcBinaryExpr(nyx::Value lhs, Token opt,
+                                            Value rhs, int line, int column) {
     nyx::Value result{nyx::Null};
 
     switch (opt) {
@@ -178,12 +162,11 @@ nyx::Value Interpreter::calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs,
             result = (lhs | rhs);
             break;
     }
-
     return result;
 }
 
-nyx::Value Interpreter::assignSwitch(Token opt, nyx::Value lhs,
-                                     nyx::Value rhs) {
+nyx::Value nyx::Interpreter::assignSwitch(Token opt, nyx::Value lhs,
+                                          nyx::Value rhs) {
     switch (opt) {
         case TK_ASSIGN:
             return rhs;
@@ -202,6 +185,8 @@ nyx::Value Interpreter::assignSwitch(Token opt, nyx::Value lhs,
     }
 }
 
+}  // namespace nyx
+
 //===----------------------------------------------------------------------===//
 // Interpret various statements within given runtime and context chain. Runtime
 // holds all necessary data that widely used in every context. Context chain
@@ -218,7 +203,7 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
             line, column);
     }
     if (true == cond.cast<bool>()) {
-        Interpreter::enterContext(ctxChain);
+        nyx::Interpreter::enterContext(ctxChain);
         for (auto& stmt : block->stmts) {
             // std::cout << stmt->astString() << "\n";
             ret = stmt->interpret(rt, ctxChain);
@@ -230,10 +215,10 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
                 break;
             }
         }
-        Interpreter::leaveContext(ctxChain);
+        nyx::Interpreter::leaveContext(ctxChain);
     } else {
         if (elseBlock != nullptr) {
-            Interpreter::enterContext(ctxChain);
+            nyx::Interpreter::enterContext(ctxChain);
             for (auto& elseStmt : elseBlock->stmts) {
                 // std::cout << stmt->astString() << "\n";
                 ret = elseStmt->interpret(rt, ctxChain);
@@ -245,7 +230,7 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
                     break;
                 }
             }
-            Interpreter::leaveContext(ctxChain);
+            nyx::Interpreter::leaveContext(ctxChain);
         }
     }
     return ret;
@@ -256,7 +241,7 @@ nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
     nyx::ExecResult ret;
     Value cond = this->cond->eval(rt, ctxChain);
 
-    Interpreter::enterContext(ctxChain);
+    nyx::Interpreter::enterContext(ctxChain);
     while (true == cond.cast<bool>()) {
         for (auto& stmt : block->stmts) {
             // std::cout << stmt->astString() << "\n";
@@ -283,7 +268,7 @@ nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
     }
 
 outside:
-    Interpreter::leaveContext(ctxChain);
+    nyx::Interpreter::leaveContext(ctxChain);
     return ret;
 }
 
@@ -309,7 +294,6 @@ nyx::ExecResult ContinueStmt::interpret(nyx::Runtime* rt,
                                         std::deque<nyx::Context*> ctxChain) {
     return nyx::ExecResult(nyx::ExecContinue);
 }
-
 //===----------------------------------------------------------------------===//
 // Evaulate all expressions and return a nyx::Value structure, this object
 // contains evaulated data and corresponding data type, it represents sorts
@@ -400,7 +384,7 @@ nyx::Value AssignExpr::eval(nyx::Runtime* rt,
         for (auto p = ctxChain.crbegin(); p != ctxChain.crend(); ++p) {
             if (auto* var = (*p)->getVariable(identName); var != nullptr) {
                 var->value =
-                    Interpreter::assignSwitch(this->opt, var->value, rhs);
+                    nyx::Interpreter::assignSwitch(this->opt, var->value, rhs);
                 return rhs;
             }
         }
@@ -425,7 +409,7 @@ nyx::Value AssignExpr::eval(nyx::Runtime* rt,
                         identName.c_str(), line, column);
                 }
                 auto&& temp = var->value.cast<std::vector<nyx::Value>>();
-                temp[index.cast<int>()] = Interpreter::assignSwitch(
+                temp[index.cast<int>()] = nyx::Interpreter::assignSwitch(
                     this->opt, temp[index.cast<int>()], rhs);
                 var->value.data = std::move(temp);
                 return rhs;
@@ -455,7 +439,7 @@ nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
             panic("ArgumentError: expects %d arguments but got %d",
                   func->params.size(), this->args.size());
         }
-        return Interpreter::callFunction(rt, func, ctxChain, this->args);
+        return nyx::Interpreter::callFunction(rt, func, ctxChain, this->args);
     }
 
     panic(
@@ -474,8 +458,23 @@ nyx::Value BinaryExpr::eval(nyx::Runtime* rt,
     Token opt = this->opt;
 
     if (!lhs.isType<nyx::Null>() && rhs.isType<nyx::Null>()) {
-        return Interpreter::calcUnaryExpr(lhs, opt, line, column);
+        return nyx::Interpreter::calcUnaryExpr(lhs, opt, line, column);
     }
 
-    return Interpreter::calcBinaryExpr(lhs, opt, rhs, line, column);
+    return nyx::Interpreter::calcBinaryExpr(lhs, opt, rhs, line, column);
+}
+nyx::Value Expression::eval(nyx::Runtime* rt,
+                            std::deque<nyx::Context*> ctxChain) {
+    panic(
+        "RuntimeError: can not evaluate abstract expression at line %d, column "
+        "%d\n",
+        line, column);
+}
+
+nyx::ExecResult Statement::interpret(nyx::Runtime* rt,
+                                     std::deque<nyx::Context*> ctxChain) {
+    panic(
+        "RuntimeError: can not interpret abstract statement at line %d, column "
+        "%d\n",
+        line, column);
 }

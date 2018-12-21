@@ -11,10 +11,6 @@ addons:
       - gcc-7
       - g++-7
       - cmake
-      - python
-
-install:
-  - pip install codecov python_coveralls
 
 script:
   - export CC=/usr/bin/gcc-7
@@ -24,10 +20,6 @@ script:
   - cmake ..
   - make -j8
   - make test
-  
-after_success:
-  - coveralls
-  - codecov
 
 notifications:
   email:

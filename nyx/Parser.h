@@ -10,6 +10,7 @@
 #include "Ast.h"
 #include "Nyx.hpp"
 
+namespace nyx {
 class Parser {
 public:
     explicit Parser(const std::string& fileName);
@@ -18,13 +19,12 @@ public:
 public:
     void parse(nyx::Runtime* rt);
     static void printLex(const std::string& fileName);
-    short precedence(Token op);
 
 private:
     Expression* parsePrimaryExpr();
     Expression* parseUnaryExpr();
-    Expression* parseExpression(
-        short oldPrecedence = 1 /*default to lowest precedence(0) + 1*/);
+    // default to lowest precedence(0) + 1
+    Expression* parseExpression(short oldPrecedence = 1);
     ExpressionStmt* parseExpressionStmt();
     IfStmt* parseIfStmt();
     WhileStmt* parseWhileStmt();
@@ -36,6 +36,8 @@ private:
     nyx::Function* parseFuncDef(nyx::Context* context);
 
 private:
+    short precedence(Token op);
+
     std::tuple<Token, std::string> next();
 
     inline char getNextChar() {
@@ -63,3 +65,4 @@ private:
 
     int column = 0;
 };
+}  // namespace nyx

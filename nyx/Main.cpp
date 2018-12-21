@@ -8,7 +8,7 @@ int main(int argc, char* argv[]) {
         panic("Feed your *.nyx source file to interpreter!\n");
     }
 
-    Interpreter nyx(argv[1]);
+    nyx::Interpreter nyx(argv[1]);
     nyx.execute();
     return 0;
 }

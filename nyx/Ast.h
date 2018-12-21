@@ -8,13 +8,12 @@
 //===----------------------------------------------------------------------===//
 enum Token {
     INVALID = 0,  // <invalid>
-
-    TK_IDENT,    // <identifier>
-    TK_EOF,      // <eof>
-    LIT_INT,     // <integer>
-    LIT_STR,     // <string>
-    LIT_DOUBLE,  // <decimal>
-    LIT_CHAR,    // <character>
+    TK_IDENT,     // <identifier>
+    TK_EOF,       // <eof>
+    LIT_INT,      // <integer>
+    LIT_STR,      // <string>
+    LIT_DOUBLE,   // <decimal>
+    LIT_CHAR,     // <character>
 
     TK_BITAND,  // &
     TK_BITOR,   // |
