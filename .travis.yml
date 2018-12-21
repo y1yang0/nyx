@@ -11,6 +11,10 @@ addons:
       - gcc-7
       - g++-7
       - cmake
+      - python
+
+install:
+  - pip install codecov python_coveralls
 
 script:
   - export CC=/usr/bin/gcc-7
