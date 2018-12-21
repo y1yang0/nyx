@@ -239,9 +239,10 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
 nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
                                      std::deque<nyx::Context*> ctxChain) {
     nyx::ExecResult ret;
-    Value cond = this->cond->eval(rt, ctxChain);
 
     nyx::Interpreter::enterContext(ctxChain);
+    Value cond = this->cond->eval(rt, ctxChain);
+
     while (true == cond.cast<bool>()) {
         for (auto& stmt : block->stmts) {
             // std::cout << stmt->astString() << "\n";
@@ -264,6 +265,85 @@ nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
                 "TypeError: expects bool type in while condition at line %d, "
                 "col %d\n",
                 line, column);
+        }
+    }
+
+outside:
+    nyx::Interpreter::leaveContext(ctxChain);
+    return ret;
+}
+
+nyx::ExecResult ForStmt::interpret(nyx::Runtime* rt,
+                                   std::deque<nyx::Context*> ctxChain) {
+    nyx::ExecResult ret;
+
+    nyx::Interpreter::enterContext(ctxChain);
+    this->init->eval(rt, ctxChain);
+    Value cond = this->cond->eval(rt, ctxChain);
+
+    while (true == cond.cast<bool>()) {
+        for (auto& stmt : block->stmts) {
+            // std::cout << stmt->astString() << "\n";
+            ret = stmt->interpret(rt, ctxChain);
+            if (ret.execType == nyx::ExecReturn) {
+                goto outside;
+            } else if (ret.execType == nyx::ExecBreak) {
+                // Disable propagating through the whole chain
+                ret.execType = nyx::ExecNormal;
+                goto outside;
+            } else if (ret.execType == nyx::ExecContinue) {
+                // Disable propagating through the whole chain
+                ret.execType = nyx::ExecNormal;
+                break;
+            }
+        }
+
+        this->post->eval(rt, ctxChain);
+        cond = this->cond->eval(rt, ctxChain);
+        if (!cond.isType<nyx::Bool>()) {
+            panic(
+                "TypeError: expects bool type in while condition at line %d, "
+                "col %d\n",
+                line, column);
+        }
+    }
+
+outside:
+    nyx::Interpreter::leaveContext(ctxChain);
+    return ret;
+}
+
+nyx::ExecResult ForEachStmt::interpret(nyx::Runtime* rt,
+                                       std::deque<nyx::Context*> ctxChain) {
+    nyx::ExecResult ret;
+
+    nyx::Interpreter::enterContext(ctxChain);
+    ctxChain.back()->createVariable(this->identName, nyx::Value(nyx::Null));
+    nyx::Value list = this->list->eval(rt, ctxChain);
+    if (!list.isType<nyx::Array>()) {
+        panic(
+            "TypeError: expects array type within foreach statement at line "
+            "%d,col %d\n",
+            line, column);
+    }
+    std::vector<nyx::Value> listValues = list.cast<std::vector<nyx::Value>>();
+    for (const auto& val : listValues) {
+        ctxChain.back()->getVariable(identName)->value = val;
+
+        for (auto& stmt : block->stmts) {
+            // std::cout << stmt->astString() << "\n";
+            ret = stmt->interpret(rt, ctxChain);
+            if (ret.execType == nyx::ExecReturn) {
+                goto outside;
+            } else if (ret.execType == nyx::ExecBreak) {
+                // Disable propagating through the whole chain
+                ret.execType = nyx::ExecNormal;
+                goto outside;
+            } else if (ret.execType == nyx::ExecContinue) {
+                // Disable propagating through the whole chain
+                ret.execType = nyx::ExecNormal;
+                break;
+            }
         }
     }
 
@@ -346,8 +426,10 @@ nyx::Value IdentExpr::eval(nyx::Runtime* rt,
             return var->value;
         }
     }
-    panic("RuntimeError: use of undefined variable \"%s\" at line %d, col %d\n",
-          identName.c_str(), this->line, this->column);
+    panic(
+        "RuntimeError: use of undefined variable \"%s\" at line %d, col "
+        "%d\n",
+        identName.c_str(), this->line, this->column);
 }
 
 nyx::Value IndexExpr::eval(nyx::Runtime* rt,
@@ -358,20 +440,25 @@ nyx::Value IndexExpr::eval(nyx::Runtime* rt,
             auto idx = this->index->eval(rt, ctxChain);
             if (!idx.isType<nyx::Int>()) {
                 panic(
-                    "TypeError: expects int type within indexing expression at "
+                    "TypeError: expects int type within indexing "
+                    "expression at "
                     "line %d, col %d\n",
                     line, column);
             }
             if (idx.cast<int>() >=
                 var->value.cast<std::vector<nyx::Value>>().size()) {
-                panic("IndexError: index %d out of range at line %d, col %d\n",
-                      idx.cast<int>(), line, column);
+                panic(
+                    "IndexError: index %d out of range at line %d, col "
+                    "%d\n",
+                    idx.cast<int>(), line, column);
             }
             return var->value.cast<std::vector<nyx::Value>>()[idx.cast<int>()];
         }
     }
-    panic("RuntimeError: use of undefined variable \"%s\" at line %d, col %d\n",
-          identName.c_str(), this->line, this->column);
+    panic(
+        "RuntimeError: use of undefined variable \"%s\" at line %d, col "
+        "%d\n",
+        identName.c_str(), this->line, this->column);
 }
 
 nyx::Value AssignExpr::eval(nyx::Runtime* rt,
@@ -466,7 +553,8 @@ nyx::Value BinaryExpr::eval(nyx::Runtime* rt,
 nyx::Value Expression::eval(nyx::Runtime* rt,
                             std::deque<nyx::Context*> ctxChain) {
     panic(
-        "RuntimeError: can not evaluate abstract expression at line %d, column "
+        "RuntimeError: can not evaluate abstract expression at line %d, "
+        "column "
         "%d\n",
         line, column);
 }
@@ -474,7 +562,8 @@ nyx::Value Expression::eval(nyx::Runtime* rt,
 nyx::ExecResult Statement::interpret(nyx::Runtime* rt,
                                      std::deque<nyx::Context*> ctxChain) {
     panic(
-        "RuntimeError: can not interpret abstract statement at line %d, column "
+        "RuntimeError: can not interpret abstract statement at line %d, "
+        "column "
         "%d\n",
         line, column);
 }

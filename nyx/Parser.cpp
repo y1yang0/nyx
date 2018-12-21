@@ -19,7 +19,7 @@ Parser::Parser(const std::string& fileName)
                 {"null", KW_NULL},
                 {"true", KW_TRUE},
                 {"false", KW_FALSE},
-                {"for", KW_FALSE},
+                {"for", KW_FOR},
                 {"func", KW_FUNC},
                 {"return", KW_RETURN},
                 {"break", KW_BREAK},
@@ -207,6 +207,34 @@ WhileStmt* Parser::parseWhileStmt() {
     return node;
 }
 
+Statement* Parser::parseForStmt() {
+    currentToken = next();
+    auto init = parseExpression();
+    if (typeid(*init) == typeid(IdentExpr) && getCurrentToken() == TK_COLON) {
+        auto* node = new ForEachStmt(line, column);
+        node->identName = dynamic_cast<IdentExpr*>(init)->identName;
+        currentToken = next();
+        node->list = parseExpression();
+        assert(getCurrentToken() == TK_RPAREN);
+        currentToken = next();
+        node->block = parseBlock();
+        return node;
+    } else {
+        auto* node = new ForStmt(line, column);
+        node->init = init;
+        assert(getCurrentToken() == TK_SEMICOLON);
+        currentToken = next();
+        node->cond = parseExpression();
+        assert(getCurrentToken() == TK_SEMICOLON);
+        currentToken = next();
+        node->post = parseExpression();
+        assert(getCurrentToken() == TK_RPAREN);
+        currentToken = next();
+        node->block = parseBlock();
+        return node;
+    }
+}
+
 ReturnStmt* Parser::parseReturnStmt() {
     auto* node = new ReturnStmt(line, column);
     node->ret = parseExpression();
@@ -235,6 +263,10 @@ Statement* Parser::parseStatement() {
         case KW_CONTINUE:
             currentToken = next();
             node = new ContinueStmt(line, column);
+            break;
+        case KW_FOR:
+            currentToken = next();
+            node = parseForStmt();
             break;
         default:
             node = parseExpressionStmt();
@@ -427,6 +459,12 @@ std::tuple<Token, std::string> Parser::next() {
     }
     if (c == ',') {
         return std::make_tuple(TK_COMMA, ",");
+    }
+    if (c == ';') {
+        return std::make_tuple(TK_SEMICOLON, ";");
+    }
+    if (c == ':') {
+        return std::make_tuple(TK_COLON, ":");
     }
     if (c == '+') {
         if (peekNextChar() == '=') {

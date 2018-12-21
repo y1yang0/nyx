@@ -48,6 +48,8 @@ enum Token {
     TK_RBRACE,     // }
     TK_LBRACKET,   // [
     TK_RBRACKET,   // ]
+    TK_SEMICOLON,  // ;
+    TK_COLON,      // :
 
     KW_IF,        // if
     KW_ELSE,      // else
@@ -262,6 +264,29 @@ struct WhileStmt : public Statement {
     explicit WhileStmt(int line, int column) : Statement(line, column) {}
 
     Expression* cond{};
+    Block* block{};
+
+    ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
+    std::string astString() override;
+};
+
+struct ForStmt : public Statement {
+    explicit ForStmt(int line, int column) : Statement(line, column) {}
+
+    Expression* init{};
+    Expression* cond{};
+    Expression* post{};
+    Block* block{};
+
+    ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
+    std::string astString() override;
+};
+
+struct ForEachStmt : public Statement {
+    explicit ForEachStmt(int line, int column) : Statement(line, column) {}
+
+    std::string identName;
+    Expression* list{};
     Block* block{};
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;

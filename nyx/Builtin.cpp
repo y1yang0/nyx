@@ -95,3 +95,51 @@ nyx::Value nyx_builtin_length(nyx::Runtime* rt,
         "TypeError: unexpected type of arguments, requires string type or "
         "array type");
 }
+
+nyx::Value nyx_builtin_to_int(nyx::Runtime* rt,
+                              std::deque<nyx::Context*> ctxChain,
+                              std::vector<nyx::Value> args) {
+    if (args.size() != 1) {
+        panic("ArgumentError: expects one argument but got %d", args.size());
+    }
+
+    if (args[0].isType<nyx::Double>()) {
+        return nyx::Value(nyx::Int, std::make_any<int>(args[0].cast<double>()));
+    }
+    panic("TypeError: unexpected type of arguments within to_int()");
+}
+
+nyx::Value nyx_builtin_to_double(nyx::Runtime* rt,
+                                 std::deque<nyx::Context*> ctxChain,
+                                 std::vector<nyx::Value> args) {
+    if (args.size() != 1) {
+        panic("ArgumentError: expects one argument but got %d", args.size());
+    }
+
+    if (args[0].isType<nyx::Int>()) {
+        return nyx::Value(nyx::Double,
+                          std::make_any<double>(args[0].cast<int>()));
+    }
+    panic("TypeError: unexpected type of arguments within to_double()");
+}
+
+nyx::Value nyx_builtin_range(nyx::Runtime* rt,
+                             std::deque<nyx::Context*> ctxChain,
+                             std::vector<nyx::Value> args) {
+    if (args.size() != 1) {
+        panic("ArgumentError: expects one argument but got %d", args.size());
+    }
+
+    if (args[0].isType<nyx::Int>()) {
+        std::vector<nyx::Value> vals;
+        if (args[0].cast<int>() <= 0) {
+            return nyx::Value(nyx::Array, vals);
+        }
+
+        for (int i = 0; i < args[0].cast<int>(); i++) {
+            vals.push_back(nyx::Value(nyx::Int, i));
+        }
+        return nyx::Value(nyx::Array, vals);
+    }
+    panic("TypeError: unexpected type of arguments within range()");
+}

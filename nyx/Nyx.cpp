@@ -16,6 +16,9 @@ Runtime::Runtime() {
     builtin["typeof"] = &nyx_builtin_typeof;
     builtin["input"] = &nyx_builtin_input;
     builtin["length"] = &nyx_builtin_length;
+    builtin["to_int"] = &nyx_builtin_to_int;
+    builtin["to_double"] = &nyx_builtin_to_double;
+    builtin["range"] = &nyx_builtin_range;
 }
 
 bool Runtime::hasBuiltinFunction(const std::string& name) {

@@ -153,8 +153,38 @@ std::string WhileStmt::astString() {
     std::string str = "WhileStmt(cond=";
     str += cond->astString();
     str += ",exprs=[";
-    for (auto& e : block->stmts) {
-        str += e->astString();
+    for (auto& stmt : block->stmts) {
+        str += stmt->astString();
+        str += ",";
+    }
+    str += "])";
+    return str;
+}
+
+std::string ForStmt::astString() {
+    std::string str = "ForStmt(init=";
+    str += init->astString();
+    str += ",cond=";
+    str += cond->astString();
+    str += ",post=";
+    str += post->astString();
+    str += ",=block[";
+    for (auto& stmt : block->stmts) {
+        str += stmt->astString();
+        str += ",";
+    }
+    str += "])";
+    return str;
+}
+
+std::string ForEachStmt::astString() {
+    std::string str = "ForEachStmt(identName=";
+    str += identName;
+    str += ",list=";
+    str += list->astString();
+    str += ",block=[";
+    for (auto& stmt : block->stmts) {
+        str += stmt->astString();
         str += ",";
     }
     str += "])";
@@ -165,8 +195,8 @@ std::string IfStmt::astString() {
     std::string str = "IfStmt(cond=";
     str += cond->astString();
     str += ",exprs=[";
-    for (auto& e : block->stmts) {
-        str += e->astString();
+    for (auto& stmt : block->stmts) {
+        str += stmt->astString();
         str += ",";
     }
     str += "])";
