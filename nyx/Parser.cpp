@@ -2,6 +2,7 @@
 #include "Nyx.hpp"
 #include "Parser.h"
 #include "Utils.hpp"
+
 namespace nyx {
 void Parser::printLex(const std::string& fileName) {
     Parser p(fileName);
@@ -33,94 +34,105 @@ Parser::Parser(const std::string& fileName)
 Parser::~Parser() { fs.close(); }
 
 Expression* Parser::parsePrimaryExpr() {
-    if (getCurrentToken() == TK_IDENT) {
-        auto ident = getCurrentLexeme();
-        currentToken = next();
-        switch (getCurrentToken()) {
-            case TK_LPAREN: {
-                currentToken = next();
-                auto* val = new FunCallExpr(line, column);
-                val->funcName = ident;
-                while (getCurrentToken() != TK_RPAREN) {
-                    val->args.push_back(parseExpression());
+    switch (getCurrentToken()) {
+        case TK_IDENT: {
+            auto ident = getCurrentLexeme();
+            currentToken = next();
+            switch (getCurrentToken()) {
+                case TK_LPAREN: {
+                    currentToken = next();
+                    auto* val = new FunCallExpr(line, column);
+                    val->funcName = ident;
+                    while (getCurrentToken() != TK_RPAREN) {
+                        val->args.push_back(parseExpression());
+                        if (getCurrentToken() == TK_COMMA) {
+                            currentToken = next();
+                        }
+                    }
+                    assert(getCurrentToken() == TK_RPAREN);
+                    currentToken = next();
+                    return val;
+                }
+                case TK_LBRACKET: {
+                    currentToken = next();
+                    auto* val = new IndexExpr(line, column);
+                    val->identName = ident;
+                    val->index = parseExpression();
+                    assert(val->index != nullptr);
+                    assert(getCurrentToken() == TK_RBRACKET);
+                    currentToken = next();
+                    return val;
+                }
+                default: {
+                    return new IdentExpr(ident, line, column);
+                }
+            }
+        }
+        case TK_LBRACKET: {
+            currentToken = next();
+            auto* ret = new ArrayExpr(line, column);
+            if (getCurrentToken() != TK_RBRACKET) {
+                while (getCurrentToken() != TK_RBRACKET) {
+                    ret->literal.push_back(parseExpression());
                     if (getCurrentToken() == TK_COMMA) {
                         currentToken = next();
                     }
                 }
-                assert(getCurrentToken() == TK_RPAREN);
-                currentToken = next();
-                return val;
-            }
-            case TK_LBRACKET: {
-                currentToken = next();
-                auto* val = new IndexExpr(line, column);
-                val->identName = ident;
-                val->index = parseExpression();
-                assert(val->index != nullptr);
                 assert(getCurrentToken() == TK_RBRACKET);
                 currentToken = next();
-                return val;
-            }
-            default: {
-                return new IdentExpr(ident, line, column);
+                return ret;
+            } else {
+                currentToken = next();
+                // It's an empty array literal
+                return ret;
             }
         }
-    } else if (getCurrentToken() == LIT_INT) {
-        auto val = atoi(getCurrentLexeme().c_str());
-        currentToken = next();
-        auto* ret = new IntExpr(line, column);
-        ret->literal = val;
-        return ret;
-    } else if (getCurrentToken() == LIT_DOUBLE) {
-        auto val = atof(getCurrentLexeme().c_str());
-        currentToken = next();
-        auto* ret = new DoubleExpr(line, column);
-        ret->literal = val;
-        return ret;
-    } else if (getCurrentToken() == LIT_STR) {
-        auto val = getCurrentLexeme();
-        currentToken = next();
-        auto* ret = new StringExpr(line, column);
-        ret->literal = val;
-        return ret;
-    } else if (getCurrentToken() == LIT_CHAR) {
-        auto val = getCurrentLexeme();
-        currentToken = next();
-        auto* ret = new CharExpr(line, column);
-        ret->literal = val[0];
-        return ret;
-    } else if (getCurrentToken() == KW_TRUE || getCurrentToken() == KW_FALSE) {
-        auto val = (KW_TRUE == getCurrentToken());
-        currentToken = next();
-        auto* ret = new BoolExpr(line, column);
-        ret->literal = val;
-        return ret;
-    } else if (getCurrentToken() == KW_NULL) {
-        currentToken = next();
-        return new NullExpr(line, column);
-    } else if (getCurrentToken() == TK_LPAREN) {
-        currentToken = next();
-        auto val = parseExpression();
-        assert(getCurrentToken() == TK_RPAREN);
-        currentToken = next();
-        return val;
-    } else if (getCurrentToken() == TK_LBRACKET) {
-        currentToken = next();
-        auto* ret = new ArrayExpr(line, column);
-        if (getCurrentToken() != TK_RBRACKET) {
-            while (getCurrentToken() != TK_RBRACKET) {
-                ret->literal.push_back(parseExpression());
-                if (getCurrentToken() == TK_COMMA) {
-                    currentToken = next();
-                }
-            }
-            assert(getCurrentToken() == TK_RBRACKET);
+        case LIT_INT: {
+            auto val = atoi(getCurrentLexeme().c_str());
             currentToken = next();
+            auto* ret = new IntExpr(line, column);
+            ret->literal = val;
             return ret;
-        } else {
+        }
+        case LIT_DOUBLE: {
+            auto val = atof(getCurrentLexeme().c_str());
             currentToken = next();
-            // It's an empty array literal
+            auto* ret = new DoubleExpr(line, column);
+            ret->literal = val;
             return ret;
+        }
+        case LIT_STR: {
+            auto val = getCurrentLexeme();
+            currentToken = next();
+            auto* ret = new StringExpr(line, column);
+            ret->literal = val;
+            return ret;
+        }
+        case LIT_CHAR: {
+            auto val = getCurrentLexeme();
+            currentToken = next();
+            auto* ret = new CharExpr(line, column);
+            ret->literal = val[0];
+            return ret;
+        }
+        case KW_TRUE:
+        case KW_FALSE: {
+            auto val = (KW_TRUE == getCurrentToken());
+            currentToken = next();
+            auto* ret = new BoolExpr(line, column);
+            ret->literal = val;
+            return ret;
+        }
+        case KW_NULL: {
+            currentToken = next();
+            return new NullExpr(line, column);
+        }
+        case TK_LPAREN: {
+            currentToken = next();
+            auto val = parseExpression();
+            assert(getCurrentToken() == TK_RPAREN);
+            currentToken = next();
+            return val;
         }
     }
     return nullptr;

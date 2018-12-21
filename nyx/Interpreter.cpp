@@ -6,23 +6,24 @@
 #include "Interpreter.h"
 #include "Nyx.hpp"
 #include "Utils.hpp"
+
 //===----------------------------------------------------------------------===//
 // Nyx interpreter, as its name described, will interpret all statements within
 // top-level source file. This part defines internal functions of interpreter
 // and leaves actually statement performing later.
 //===----------------------------------------------------------------------===//
 namespace nyx {
-nyx::Interpreter::Interpreter(const std::string& fileName)
-    : p(new Parser(fileName)), rt(new nyx::Runtime) {}
+Interpreter::Interpreter(const std::string& fileName)
+    : p(new Parser(fileName)), rt(new Runtime) {}
 
-nyx::Interpreter::~Interpreter() {
+Interpreter::~Interpreter() {
     delete p;
     delete rt;
 }
 
-void nyx::Interpreter::execute() {
+void Interpreter::execute() {
     this->p->parse(this->rt);
-    this->ctxChain.push_back(new nyx::Context);
+    this->ctxChain.push_back(new Context);
 
     auto stmts = rt->getStatements();
     for (auto stmt : stmts) {
@@ -31,54 +32,52 @@ void nyx::Interpreter::execute() {
     }
 }
 
-void nyx::Interpreter::enterContext(std::deque<nyx::Context*>& ctxChain) {
+void Interpreter::enterContext(std::deque<Context*>& ctxChain) {
     auto* tempContext = new Context;
     ctxChain.push_back(tempContext);
 }
 
-void nyx::Interpreter::leaveContext(std::deque<nyx::Context*>& ctxChain) {
+void Interpreter::leaveContext(std::deque<Context*>& ctxChain) {
     auto* tempContext = ctxChain.back();
     ctxChain.pop_back();
     delete tempContext;
 }
 
-nyx::Value nyx::Interpreter::callFunction(
-    nyx::Runtime* rt, nyx::Function* f,
-    std::deque<nyx::Context*> previousCtxChain, std::vector<Expression*> args) {
+Value Interpreter::callFunction(Runtime* rt, Function* f,
+                                std::deque<Context*> previousCtxChain,
+                                std::vector<Expression*> args) {
     // Execute user defined function
-    std::deque<nyx::Context*> funcCtxChain;
-    nyx::Interpreter::enterContext(funcCtxChain);
+    std::deque<Context*> funcCtxChain;
+    Interpreter::enterContext(funcCtxChain);
 
     auto* funcCtx = funcCtxChain.back();
     for (int i = 0; i < f->params.size(); i++) {
         std::string paramName = f->params[i];
         // Evaluate argument values from previouse context chain
-        nyx::Value argValue = args[i]->eval(rt, previousCtxChain);
+        Value argValue = args[i]->eval(rt, previousCtxChain);
         funcCtx->createVariable(f->params[i], argValue);
     }
 
-    nyx::ExecResult ret(nyx::ExecNormal);
+    ExecResult ret(ExecNormal);
     for (auto& stmt : f->block->stmts) {
         ret = stmt->interpret(rt, funcCtxChain);
-        if (ret.execType == nyx::ExecReturn) {
+        if (ret.execType == ExecReturn) {
             break;
         }
     }
-    nyx::Interpreter::leaveContext(funcCtxChain);
+    Interpreter::leaveContext(funcCtxChain);
 
     return ret.retValue;
 }
 
-nyx::Value nyx::Interpreter::calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
-                                           int column) {
+Value Interpreter::calcUnaryExpr(Value& lhs, Token opt, int line, int column) {
     switch (opt) {
         case TK_MINUS:
             switch (lhs.type) {
-                case nyx::Int:
-                    return nyx::Value(nyx::Int, -std::any_cast<int>(lhs.data));
-                case nyx::Double:
-                    return nyx::Value(nyx::Double,
-                                      -std::any_cast<double>(lhs.data));
+                case Int:
+                    return Value(Int, -std::any_cast<int>(lhs.data));
+                case Double:
+                    return Value(Double, -std::any_cast<double>(lhs.data));
                 default:
                     panic(
                         "TypeError: invalid operand type for operator "
@@ -87,8 +86,8 @@ nyx::Value nyx::Interpreter::calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
             }
             break;
         case TK_LOGNOT:
-            if (lhs.type == nyx::Bool) {
-                return nyx::Value(nyx::Bool, !std::any_cast<bool>(lhs.data));
+            if (lhs.type == Bool) {
+                return Value(Bool, !std::any_cast<bool>(lhs.data));
             } else {
                 panic(
                     "TypeError: invalid operand type for operator "
@@ -97,8 +96,8 @@ nyx::Value nyx::Interpreter::calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
             }
             break;
         case TK_BITNOT:
-            if (lhs.type == nyx::Int) {
-                return nyx::Value(nyx::Int, ~std::any_cast<int>(lhs.data));
+            if (lhs.type == Int) {
+                return Value(Int, ~std::any_cast<int>(lhs.data));
             } else {
                 panic(
                     "TypeError: invalid operand type for operator "
@@ -111,9 +110,9 @@ nyx::Value nyx::Interpreter::calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
     return lhs;
 }
 
-nyx::Value nyx::Interpreter::calcBinaryExpr(nyx::Value lhs, Token opt,
-                                            Value rhs, int line, int column) {
-    nyx::Value result{nyx::Null};
+Value Interpreter::calcBinaryExpr(Value lhs, Token opt, Value rhs, int line,
+                                  int column) {
+    Value result{Null};
 
     switch (opt) {
         case TK_PLUS:
@@ -165,8 +164,7 @@ nyx::Value nyx::Interpreter::calcBinaryExpr(nyx::Value lhs, Token opt,
     return result;
 }
 
-nyx::Value nyx::Interpreter::assignSwitch(Token opt, nyx::Value lhs,
-                                          nyx::Value rhs) {
+Value Interpreter::assignSwitch(Token opt, Value lhs, Value rhs) {
     switch (opt) {
         case TK_ASSIGN:
             return rhs;

@@ -78,12 +78,11 @@ print(q)
 print("hello,"+"world") # will print hello,world
 print("test" * 3 )      # will print testtesttest
 ```
-对数组进行`+`运算会将另一个操作数放入数组中;同样的，`*`表示重复N次数组
+对数组进行`+`运算会将另一个操作数放入数组中:
 ```nyx
 a = [1,2,'c']
 b = a+[4,5]
 println(b) # print [1,2,[4,5]]
-println([3,4]*3) # print [3,4,3,4,3,4]
 println(3+[4,5]) # print [3,4,5]
 println([3]+[4,5]) # print [[3],4,5]
 ```

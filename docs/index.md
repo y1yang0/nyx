@@ -68,12 +68,11 @@ print(q)
 print("hello,"+"world") # will print hello,world
 print("test" * 3 )      # will print testtesttest
 ```
-对数组进行`+`运算会将另一个操作数放入数组中;同样的，`*`表示重复N次数组
+对数组进行`+`运算会将另一个操作数放入数组中:
 ```nyx
 a = [1,2,'c']
 b = a+[4,5]
 println(b) # print [1,2,[4,5]]
-println([3,4]*3) # print [3,4,3,4,3,4]
 println(3+[4,5]) # print [3,4,5]
 println([3]+[4,5]) # print [[3],4,5]
 ```
@@ -128,7 +127,30 @@ if(b <10){
 }
 ```
 
-## 3.2 while循环
+## 3.2 for与foreach循环
+`for`循环类似于C系语言，由初始化表达式，条件表达式，后置表达式组成：
+```nyx
+for(i=2;i<x-1;i+=1){
+    if(x%i==0){
+        return false
+    }
+}
+arr = [12,3,54,5,6]
+for(i: arr){
+}
+```
+`for`还有一种被称之为`foreach`的变体形式，它取列表中每个元素，赋值给指定变量：
+```nyx
+for(i : [4,5,6,'c',"foreach"]){
+    println(i)
+}
+# range()为内置函数，返回元素为[1,2,...,9]的数组
+for(t:range(10)){
+    println(t)
+}
+```
+
+## 3.3 while循环
 **nyx**不打算在公共语言基础上标新立异，它的`while`做了与其他大多数语言一样的事情，即根据条件进行循环。
 ```nyx
 a= 1
@@ -137,7 +159,7 @@ while(a<100){
     a = a+1
 }
 ```
-## 3.3 break
+## 3.4 break
 `break`跳出最近一层循环：
 ```nyx
 # 输出1-10
@@ -153,7 +175,7 @@ func upto10(){
 }
 upto10()
 ```
-## 3.4 continue
+## 3.5 continue
 `continue`结束本次循环并继续下次循环(会对条件重新求值)：
 ```nyx
 # 过滤奇数，输出limit以内的偶数
@@ -234,4 +256,13 @@ func typeof(a:any) b:string
 
 # 接受字符串或数组类型，返回长度
 func length(a:string|array) b:int
+
+# 强制类型转换为int
+func to_int(a:double) b:int
+
+# 强制类型转换为double
+func to_double(a:int) b:double
+
+# 返回[0,1,...n)的数组,n<=0则返回[]
+func range(a:int): b:array
 ```
