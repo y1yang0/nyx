@@ -361,7 +361,6 @@ nyx::ExecResult MatchStmt::interpret(nyx::Runtime* rt,
         // will actually evaluate the value of case expression, that is, the
         // identifier _ will be evaluate and might cause undefined variable
         // error.
-
         if (isAny || equalValue(cond, theCase->eval(rt, ctxChain))) {
             nyx::Interpreter::enterContext(ctxChain);
             for (auto stmt : theBranch->stmts) {

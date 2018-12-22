@@ -60,7 +60,7 @@ std::vector<nyx::Value> repeatArray(int count, std::vector<nyx::Value>&& arr) {
     exit(EXIT_FAILURE);
 }
 
-bool equalValue(nyx::Value& a, nyx::Value& b) {
+bool equalValue(const nyx::Value& a, const nyx::Value& b) {
     if (a.type != b.type) {
         return false;
     }

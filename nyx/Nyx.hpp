@@ -40,6 +40,8 @@ struct Value {
 
     template <typename _CastingType>
     inline _CastingType cast();
+    template <typename _CastingType>
+    inline _CastingType cast() const;
 
     template <typename _DataType>
     inline void set(_DataType data);
@@ -127,6 +129,11 @@ inline bool Value::isType() {
 
 template <typename _CastingType>
 inline _CastingType Value::cast() {
+    return std::any_cast<_CastingType>(data);
+}
+
+template <typename _CastingType>
+inline _CastingType Value::cast() const {
     return std::any_cast<_CastingType>(data);
 }
 

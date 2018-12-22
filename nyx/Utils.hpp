@@ -15,4 +15,4 @@ inline bool anyone(_DesireType k, _ArgumentType... args) {
 
 [[noreturn]] void panic(char const* const format, ...);
 
-bool equalValue(nyx::Value& a, nyx::Value& b);
+bool equalValue(const nyx::Value& a, const nyx::Value& b);
