@@ -24,7 +24,8 @@ Parser::Parser(const std::string& fileName)
                 {"func", KW_FUNC},
                 {"return", KW_RETURN},
                 {"break", KW_BREAK},
-                {"continue", KW_CONTINUE}}) {
+                {"continue", KW_CONTINUE},
+                {"match", KW_MATCH}}) {
     fs.open(fileName);
     if (!fs.is_open()) {
         panic("ParserError: can not open source file");
@@ -64,7 +65,9 @@ Expression* Parser::parsePrimaryExpr() {
                     return val;
                 }
                 default: {
-                    return new IdentExpr(ident, line, column);
+                    auto* node = new IdentExpr(line, column);
+                    node->identName = ident;
+                    return node;
                 }
             }
         }
@@ -190,7 +193,8 @@ Expression* Parser::parseExpression(short oldPrecedence) {
 ExpressionStmt* Parser::parseExpressionStmt() {
     ExpressionStmt* node = nullptr;
     if (auto p = parseExpression(); p != nullptr) {
-        node = new ExpressionStmt(p, line, column);
+        node = new ExpressionStmt(line, column);
+        node->expr = p;
     }
     return node;
 }

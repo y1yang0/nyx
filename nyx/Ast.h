@@ -62,6 +62,7 @@ enum Token {
     KW_RETURN,    // return
     KW_BREAK,     // break
     KW_CONTINUE,  // continue
+    KW_MATCH,     // match
 };
 
 using nyx::Block;
@@ -96,7 +97,8 @@ struct Expression : public AstNode {
 };
 
 struct BoolExpr : public Expression {
-    explicit BoolExpr(int line, int column) : Expression(line, column) {}
+    using Expression::Expression;
+
     bool literal;
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
@@ -104,7 +106,7 @@ struct BoolExpr : public Expression {
 };
 
 struct CharExpr : public Expression {
-    explicit CharExpr(int line, int column) : Expression(line, column) {}
+    using Expression::Expression;
 
     char literal;
 
@@ -113,14 +115,14 @@ struct CharExpr : public Expression {
 };
 
 struct NullExpr : public Expression {
-    explicit NullExpr(int line, int column) : Expression(line, column) {}
+    using Expression::Expression;
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 
 struct IntExpr : public Expression {
-    explicit IntExpr(int line, int column) : Expression(line, column) {}
+    using Expression::Expression;
 
     int literal;
 
@@ -129,7 +131,7 @@ struct IntExpr : public Expression {
 };
 
 struct DoubleExpr : public Expression {
-    explicit DoubleExpr(int line, int column) : Expression(line, column) {}
+    using Expression::Expression;
 
     double literal;
 
@@ -138,7 +140,7 @@ struct DoubleExpr : public Expression {
 };
 
 struct StringExpr : public Expression {
-    explicit StringExpr(int line, int column) : Expression(line, column) {}
+    using Expression::Expression;
 
     std::string literal;
 
@@ -147,7 +149,7 @@ struct StringExpr : public Expression {
 };
 
 struct ArrayExpr : public Expression {
-    explicit ArrayExpr(int line, int column) : Expression(line, column) {}
+    using Expression::Expression;
 
     std::vector<Expression*> literal;
 
@@ -156,8 +158,8 @@ struct ArrayExpr : public Expression {
 };
 
 struct IdentExpr : public Expression {
-    explicit IdentExpr(std::string identName, int line, int column)
-        : Expression(line, column), identName(std::move(identName)) {}
+    using Expression::Expression;
+
     std::string identName;
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
 
@@ -165,7 +167,7 @@ struct IdentExpr : public Expression {
 };
 
 struct IndexExpr : public Expression {
-    explicit IndexExpr(int line, int column) : Expression(line, column) {}
+    using Expression::Expression;
 
     std::string identName;
     Expression* index;
@@ -175,7 +177,8 @@ struct IndexExpr : public Expression {
 };
 
 struct BinaryExpr : public Expression {
-    explicit BinaryExpr(int line, int column) : Expression(line, column) {}
+    using Expression::Expression;
+
     Expression* lhs{};
     Token opt{};
     Expression* rhs{};
@@ -185,7 +188,8 @@ struct BinaryExpr : public Expression {
 };
 
 struct FunCallExpr : public Expression {
-    explicit FunCallExpr(int line, int column) : Expression(line, column) {}
+    using Expression::Expression;
+
     std::string funcName;
     std::vector<Expression*> args;
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
@@ -193,7 +197,7 @@ struct FunCallExpr : public Expression {
 };
 
 struct AssignExpr : public Expression {
-    explicit AssignExpr(int line, int column) : Expression(line, column) {}
+    using Expression::Expression;
 
     Expression* lhs{};
     Token opt;
@@ -217,22 +221,21 @@ struct Statement : public AstNode {
 };
 
 struct BreakStmt : public Statement {
-    explicit BreakStmt(int line, int column) : Statement(line, column) {}
+    using Statement::Statement;
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 
 struct ContinueStmt : public Statement {
-    explicit ContinueStmt(int line, int column) : Statement(line, column) {}
+    using Statement::Statement;
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
 };
 
 struct ExpressionStmt : public Statement {
-    explicit ExpressionStmt(Expression* expr, int line, int column)
-        : Statement(line, column), expr(expr) {}
+    using Statement::Statement;
 
     Expression* expr{};
 
@@ -241,7 +244,7 @@ struct ExpressionStmt : public Statement {
 };
 
 struct ReturnStmt : public Statement {
-    explicit ReturnStmt(int line, int column) : Statement(line, column) {}
+    using Statement::Statement;
 
     Expression* ret{};
 
@@ -250,7 +253,7 @@ struct ReturnStmt : public Statement {
 };
 
 struct IfStmt : public Statement {
-    explicit IfStmt(int line, int column) : Statement(line, column) {}
+    using Statement::Statement;
 
     Expression* cond{};
     Block* block{};
@@ -261,7 +264,7 @@ struct IfStmt : public Statement {
 };
 
 struct WhileStmt : public Statement {
-    explicit WhileStmt(int line, int column) : Statement(line, column) {}
+    using Statement::Statement;
 
     Expression* cond{};
     Block* block{};
@@ -271,7 +274,7 @@ struct WhileStmt : public Statement {
 };
 
 struct ForStmt : public Statement {
-    explicit ForStmt(int line, int column) : Statement(line, column) {}
+    using Statement::Statement;
 
     Expression* init{};
     Expression* cond{};
@@ -283,7 +286,7 @@ struct ForStmt : public Statement {
 };
 
 struct ForEachStmt : public Statement {
-    explicit ForEachStmt(int line, int column) : Statement(line, column) {}
+    using Statement::Statement;
 
     std::string identName;
     Expression* list{};
@@ -291,4 +294,8 @@ struct ForEachStmt : public Statement {
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
+};
+
+struct MatchStmt : public Statement {
+    using Statement::Statement;
 };
