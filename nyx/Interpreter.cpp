@@ -350,6 +350,36 @@ outside:
     return ret;
 }
 
+nyx::ExecResult MatchStmt::interpret(nyx::Runtime* rt,
+                                     std::deque<nyx::Context*> ctxChain) {
+    nyx::ExecResult ret{nyx::ExecNormal};
+
+    nyx::Value cond = this->cond->eval(rt, ctxChain);
+
+    for (const auto& [theCase, theBranch, isAny] : this->matches) {
+        // We must first check if it's an any(_) match because the later one
+        // will actually evaluate the value of case expression, that is, the
+        // identifier _ will be evaluate and might cause undefined variable
+        // error.
+
+        if (isAny || equalValue(cond, theCase->eval(rt, ctxChain))) {
+            nyx::Interpreter::enterContext(ctxChain);
+            for (auto stmt : theBranch->stmts) {
+                ret = stmt->interpret(rt, ctxChain);
+            }
+
+            // Stop mathcing and clean up context, it will propagate execution
+            // type to upper statement
+            nyx::Interpreter::leaveContext(ctxChain);
+
+            goto finish;
+        }
+    }
+
+finish:
+    return ret;
+}
+
 nyx::ExecResult ExpressionStmt::interpret(nyx::Runtime* rt,
                                           std::deque<nyx::Context*> ctxChain) {
     // std::cout << this->expr->astString() << "\n";

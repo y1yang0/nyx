@@ -41,6 +41,7 @@ enum Token {
     TK_TIMES_AGN,  // *=
     TK_DIV_AGN,    // /=
     TK_MOD_AGN,    // %=
+    TK_MATCH,      // =>
     TK_COMMA,      // ,
     TK_LPAREN,     // (
     TK_RPAREN,     // )
@@ -77,7 +78,7 @@ struct AstNode {
     explicit AstNode(int line, int column) : line(line), column(column) {}
     virtual ~AstNode() = default;
 
-    virtual std::string astString() { return "AstNode()"; }
+    virtual std::string astString();
 
     int line = -1;
     int column = -1;
@@ -298,4 +299,10 @@ struct ForEachStmt : public Statement {
 
 struct MatchStmt : public Statement {
     using Statement::Statement;
+
+    Expression* cond;
+    std::vector<std::tuple<Expression*, Block*, bool>> matches;
+
+    ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
+    std::string astString() override;
 };

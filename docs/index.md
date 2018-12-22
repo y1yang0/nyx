@@ -194,6 +194,21 @@ func filter_odd(limit)
 
 filter_odd(100)
 ```
+## 3.6 模式匹配
+[模式匹配](https://en.wikipedia.org/wiki/Pattern_matching)语句会将条件与匹配语句的条件从上至下逐一匹配：
+```nyx
+a = input()
+match(a){
+    3 => println("3")
+    4 => {
+        println("4")
+        println("i don't like this number")
+    }
+    _ => println("any other number")
+}
+```
+一旦匹配成功则进入分支执行相应动作。最后的`_`表示任意条件(**any**)，即只要出现改语句必定进入分支；另外如果只有一条语句可以省略`{}`
+
 
 ## 4.函数
 函数几乎是现代编程语言最重要的抽象之一，在nyx可以使用`func`关键字引导函数定义：

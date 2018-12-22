@@ -59,3 +59,38 @@ std::vector<nyx::Value> repeatArray(int count, std::vector<nyx::Value>&& arr) {
     va_end(args);
     exit(EXIT_FAILURE);
 }
+
+bool equalValue(nyx::Value& a, nyx::Value& b) {
+    if (a.type != b.type) {
+        return false;
+    }
+    switch (a.type) {
+        case nyx::Bool:
+            return a.cast<bool>() == b.cast<bool>();
+        case nyx::Double:
+            return a.cast<double>() == b.cast<double>();
+        case nyx::Int:
+            return a.cast<int>() == b.cast<int>();
+        case nyx::Null:
+            return true;
+        case nyx::Char: {
+            return a.cast<char>() == b.cast<char>();
+        }
+        case nyx::Array: {
+            auto elements1 = a.cast<std::vector<nyx::Value>>();
+            auto elements2 = b.cast<std::vector<nyx::Value>>();
+            if (elements1.size() != elements2.size()) {
+                return false;
+            }
+            for (int i = 0; i < elements1.size(); i++) {
+                if (!equalValue(elements1[i], elements2[i])) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        case nyx::String:
+            return a.cast<std::string>() == b.cast<std::string>();
+    }
+    return false;
+}

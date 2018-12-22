@@ -251,6 +251,40 @@ Statement* Parser::parseForStmt() {
     }
 }
 
+MatchStmt* Parser::parseMatchStmt() {
+    auto* node = new MatchStmt(line, column);
+    currentToken = next();
+    node->cond = parseExpression();
+    assert(getCurrentToken() == TK_RPAREN);
+    currentToken = next();
+    assert(getCurrentToken() == TK_LBRACE);
+    currentToken = next();
+    if (getCurrentToken() != TK_RBRACE) {
+        Expression* theCase = nullptr;
+        Block* block = nullptr;
+        do {
+            theCase = parseExpression();
+            assert(getCurrentToken() == TK_MATCH);
+            currentToken = next();
+            if (getCurrentToken() == TK_LBRACE) {
+                block = parseBlock();
+            } else {
+                block = new Block;
+                block->stmts.push_back(parseExpressionStmt());
+            }
+
+            if (typeid(*theCase) == typeid(IdentExpr) &&
+                dynamic_cast<IdentExpr*>(theCase)->identName == "_") {
+                node->matches.emplace_back(theCase, block, true);
+            } else {
+                node->matches.emplace_back(theCase, block, false);
+            }
+        } while (getCurrentToken() != TK_RBRACE);
+    }
+    currentToken = next();
+    return node;
+}
+
 ReturnStmt* Parser::parseReturnStmt() {
     auto* node = new ReturnStmt(line, column);
     node->ret = parseExpression();
@@ -283,6 +317,10 @@ Statement* Parser::parseStatement() {
         case KW_FOR:
             currentToken = next();
             node = parseForStmt();
+            break;
+        case KW_MATCH:
+            currentToken = next();
+            node = parseMatchStmt();
             break;
         default:
             node = parseExpressionStmt();
@@ -524,6 +562,9 @@ std::tuple<Token, std::string> Parser::next() {
         if (peekNextChar() == '=') {
             c = getNextChar();
             return std::make_tuple(TK_EQ, "==");
+        } else if (peekNextChar() == '>') {
+            c = getNextChar();
+            return std::make_tuple(TK_MATCH, "=>");
         }
         return std::make_tuple(TK_ASSIGN, "=");
     }

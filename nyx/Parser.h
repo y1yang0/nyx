@@ -29,6 +29,7 @@ private:
     IfStmt* parseIfStmt();
     WhileStmt* parseWhileStmt();
     Statement* parseForStmt();
+    MatchStmt* parseMatchStmt();
     ReturnStmt* parseReturnStmt();
     Statement* parseStatement();
     std::vector<Statement*> parseStatementList();

@@ -1,6 +1,8 @@
 #include "Ast.h"
 #include "Utils.hpp"
 
+std::string AstNode::astString() { return "AstNode()"; }
+
 std::string Expression::astString() { return "Expr()"; }
 
 std::string Statement::astString() { return "Stmt()"; }
@@ -216,3 +218,21 @@ std::string ReturnStmt::astString() {
 std::string BreakStmt::astString() { return "BreakStmt()"; }
 
 std::string ContinueStmt::astString() { return "ContinueStmt()"; }
+
+std::string MatchStmt::astString() {
+    std::string str = "MatchStmt(cond=";
+    str += cond->astString();
+    str += ",match=[";
+    for (auto& ce : matches) {
+        str += "[case=";
+        str += std::get<0>(ce)->astString();
+        str += ",branch=[";
+        for (auto& stmt : std::get<1>(ce)->stmts) {
+            str += stmt->astString();
+            str += ",";
+        }
+        str += "]],";
+    }
+    str += "])";
+    return str;
+}
