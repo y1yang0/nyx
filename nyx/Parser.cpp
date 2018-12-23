@@ -253,12 +253,20 @@ Statement* Parser::parseForStmt() {
 
 MatchStmt* Parser::parseMatchStmt() {
     auto* node = new MatchStmt(line, column);
-    currentToken = next();
-    node->cond = parseExpression();
-    assert(getCurrentToken() == TK_RPAREN);
-    currentToken = next();
+
+    // If we met "{" after "match" keyword, we will skip consuming condition
+    // expression and the match statement degenerated to normaml multi
+    // conditonal checkings.
+    if (getCurrentToken() == TK_LPAREN) {
+        currentToken = next();
+        node->cond = parseExpression();
+        assert(getCurrentToken() == TK_RPAREN);
+        currentToken = next();
+    }
+
     assert(getCurrentToken() == TK_LBRACE);
     currentToken = next();
+
     if (getCurrentToken() != TK_RBRACE) {
         Expression* theCase = nullptr;
         Block* block = nullptr;

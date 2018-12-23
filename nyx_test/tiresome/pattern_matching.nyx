@@ -35,7 +35,7 @@ match([1,2,3]){
     _=> println("impossible")
 }
 
-for(i : range(100)){
+for(i : range(10)){
     match(i){
         60=>{
             println("I need it")
@@ -46,3 +46,22 @@ for(i : range(100)){
 }
 
 match(a){}
+
+match{
+}
+
+for(i=0;i<10;i+=1){
+    match{
+        _=> println("stop")
+        true=>{println("new form:"+i)}
+    }
+}
+
+for(i=0;i<10;i+=1){
+    match{
+        i%5==0 =>println(i+" could be divided by 5")
+        i%3==0 =>println(i+" could be divided by 3")
+        i%2==0 =>println(i+" could be divided by 2")
+        _=> println("mismatched!")
+    }
+}

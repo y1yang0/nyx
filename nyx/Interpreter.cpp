@@ -354,7 +354,13 @@ nyx::ExecResult MatchStmt::interpret(nyx::Runtime* rt,
                                      std::deque<nyx::Context*> ctxChain) {
     nyx::ExecResult ret{nyx::ExecNormal};
 
-    nyx::Value cond = this->cond->eval(rt, ctxChain);
+    nyx::Value cond;
+
+    if (this->cond != nullptr) {
+        cond = this->cond->eval(rt, ctxChain);
+    } else {
+        cond = nyx::Value{nyx::Bool, true};
+    }
 
     for (const auto& [theCase, theBranch, isAny] : this->matches) {
         // We must first check if it's an any(_) match because the later one

@@ -171,7 +171,7 @@ struct IndexExpr : public Expression {
     using Expression::Expression;
 
     std::string identName;
-    Expression* index;
+    Expression* index{};
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
     std::string astString() override;
@@ -300,7 +300,7 @@ struct ForEachStmt : public Statement {
 struct MatchStmt : public Statement {
     using Statement::Statement;
 
-    Expression* cond;
+    Expression* cond{};
     std::vector<std::tuple<Expression*, Block*, bool>> matches;
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;

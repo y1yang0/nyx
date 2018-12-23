@@ -224,7 +224,21 @@ match(a){
 }
 ```
 一旦匹配成功则进入分支执行相应动作。最后的`_`表示任意条件(**any**)，即只要出现改语句必定进入分支；另外如果只有一条语句可以省略`{}`
+如果`match`语句没有条件表达式，就退化成了类似`if-else if-else`的多条件分支检查语句：
+```nyx
+# do nothing
+match{}
 
+# without condition expression in match statement
+for(i=0;i<10;i+=1){
+    match{
+        i%5==0 =>println(i+" could be divided by 5")
+        i%3==0 =>println(i+" could be divided by 3")
+        i%2==0 =>println(i+" could be divided by 2")
+        _=> println("mismatched!")
+    }
+}
+```
 
 ## 4.函数
 函数几乎是现代编程语言最重要的抽象之一，在nyx可以使用`func`关键字引导函数定义：
