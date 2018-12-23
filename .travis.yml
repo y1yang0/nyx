@@ -21,6 +21,9 @@ script:
   - make -j8
   - make test
 
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
 notifications:
   email:
     - 1948638989@qq.com

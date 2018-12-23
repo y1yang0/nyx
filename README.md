@@ -11,13 +11,6 @@
 
 希望她仅有`python`的灵活，`c/c++`的实用性和语法形式，`java`的工程化，以及非理想主义者的哲学 ：——）
 
-# 构建
-```bash
-$ mkdir build && cd build
-$ cmake ..
-$ make
-```
-
 # 语言手册
 ## 1.基础
 ### 1.1注释 
@@ -312,5 +305,31 @@ func to_double(a:int) b:double
 func range(a:int): b:array
 ```
 
+# 源码构建
+```bash
+$ mkdir build && cd build
+$ cmake ..
+$ make
+```
+
+# 开发引导
+```bash
+racaljk@ubuntu:~/Desktop/nyx-lang/nyx$ tree .
+.
+├── Ast.cpp             // astString()虚函数重写
+├── Ast.h               // ast结构定义
+├── Builtin.cpp         // 内置函数
+├── Builtin.h           
+├── Interpreter.cpp     // 解释器实现
+├── Interpreter.h
+├── Main.cpp            // 启动函数
+├── Nyx.cpp             // nyx::Value,nyx::Runtime,nyx::Context等实现
+├── Nyx.hpp             // 运行时定义
+├── Parser.cpp          // 语法分析器和词法分析器
+├── Parser.h
+├── Utils.cpp           // 辅助函数
+└── Utils.hpp
+```
+
 # 开源协议
-**nyx**所有代码受[MIT LICENSE](LICENSE)保护。
+**nyx**所有代码基于[MIT LICENSE](LICENSE)协议发布。
