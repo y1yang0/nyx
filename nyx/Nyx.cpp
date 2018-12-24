@@ -34,7 +34,7 @@ Runtime::BuiltinFuncType Runtime::getBuiltinFunction(const std::string& name) {
 
 void Runtime::addStatement(Statement* stmt) { stmts.push_back(stmt); }
 
-std::vector<Statement*> Runtime::getStatements() { return stmts; }
+std::vector<Statement*>& Runtime::getStatements() { return stmts; }
 
 bool Context::hasVariable(const std::string& identName) {
     return vars.count(identName) == 1;
@@ -69,7 +69,7 @@ Function* Context::getFunction(const std::string& name) {
     return nullptr;
 }
 
-Value Value::operator+(Value rhs) {
+Value Value::operator+(const Value& rhs) {
     Value result;
     // Basic
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
@@ -119,7 +119,7 @@ Value Value::operator+(Value rhs) {
     return result;
 }
 
-Value Value::operator-(Value rhs) {
+Value Value::operator-(const Value& rhs) {
     Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
@@ -149,7 +149,7 @@ Value Value::operator-(Value rhs) {
     return result;
 }
 
-Value Value::operator*(Value rhs) {
+Value Value::operator*(const Value& rhs) {
     Value result;
     // Basic
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
@@ -180,7 +180,7 @@ Value Value::operator*(Value rhs) {
     return result;
 }
 
-Value Value::operator/(Value rhs) {
+Value Value::operator/(const Value& rhs) {
     Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
@@ -200,7 +200,7 @@ Value Value::operator/(Value rhs) {
     return result;
 }
 
-Value Value::operator%(Value rhs) {
+Value Value::operator%(const Value& rhs) {
     Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
@@ -211,7 +211,7 @@ Value Value::operator%(Value rhs) {
     return result;
 }
 
-Value Value::operator&&(Value rhs) {
+Value Value::operator&&(const Value& rhs) {
     Value result;
     if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
         result.type = nyx::Bool;
@@ -222,7 +222,7 @@ Value Value::operator&&(Value rhs) {
     return result;
 }
 
-Value Value::operator||(Value rhs) {
+Value Value::operator||(const Value& rhs) {
     Value result;
     if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
         result.type = nyx::Bool;
@@ -233,7 +233,7 @@ Value Value::operator||(Value rhs) {
     return result;
 }
 
-Value Value::operator==(Value rhs) {
+Value Value::operator==(const Value& rhs) {
     Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
@@ -262,7 +262,7 @@ Value Value::operator==(Value rhs) {
     return result;
 }
 
-Value Value::operator!=(Value rhs) {
+Value Value::operator!=(const Value& rhs) {
     Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
@@ -291,7 +291,7 @@ Value Value::operator!=(Value rhs) {
     return result;
 }
 
-Value Value::operator>(Value rhs) {
+Value Value::operator>(const Value& rhs) {
     Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
@@ -314,7 +314,7 @@ Value Value::operator>(Value rhs) {
     return result;
 }
 
-Value Value::operator>=(Value rhs) {
+Value Value::operator>=(const Value& rhs) {
     Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
@@ -337,7 +337,7 @@ Value Value::operator>=(Value rhs) {
     return result;
 }
 
-Value Value::operator<(Value rhs) {
+Value Value::operator<(const Value& rhs) {
     Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
@@ -360,7 +360,7 @@ Value Value::operator<(Value rhs) {
     return result;
 }
 
-Value Value::operator<=(Value rhs) {
+Value Value::operator<=(const Value& rhs) {
     Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Bool;
@@ -383,7 +383,7 @@ Value Value::operator<=(Value rhs) {
     return result;
 }
 
-Value Value::operator&(Value rhs) {
+Value Value::operator&(const Value& rhs) {
     Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;
@@ -394,7 +394,7 @@ Value Value::operator&(Value rhs) {
     return result;
 }
 
-Value Value::operator|(Value rhs) {
+Value Value::operator|(const Value& rhs) {
     Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
         result.type = nyx::Int;

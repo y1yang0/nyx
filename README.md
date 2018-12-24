@@ -4,9 +4,6 @@
 [![CircleCI](https://circleci.com/gh/racaljk/nyx-lang.svg?style=svg)](https://circleci.com/gh/racaljk/nyx-lang) |
 [![Documentation Status](https://readthedocs.org/projects/nyx-lang/badge/?version=latest)](https://nyx-lang.readthedocs.io/zh/latest/?badge=latest) 
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f75d53319a8f46d3866a41f32b2874a9)](https://www.codacy.com/app/racaljk/nyx?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=racaljk/nyx&amp;utm_campaign=Badge_Grade) |
-[![CodeFactor](https://www.codefactor.io/repository/github/racaljk/nyx-lang/badge)](https://www.codefactor.io/repository/github/racaljk/nyx-lang)
-
 **nyx**是又一门看似**动态类型**实则有着**严格类型系统**的脚本语言
 
 希望她仅有`python`的灵活，`c/c++`的实用性和语法形式，`java`的工程化，以及非理想主义者的哲学 ：——）

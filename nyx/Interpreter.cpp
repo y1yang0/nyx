@@ -13,23 +13,15 @@
 // and leaves actually statement performing later.
 //===----------------------------------------------------------------------===//
 namespace nyx {
-Interpreter::Interpreter(const std::string& fileName)
-    : p(new Parser(fileName)), rt(new Runtime) {}
 
-Interpreter::~Interpreter() {
-    delete p;
-    delete rt;
-}
-
-void Interpreter::execute() {
-    this->p->parse(this->rt);
-    this->ctxChain.push_back(new Context);
-
-    auto stmts = rt->getStatements();
-    for (auto stmt : stmts) {
+void Interpreter::execute(nyx::Runtime* rt) {
+    Interpreter::enterContext(ctxChain);
+    for (auto stmt : rt->getStatements()) {
         // std::cout << stmt->astString() << "\n";
         stmt->interpret(rt, ctxChain);
     }
+
+    Interpreter::leaveContext(ctxChain);
 }
 
 void Interpreter::enterContext(std::deque<Context*>& ctxChain) {
@@ -236,7 +228,7 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
 
 nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
                                      std::deque<nyx::Context*> ctxChain) {
-    nyx::ExecResult ret;
+    nyx::ExecResult ret{nyx::ExecNormal};
 
     nyx::Interpreter::enterContext(ctxChain);
     Value cond = this->cond->eval(rt, ctxChain);
@@ -273,7 +265,7 @@ outside:
 
 nyx::ExecResult ForStmt::interpret(nyx::Runtime* rt,
                                    std::deque<nyx::Context*> ctxChain) {
-    nyx::ExecResult ret;
+    nyx::ExecResult ret{nyx::ExecNormal};
 
     nyx::Interpreter::enterContext(ctxChain);
     this->init->eval(rt, ctxChain);
@@ -313,7 +305,7 @@ outside:
 
 nyx::ExecResult ForEachStmt::interpret(nyx::Runtime* rt,
                                        std::deque<nyx::Context*> ctxChain) {
-    nyx::ExecResult ret;
+    nyx::ExecResult ret{nyx::ExecNormal};
 
     nyx::Interpreter::enterContext(ctxChain);
     ctxChain.back()->createVariable(this->identName, nyx::Value(nyx::Null));

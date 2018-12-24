@@ -6,35 +6,29 @@
 namespace nyx {
 class Interpreter {
 public:
-    explicit Interpreter(const std::string& fileName);
-    ~Interpreter();
+    void execute(Runtime* rt);
 
 public:
-    void execute();
+    static void enterContext(std::deque<Context*>& ctxChain);
 
-public:
-    static void enterContext(std::deque<nyx::Context*>& ctxChain);
+    static void leaveContext(std::deque<Context*>& ctxChain);
 
-    static void leaveContext(std::deque<nyx::Context*>& ctxChain);
+    static Value callFunction(Runtime* rt, Function* f,
+                              std::deque<Context*> previousCtxChain,
+                              std::vector<Expression*> args);
 
-    static nyx::Value callFunction(nyx::Runtime* rt, nyx::Function* f,
-                                   std::deque<nyx::Context*> previousCtxChain,
-                                   std::vector<Expression*> args);
+    static Value calcBinaryExpr(Value lhs, Token opt, Value rhs, int line,
+                                int column);
 
-    static nyx::Value calcBinaryExpr(nyx::Value lhs, Token opt, Value rhs,
-                                     int line, int column);
-
-    static nyx::Value calcUnaryExpr(nyx::Value& lhs, Token opt, int line,
-                                    int column);
-    static nyx::Value assignSwitch(Token opt, nyx::Value lhs, nyx::Value rhs);
+    static Value calcUnaryExpr(Value& lhs, Token opt, int line, int column);
+    static Value assignSwitch(Token opt, Value lhs, Value rhs);
 
 private:
     void parseCommandOption(int argc, char* argv) {}
 
 private:
-    std::deque<nyx::Context*> ctxChain;
-    nyx::Runtime* rt;
-    Parser* p;
+    std::deque<Context*> ctxChain;
+    Runtime* rt;
 };
 
 }  // namespace nyx

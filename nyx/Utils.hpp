@@ -4,7 +4,7 @@
 #include <string>
 #include "Nyx.hpp"
 
-std::string valueToStdString(nyx::Value v);
+std::string valueToStdString(const nyx::Value& v);
 
 std::string repeatString(int count, const std::string& str);
 

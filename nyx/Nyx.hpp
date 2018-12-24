@@ -36,7 +36,7 @@ struct Value {
         : type(type), data(std::move(data)) {}
 
     template <int _NyxType>
-    inline bool isType();
+    inline bool isType() const;
 
     template <typename _CastingType>
     inline _CastingType cast();
@@ -46,31 +46,30 @@ struct Value {
     template <typename _DataType>
     inline void set(_DataType data);
 
-    Value operator+(Value rhs);
-    Value operator-(Value rhs);
-    Value operator*(Value rhs);
-    Value operator/(Value rhs);
-    Value operator%(Value rhs);
+    Value operator+(const Value& rhs);
+    Value operator-(const Value& rhs);
+    Value operator*(const Value& rhs);
+    Value operator/(const Value& rhs);
+    Value operator%(const Value& rhs);
 
-    Value operator&&(Value rhs);
-    Value operator||(Value rhs);
+    Value operator&&(const Value& rhs);
+    Value operator||(const Value& rhs);
 
-    Value operator==(Value rhs);
-    Value operator!=(Value rhs);
-    Value operator>(Value rhs);
-    Value operator>=(Value rhs);
-    Value operator<(Value rhs);
-    Value operator<=(Value rhs);
+    Value operator==(const Value& rhs);
+    Value operator!=(const Value& rhs);
+    Value operator>(const Value& rhs);
+    Value operator>=(const Value& rhs);
+    Value operator<(const Value& rhs);
+    Value operator<=(const Value& rhs);
 
-    Value operator&(Value rhs);
-    Value operator|(Value rhs);
+    Value operator&(const Value& rhs);
+    Value operator|(const Value& rhs);
 
     nyx::ValueType type{};
     std::any data;
 };
 
 struct ExecResult {
-    explicit ExecResult() : execType(ExecNormal) {}
     explicit ExecResult(ExecutionResultType execType) : execType(execType) {}
     explicit ExecResult(ExecutionResultType execType, Value retValue)
         : execType(execType), retValue(retValue) {}
@@ -115,7 +114,7 @@ public:
     BuiltinFuncType getBuiltinFunction(const std::string& name);
 
     void addStatement(Statement* stmt);
-    std::vector<Statement*> getStatements();
+    std::vector<Statement*>& getStatements();
 
 private:
     std::unordered_map<std::string, BuiltinFuncType> builtin;
@@ -123,7 +122,7 @@ private:
 };
 
 template <int _NyxType>
-inline bool Value::isType() {
+inline bool Value::isType() const {
     return this->type == _NyxType;
 }
 

@@ -2,7 +2,7 @@
 #include "Nyx.hpp"
 #include "Utils.hpp"
 
-std::string valueToStdString(nyx::Value v) {
+std::string valueToStdString(const nyx::Value& v) {
     switch (v.type) {
         case nyx::Bool:
             return v.cast<bool>() ? "true" : "false";
