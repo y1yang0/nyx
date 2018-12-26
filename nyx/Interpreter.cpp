@@ -17,7 +17,6 @@ namespace nyx {
 void Interpreter::execute(nyx::Runtime* rt) {
     Interpreter::enterContext(ctxChain);
     for (auto stmt : rt->getStatements()) {
-        // std::cout << stmt->astString() << "\n";
         stmt->interpret(rt, ctxChain);
     }
 
@@ -62,7 +61,7 @@ Value Interpreter::callFunction(Runtime* rt, Function* f,
     return ret.retValue;
 }
 
-Value Interpreter::calcUnaryExpr(Value& lhs, Token opt, int line, int column) {
+Value& Interpreter::calcUnaryExpr(Value& lhs, Token opt, int line, int column) {
     switch (opt) {
         case TK_MINUS:
             switch (lhs.type) {
@@ -102,61 +101,45 @@ Value Interpreter::calcUnaryExpr(Value& lhs, Token opt, int line, int column) {
     return lhs;
 }
 
-Value Interpreter::calcBinaryExpr(Value lhs, Token opt, Value rhs, int line,
-                                  int column) {
-    Value result{Null};
-
+Value& Interpreter::calcBinaryExpr(Value& lhs, Token opt, Value& rhs, int line,
+                                   int column) {
     switch (opt) {
         case TK_PLUS:
-            result = (lhs + rhs);
-            break;
+            return (lhs + rhs);
         case TK_MINUS:
-            result = (lhs - rhs);
-            break;
+            return (lhs - rhs);
         case TK_TIMES:
-            result = (lhs * rhs);
-            break;
+            return (lhs * rhs);
         case TK_DIV:
-            result = (lhs / rhs);
-            break;
+            return (lhs / rhs);
         case TK_MOD:
-            result = (lhs % rhs);
-            break;
+            return (lhs % rhs);
         case TK_LOGAND:
-            result = (lhs && rhs);
-            break;
+            return (lhs && rhs);
         case TK_LOGOR:
-            result = (lhs || rhs);
-            break;
+            return (lhs || rhs);
         case TK_EQ:
-            result = (lhs == rhs);
-            break;
+            return (lhs == rhs);
         case TK_NE:
-            result = (lhs != rhs);
-            break;
+            return (lhs != rhs);
         case TK_GT:
-            result = (lhs > rhs);
-            break;
+            return (lhs > rhs);
         case TK_GE:
-            result = (lhs >= rhs);
-            break;
+            return (lhs >= rhs);
         case TK_LT:
-            result = (lhs < rhs);
-            break;
+            return (lhs < rhs);
         case TK_LE:
-            result = (lhs <= rhs);
-            break;
+            return (lhs <= rhs);
         case TK_BITAND:
-            result = (lhs & rhs);
-            break;
+            return (lhs & rhs);
         case TK_BITOR:
-            result = (lhs | rhs);
-            break;
+            return (lhs | rhs);
+        default:
+            return Value{nyx::Null};
     }
-    return result;
 }
 
-Value Interpreter::assignSwitch(Token opt, Value lhs, Value rhs) {
+Value& Interpreter::assignSwitch(Token opt, Value& lhs, Value& rhs) {
     switch (opt) {
         case TK_ASSIGN:
             return rhs;
@@ -195,7 +178,6 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
     if (true == cond.cast<bool>()) {
         nyx::Interpreter::enterContext(ctxChain);
         for (auto& stmt : block->stmts) {
-            // std::cout << stmt->astString() << "\n";
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == nyx::ExecReturn) {
                 break;
@@ -210,7 +192,6 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
         if (elseBlock != nullptr) {
             nyx::Interpreter::enterContext(ctxChain);
             for (auto& elseStmt : elseBlock->stmts) {
-                // std::cout << stmt->astString() << "\n";
                 ret = elseStmt->interpret(rt, ctxChain);
                 if (ret.execType == nyx::ExecReturn) {
                     break;
@@ -235,7 +216,6 @@ nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
 
     while (true == cond.cast<bool>()) {
         for (auto& stmt : block->stmts) {
-            // std::cout << stmt->astString() << "\n";
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == nyx::ExecReturn) {
                 goto outside;
@@ -273,16 +253,13 @@ nyx::ExecResult ForStmt::interpret(nyx::Runtime* rt,
 
     while (true == cond.cast<bool>()) {
         for (auto& stmt : block->stmts) {
-            // std::cout << stmt->astString() << "\n";
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == nyx::ExecReturn) {
                 goto outside;
             } else if (ret.execType == nyx::ExecBreak) {
-                // Disable propagating through the whole chain
                 ret.execType = nyx::ExecNormal;
                 goto outside;
             } else if (ret.execType == nyx::ExecContinue) {
-                // Disable propagating through the whole chain
                 ret.execType = nyx::ExecNormal;
                 break;
             }
@@ -321,16 +298,13 @@ nyx::ExecResult ForEachStmt::interpret(nyx::Runtime* rt,
         ctxChain.back()->getVariable(identName)->value = val;
 
         for (auto& stmt : block->stmts) {
-            // std::cout << stmt->astString() << "\n";
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == nyx::ExecReturn) {
                 goto outside;
             } else if (ret.execType == nyx::ExecBreak) {
-                // Disable propagating through the whole chain
                 ret.execType = nyx::ExecNormal;
                 goto outside;
             } else if (ret.execType == nyx::ExecContinue) {
-                // Disable propagating through the whole chain
                 ret.execType = nyx::ExecNormal;
                 break;
             }
@@ -377,9 +351,8 @@ finish:
     return ret;
 }
 
-nyx::ExecResult ExpressionStmt::interpret(nyx::Runtime* rt,
-                                          std::deque<nyx::Context*> ctxChain) {
-    // std::cout << this->expr->astString() << "\n";
+nyx::ExecResult SimpleStmt::interpret(nyx::Runtime* rt,
+                                      std::deque<nyx::Context*> ctxChain) {
     this->expr->eval(rt, ctxChain);
     return nyx::ExecResult(nyx::ExecNormal);
 }

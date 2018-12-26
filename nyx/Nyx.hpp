@@ -46,26 +46,26 @@ struct Value {
     template <typename _DataType>
     inline void set(_DataType data);
 
-    Value operator+(const Value& rhs);
-    Value operator-(const Value& rhs);
-    Value operator*(const Value& rhs);
-    Value operator/(const Value& rhs);
-    Value operator%(const Value& rhs);
+    Value& operator+(const Value& rhs);
+    Value& operator-(const Value& rhs);
+    Value& operator*(const Value& rhs);
+    Value& operator/(const Value& rhs);
+    Value& operator%(const Value& rhs);
 
-    Value operator&&(const Value& rhs);
-    Value operator||(const Value& rhs);
+    Value& operator&&(const Value& rhs);
+    Value& operator||(const Value& rhs);
 
-    Value operator==(const Value& rhs);
-    Value operator!=(const Value& rhs);
-    Value operator>(const Value& rhs);
-    Value operator>=(const Value& rhs);
-    Value operator<(const Value& rhs);
-    Value operator<=(const Value& rhs);
+    Value& operator==(const Value& rhs);
+    Value& operator!=(const Value& rhs);
+    Value& operator>(const Value& rhs);
+    Value& operator>=(const Value& rhs);
+    Value& operator<(const Value& rhs);
+    Value& operator<=(const Value& rhs);
 
-    Value operator&(const Value& rhs);
-    Value operator|(const Value& rhs);
+    Value& operator&(const Value& rhs);
+    Value& operator|(const Value& rhs);
 
-    nyx::ValueType type{};
+    nyx::ValueType type;
     std::any data;
 };
 

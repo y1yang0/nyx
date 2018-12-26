@@ -17,11 +17,11 @@ public:
                               std::deque<Context*> previousCtxChain,
                               std::vector<Expression*> args);
 
-    static Value calcBinaryExpr(Value lhs, Token opt, Value rhs, int line,
-                                int column);
+    static Value& calcBinaryExpr(Value& lhs, Token opt, Value& rhs, int line,
+                                 int column);
 
-    static Value calcUnaryExpr(Value& lhs, Token opt, int line, int column);
-    static Value assignSwitch(Token opt, Value lhs, Value rhs);
+    static Value& calcUnaryExpr(Value& lhs, Token opt, int line, int column);
+    static Value& assignSwitch(Token opt, Value& lhs, Value& rhs);
 
 private:
     void parseCommandOption(int argc, char* argv) {}

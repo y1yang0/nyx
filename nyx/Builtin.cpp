@@ -126,8 +126,9 @@ nyx::Value nyx_builtin_to_double(nyx::Runtime* rt,
 nyx::Value nyx_builtin_range(nyx::Runtime* rt,
                              std::deque<nyx::Context*> ctxChain,
                              std::vector<nyx::Value> args) {
-    if (args.size() != 1) {
-        panic("ArgumentError: expects one argument but got %d", args.size());
+    if (args.size() > 2) {
+        panic("ArgumentError: expects one or two argument but got %d",
+              args.size());
     }
 
     if (args[0].isType<nyx::Int>()) {
@@ -135,9 +136,16 @@ nyx::Value nyx_builtin_range(nyx::Runtime* rt,
         if (args[0].cast<int>() <= 0) {
             return nyx::Value(nyx::Array, vals);
         }
-
-        for (int i = 0; i < args[0].cast<int>(); i++) {
-            vals.push_back(nyx::Value(nyx::Int, i));
+        int start = 0, stop = 0;
+        if (args.size() == 1) {
+            start = 0;
+            stop = args[0].cast<int>();
+        } else {
+            start = args[0].cast<int>();
+            stop = args[1].cast<int>();
+        }
+        for (; start < stop; start++) {
+            vals.push_back(nyx::Value(nyx::Int, start));
         }
         return nyx::Value(nyx::Array, vals);
     }

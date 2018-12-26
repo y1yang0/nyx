@@ -6,7 +6,7 @@ func fibonacci_rec(num){
     return fibonacci_rec(num-2) + fibonacci_rec(num-1)
 }
 
-for(i=1;i<15;i+=1){
+for(i=1;i<20;i+=1){
     print("fibonacci("+i+")=")
     println(fibonacci_rec(i))
 }

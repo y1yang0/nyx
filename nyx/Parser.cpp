@@ -190,10 +190,10 @@ Expression* Parser::parseExpression(short oldPrecedence) {
     return p;
 }
 
-ExpressionStmt* Parser::parseExpressionStmt() {
-    ExpressionStmt* node = nullptr;
+SimpleStmt* Parser::parseExpressionStmt() {
+    SimpleStmt* node = nullptr;
     if (auto p = parseExpression(); p != nullptr) {
-        node = new ExpressionStmt(line, column);
+        node = new SimpleStmt(line, column);
         node->expr = p;
     }
     return node;
@@ -376,7 +376,7 @@ std::vector<std::string> Parser::parseParameterList() {
     return move(node);
 }
 
-nyx::Function* Parser::parseFuncDef(nyx::Context* context) {
+Function* Parser::parseFuncDef(Context* context) {
     assert(getCurrentToken() == KW_FUNC);
     currentToken = next();
 
@@ -386,7 +386,7 @@ nyx::Function* Parser::parseFuncDef(nyx::Context* context) {
               getCurrentLexeme().c_str());
     }
 
-    auto* node = new nyx::Function;
+    auto* node = new Function;
     node->name = getCurrentLexeme();
     currentToken = next();
     assert(getCurrentToken() == TK_LPAREN);
@@ -396,7 +396,7 @@ nyx::Function* Parser::parseFuncDef(nyx::Context* context) {
     return node;
 }
 
-void Parser::parse(nyx::Runtime* rt) {
+void Parser::parse(Runtime* rt) {
     currentToken = next();
     if (getCurrentToken() == TK_EOF) {
         return;
@@ -479,140 +479,144 @@ std::tuple<Token, std::string> Parser::next() {
                    : std::make_tuple(TK_IDENT, lexeme);
     }
 
-    if (c == '\'') {
-        std::string lexeme;
-        lexeme += getNextChar();
-        if (peekNextChar() != '\'') {
-            panic(
-                "SynxaxError: a character literal should surround with "
-                "single-quote");
-        }
-        c = getNextChar();
-        return std::make_tuple(LIT_CHAR, lexeme);
-    }
-    if (c == '"') {
-        std::string lexeme;
-        char cn = peekNextChar();
-        while (cn != '"') {
+    switch (c) {
+        case '\'': {
+            std::string lexeme;
+            lexeme += getNextChar();
+            if (peekNextChar() != '\'') {
+                panic(
+                    "SynxaxError: a character literal should surround with "
+                    "single-quote");
+            }
             c = getNextChar();
-            lexeme += c;
-            cn = peekNextChar();
+            return std::make_tuple(LIT_CHAR, lexeme);
         }
-        c = getNextChar();
-        return std::make_tuple(LIT_STR, lexeme);
-    }
-    if (c == '[') {
-        return std::make_tuple(TK_LBRACKET, "[");
-    }
-    if (c == ']') {
-        return std::make_tuple(TK_RBRACKET, "]");
-    }
-    if (c == '{') {
-        return std::make_tuple(TK_LBRACE, "{");
-    }
-    if (c == '}') {
-        return std::make_tuple(TK_RBRACE, "}");
-    }
-    if (c == '(') {
-        return std::make_tuple(TK_LPAREN, "(");
-    }
-    if (c == ')') {
-        return std::make_tuple(TK_RPAREN, ")");
-    }
-    if (c == ',') {
-        return std::make_tuple(TK_COMMA, ",");
-    }
-    if (c == ';') {
-        return std::make_tuple(TK_SEMICOLON, ";");
-    }
-    if (c == ':') {
-        return std::make_tuple(TK_COLON, ":");
-    }
-    if (c == '+') {
-        if (peekNextChar() == '=') {
+        case '"': {
+            std::string lexeme;
+            char cn = peekNextChar();
+            while (cn != '"') {
+                c = getNextChar();
+                lexeme += c;
+                cn = peekNextChar();
+            }
             c = getNextChar();
-            return std::make_tuple(TK_PLUS_AGN, "+=");
+            return std::make_tuple(LIT_STR, lexeme);
         }
-        return std::make_tuple(TK_PLUS, "+");
-    }
-    if (c == '-') {
-        if (peekNextChar() == '=') {
-            c = getNextChar();
-            return std::make_tuple(TK_MINUS_AGN, "-=");
+        case '[': {
+            return std::make_tuple(TK_LBRACKET, "[");
         }
-        return std::make_tuple(TK_MINUS, "-");
-    }
-    if (c == '*') {
-        if (peekNextChar() == '=') {
-            c = getNextChar();
-            return std::make_tuple(TK_TIMES_AGN, "*=");
+        case ']': {
+            return std::make_tuple(TK_RBRACKET, "]");
         }
-        return std::make_tuple(TK_TIMES, "*");
-    }
-    if (c == '/') {
-        if (peekNextChar() == '=') {
-            c = getNextChar();
-            return std::make_tuple(TK_DIV_AGN, "/=");
+        case '{': {
+            return std::make_tuple(TK_LBRACE, "{");
         }
-        return std::make_tuple(TK_DIV, "/");
-    }
-    if (c == '%') {
-        if (peekNextChar() == '=') {
-            c = getNextChar();
-            return std::make_tuple(TK_MOD_AGN, "%=");
+        case '}': {
+            return std::make_tuple(TK_RBRACE, "}");
         }
-        return std::make_tuple(TK_MOD, "%");
-    }
-    if (c == '~') {
-        return std::make_tuple(TK_BITNOT, "~");
-    }
-    if (c == '=') {
-        if (peekNextChar() == '=') {
-            c = getNextChar();
-            return std::make_tuple(TK_EQ, "==");
-        } else if (peekNextChar() == '>') {
-            c = getNextChar();
-            return std::make_tuple(TK_MATCH, "=>");
+        case '(': {
+            return std::make_tuple(TK_LPAREN, "(");
         }
-        return std::make_tuple(TK_ASSIGN, "=");
-    }
-    if (c == '!') {
-        if (peekNextChar() == '=') {
-            c = getNextChar();
-            return std::make_tuple(TK_NE, "!=");
+        case ')': {
+            return std::make_tuple(TK_RPAREN, ")");
         }
-        return std::make_tuple(TK_LOGNOT, "!");
-    }
-    if (c == '|') {
-        if (peekNextChar() == '|') {
-            c = getNextChar();
-            return std::make_tuple(TK_LOGOR, "||");
+        case ',': {
+            return std::make_tuple(TK_COMMA, ",");
         }
-        return std::make_tuple(TK_BITOR, "|");
-    }
-    if (c == '&') {
-        if (peekNextChar() == '&') {
-            c = getNextChar();
-            return std::make_tuple(TK_LOGAND, "&&");
+        case ';': {
+            return std::make_tuple(TK_SEMICOLON, ";");
         }
-        return std::make_tuple(TK_BITAND, "&");
-    }
-    if (c == '>') {
-        if (peekNextChar() == '=') {
-            c = getNextChar();
-            return std::make_tuple(TK_GE, ">=");
+        case ':': {
+            return std::make_tuple(TK_COLON, ":");
         }
-        return std::make_tuple(TK_GT, ">");
-    }
-    if (c == '<') {
-        if (peekNextChar() == '=') {
-            c = getNextChar();
-            return std::make_tuple(TK_LE, "<=");
+        case '+': {
+            if (peekNextChar() == '=') {
+                c = getNextChar();
+                return std::make_tuple(TK_PLUS_AGN, "+=");
+            }
+            return std::make_tuple(TK_PLUS, "+");
         }
-        return std::make_tuple(TK_LT, "<");
+        case '-': {
+            if (peekNextChar() == '=') {
+                c = getNextChar();
+                return std::make_tuple(TK_MINUS_AGN, "-=");
+            }
+            return std::make_tuple(TK_MINUS, "-");
+        }
+        case '*': {
+            if (peekNextChar() == '=') {
+                c = getNextChar();
+                return std::make_tuple(TK_TIMES_AGN, "*=");
+            }
+            return std::make_tuple(TK_TIMES, "*");
+        }
+        case '/': {
+            if (peekNextChar() == '=') {
+                c = getNextChar();
+                return std::make_tuple(TK_DIV_AGN, "/=");
+            }
+            return std::make_tuple(TK_DIV, "/");
+        }
+        case '%': {
+            if (peekNextChar() == '=') {
+                c = getNextChar();
+                return std::make_tuple(TK_MOD_AGN, "%=");
+            }
+            return std::make_tuple(TK_MOD, "%");
+        }
+        case '~': {
+            return std::make_tuple(TK_BITNOT, "~");
+        }
+
+        case '=': {
+            if (peekNextChar() == '=') {
+                c = getNextChar();
+                return std::make_tuple(TK_EQ, "==");
+            } else if (peekNextChar() == '>') {
+                c = getNextChar();
+                return std::make_tuple(TK_MATCH, "=>");
+            }
+            return std::make_tuple(TK_ASSIGN, "=");
+        }
+        case '!': {
+            if (peekNextChar() == '=') {
+                c = getNextChar();
+                return std::make_tuple(TK_NE, "!=");
+            }
+            return std::make_tuple(TK_LOGNOT, "!");
+        }
+        case '|': {
+            if (peekNextChar() == '|') {
+                c = getNextChar();
+                return std::make_tuple(TK_LOGOR, "||");
+            }
+            return std::make_tuple(TK_BITOR, "|");
+        }
+        case '&': {
+            if (peekNextChar() == '&') {
+                c = getNextChar();
+                return std::make_tuple(TK_LOGAND, "&&");
+            }
+            return std::make_tuple(TK_BITAND, "&");
+        }
+        case '>': {
+            if (peekNextChar() == '=') {
+                c = getNextChar();
+                return std::make_tuple(TK_GE, ">=");
+            }
+            return std::make_tuple(TK_GT, ">");
+        }
+        case '<': {
+            if (peekNextChar() == '=') {
+                c = getNextChar();
+                return std::make_tuple(TK_LE, "<=");
+            }
+            return std::make_tuple(TK_LT, "<");
+        }
+        default: {
+            panic("SynxaxError: unknown token %c", c);
+        }
     }
-    panic("SynxaxError: unknown token %c", c);
-    return std::make_tuple(INVALID, "invalid");
 }
 
 short Parser::precedence(Token op) {

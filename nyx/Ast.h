@@ -78,8 +78,6 @@ struct AstNode {
     explicit AstNode(int line, int column) : line(line), column(column) {}
     virtual ~AstNode() = default;
 
-    virtual std::string astString();
-
     int line = -1;
     int column = -1;
 };
@@ -93,8 +91,6 @@ struct Expression : public AstNode {
     virtual ~Expression() = default;
 
     virtual Value eval(Runtime* rt, std::deque<Context*> ctxChain);
-
-    std::string astString() override;
 };
 
 struct BoolExpr : public Expression {
@@ -103,7 +99,6 @@ struct BoolExpr : public Expression {
     bool literal;
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct CharExpr : public Expression {
@@ -112,14 +107,12 @@ struct CharExpr : public Expression {
     char literal;
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct NullExpr : public Expression {
     using Expression::Expression;
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct IntExpr : public Expression {
@@ -128,7 +121,6 @@ struct IntExpr : public Expression {
     int literal;
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct DoubleExpr : public Expression {
@@ -137,7 +129,6 @@ struct DoubleExpr : public Expression {
     double literal;
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct StringExpr : public Expression {
@@ -163,8 +154,6 @@ struct IdentExpr : public Expression {
 
     std::string identName;
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
-
-    std::string astString() override;
 };
 
 struct IndexExpr : public Expression {
@@ -174,7 +163,6 @@ struct IndexExpr : public Expression {
     Expression* index{};
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct BinaryExpr : public Expression {
@@ -184,8 +172,6 @@ struct BinaryExpr : public Expression {
     Token opt{};
     Expression* rhs{};
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
-
-    std::string astString() override;
 };
 
 struct FunCallExpr : public Expression {
@@ -194,7 +180,6 @@ struct FunCallExpr : public Expression {
     std::string funcName;
     std::vector<Expression*> args;
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct AssignExpr : public Expression {
@@ -205,8 +190,6 @@ struct AssignExpr : public Expression {
     Expression* rhs{};
 
     Value eval(Runtime* rt, std::deque<Context*> ctxChain) override;
-
-    std::string astString() override;
 };
 
 //===----------------------------------------------------------------------===//
@@ -217,31 +200,26 @@ struct Statement : public AstNode {
 
     virtual ~Statement() = default;
     virtual ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain);
-
-    std::string astString() override;
 };
 
 struct BreakStmt : public Statement {
     using Statement::Statement;
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct ContinueStmt : public Statement {
     using Statement::Statement;
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
-struct ExpressionStmt : public Statement {
+struct SimpleStmt : public Statement {
     using Statement::Statement;
 
     Expression* expr{};
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct ReturnStmt : public Statement {
@@ -250,7 +228,6 @@ struct ReturnStmt : public Statement {
     Expression* ret{};
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct IfStmt : public Statement {
@@ -261,7 +238,6 @@ struct IfStmt : public Statement {
     Block* elseBlock{};
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct WhileStmt : public Statement {
@@ -271,7 +247,6 @@ struct WhileStmt : public Statement {
     Block* block{};
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct ForStmt : public Statement {
@@ -283,7 +258,6 @@ struct ForStmt : public Statement {
     Block* block{};
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct ForEachStmt : public Statement {
@@ -294,7 +268,6 @@ struct ForEachStmt : public Statement {
     Block* block{};
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };
 
 struct MatchStmt : public Statement {
@@ -304,5 +277,4 @@ struct MatchStmt : public Statement {
     std::vector<std::tuple<Expression*, Block*, bool>> matches;
 
     ExecResult interpret(Runtime* rt, std::deque<Context*> ctxChain) override;
-    std::string astString() override;
 };

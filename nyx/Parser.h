@@ -17,7 +17,7 @@ public:
     ~Parser();
 
 public:
-    void parse(nyx::Runtime* rt);
+    void parse(Runtime* rt);
     static void printLex(const std::string& fileName);
 
 private:
@@ -25,7 +25,7 @@ private:
     Expression* parseUnaryExpr();
     // default to lowest precedence(0) + 1
     Expression* parseExpression(short oldPrecedence = 1);
-    ExpressionStmt* parseExpressionStmt();
+    SimpleStmt* parseExpressionStmt();
     IfStmt* parseIfStmt();
     WhileStmt* parseWhileStmt();
     Statement* parseForStmt();
@@ -35,7 +35,7 @@ private:
     std::vector<Statement*> parseStatementList();
     Block* parseBlock();
     std::vector<std::string> parseParameterList();
-    nyx::Function* parseFuncDef(nyx::Context* context);
+    Function* parseFuncDef(Context* context);
 
 private:
     short precedence(Token op);
