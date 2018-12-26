@@ -69,325 +69,340 @@ Function* Context::getFunction(const std::string& name) {
     return nullptr;
 }
 
-Value& Value::operator+(const Value& rhs) {
+Value Value::operator+(const Value& rhs) const {
+    Value result;
     // Basic
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = cast<int>() + rhs.cast<int>();
-        this->type = nyx::Int;
+        result.type = nyx::Int;
+        result.data = cast<int>() + rhs.cast<int>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
-        this->data = cast<double>() + rhs.cast<double>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<double>() + rhs.cast<double>();
     } else if (isType<nyx::Int>() && rhs.isType<nyx::Double>()) {
-        this->data = cast<int>() + rhs.cast<double>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<int>() + rhs.cast<double>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Int>()) {
-        this->data = cast<double>() + rhs.cast<int>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<double>() + rhs.cast<int>();
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Int>()) {
-        this->data = static_cast<char>(cast<char>() + rhs.cast<int>());
-        this->type = nyx::Char;
+        result.type = nyx::Char;
+        result.data = static_cast<char>(cast<char>() + rhs.cast<int>());
     } else if (isType<nyx::Int>() && rhs.isType<nyx::Char>()) {
-        this->data = static_cast<char>(cast<int>() + rhs.cast<char>());
-        this->type = nyx::Char;
+        result.type = nyx::Char;
+        result.data = static_cast<char>(cast<int>() + rhs.cast<char>());
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Char>()) {
-        this->data = static_cast<char>(cast<char>() + rhs.cast<char>());
-        this->type = nyx::Char;
+        result.type = nyx::Char;
+        result.data = static_cast<char>(cast<char>() + rhs.cast<char>());
     }
     // String
     // One of operands has string type, we say the result value was a string
     else if (isType<nyx::String>() || rhs.isType<nyx::String>()) {
-        this->data = valueToStdString(*this) + valueToStdString(rhs);
-        this->type = nyx::String;
+        result.type = nyx::String;
+        result.data = valueToStdString(*this) + valueToStdString(rhs);
     }
     // Array
     else if (isType<nyx::Array>()) {
+        result.type = nyx::Array;
         auto resultArr = this->cast<std::vector<nyx::Value>>();
         resultArr.push_back(rhs);
-        this->data = resultArr;
-        this->type = nyx::Array;
+        result.data = resultArr;
     } else if (rhs.isType<nyx::Array>()) {
+        result.type = nyx::Array;
         auto resultArr = rhs.cast<std::vector<nyx::Value>>();
         resultArr.push_back(*this);
-        this->data = resultArr;
-        this->type = nyx::Array;
+        result.data = resultArr;
     }
     // Invalid
     else {
         panic("TypeError: unexpected arguments of operator +");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator-(const Value& rhs) {
+Value Value::operator-(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = cast<int>() - rhs.cast<int>();
-        this->type = nyx::Int;
+        result.type = nyx::Int;
+        result.data = cast<int>() - rhs.cast<int>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
-        this->data = cast<double>() - rhs.cast<double>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<double>() - rhs.cast<double>();
     } else if (isType<nyx::Int>() && rhs.isType<nyx::Double>()) {
-        this->data = cast<int>() - rhs.cast<double>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<int>() - rhs.cast<double>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Int>()) {
-        this->data = cast<double>() - rhs.cast<int>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<double>() - rhs.cast<int>();
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Int>()) {
-        this->data = static_cast<char>(cast<char>() - rhs.cast<int>());
-        this->type = nyx::Char;
+        result.type = nyx::Char;
+        result.data = static_cast<char>(cast<char>() - rhs.cast<int>());
     } else if (isType<nyx::Int>() && rhs.isType<nyx::Char>()) {
-        this->data = static_cast<char>(cast<int>() - rhs.cast<char>());
-        this->type = nyx::Char;
+        result.type = nyx::Char;
+        result.data = static_cast<char>(cast<int>() - rhs.cast<char>());
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Char>()) {
-        this->data = static_cast<char>(cast<char>() - rhs.cast<char>());
-        this->type = nyx::Char;
+        result.type = nyx::Char;
+        result.data = static_cast<char>(cast<char>() - rhs.cast<char>());
     } else {
         panic("TypeError: unexpected arguments of operator -");
     }
 
-    return *this;
+    return result;
 }
 
-Value& Value::operator*(const Value& rhs) {
+Value Value::operator*(const Value& rhs) const {
+    Value result;
     // Basic
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = cast<int>() * rhs.cast<int>();
-        this->type = nyx::Int;
+        result.type = nyx::Int;
+        result.data = cast<int>() * rhs.cast<int>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
-        this->data = cast<double>() * rhs.cast<double>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<double>() * rhs.cast<double>();
     } else if (isType<nyx::Int>() && rhs.isType<nyx::Double>()) {
-        this->data = cast<int>() * rhs.cast<double>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<int>() * rhs.cast<double>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Int>()) {
-        this->data = cast<double>() * rhs.cast<int>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<double>() * rhs.cast<int>();
     }
     // String
     else if (isType<nyx::String>() && rhs.isType<nyx::Int>()) {
-        this->data = repeatString(rhs.cast<int>(), cast<std::string>());
-        this->type = nyx::String;
+        result.type = nyx::String;
+        result.data = repeatString(rhs.cast<int>(), cast<std::string>());
     } else if (isType<nyx::Int>() && rhs.isType<nyx::String>()) {
-        this->data = repeatString(cast<int>(), rhs.cast<std::string>());
-        this->type = nyx::String;
+        result.type = nyx::String;
+        result.data = repeatString(cast<int>(), rhs.cast<std::string>());
     }
     // Invalid
     else {
         panic("TypeError: unexpected arguments of operator *");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator/(const Value& rhs) {
+Value Value::operator/(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = cast<int>() / rhs.cast<int>();
-        this->type = nyx::Int;
+        result.type = nyx::Int;
+        result.data = cast<int>() / rhs.cast<int>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
-        this->data = cast<double>() / rhs.cast<double>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<double>() / rhs.cast<double>();
     } else if (isType<nyx::Int>() && rhs.isType<nyx::Double>()) {
-        this->data = cast<int>() / rhs.cast<double>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<int>() / rhs.cast<double>();
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Int>()) {
-        this->data = cast<double>() / rhs.cast<int>();
-        this->type = nyx::Double;
+        result.type = nyx::Double;
+        result.data = cast<double>() / rhs.cast<int>();
     } else {
         panic("TypeError: unexpected arguments of operator /");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator%(const Value& rhs) {
+Value Value::operator%(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = (int)cast<int>() % rhs.cast<int>();
-        this->type = nyx::Int;
+        result.type = nyx::Int;
+        result.data = (int)cast<int>() % rhs.cast<int>();
     } else {
         panic("TypeError: unexpected arguments of operator %");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator&&(const Value& rhs) {
+Value Value::operator&&(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
-        this->data = (cast<bool>() && rhs.cast<bool>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<bool>() && rhs.cast<bool>());
     } else {
         panic("TypeError: unexpected arguments of operator &&");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator||(const Value& rhs) {
+Value Value::operator||(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
-        this->data = (cast<bool>() || rhs.cast<bool>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<bool>() || rhs.cast<bool>());
     } else {
         panic("TypeError: unexpected arguments of operator ||");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator==(const Value& rhs) {
+Value Value::operator==(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = (cast<int>() == rhs.cast<int>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<int>() == rhs.cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
-        this->data = (cast<double>() == rhs.cast<double>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<double>() == rhs.cast<double>());
     } else if (isType<nyx::String>() && rhs.isType<nyx::String>()) {
+        result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
         lhsStr = valueToStdString(*this);
         rhsStr = valueToStdString(rhs);
-        this->data = (lhsStr == rhsStr);
-        this->type = nyx::Bool;
+        result.data = (lhsStr == rhsStr);
     } else if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
-        this->data = (cast<bool>() == rhs.cast<bool>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<bool>() == rhs.cast<bool>());
     } else if (this->type == nyx::Null && rhs.type == nyx::Null) {
-        this->data = std::make_any<bool>(true);
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = std::make_any<bool>(true);
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Char>()) {
-        this->data = (cast<char>() == rhs.cast<char>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<char>() == rhs.cast<char>());
     } else {
         panic("TypeError: unexpected arguments of operator ==");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator!=(const Value& rhs) {
+Value Value::operator!=(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = (cast<int>() != rhs.cast<int>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<int>() != rhs.cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
-        this->data = (cast<double>() != rhs.cast<double>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<double>() != rhs.cast<double>());
     } else if (isType<nyx::String>() && rhs.isType<nyx::String>()) {
+        result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
         lhsStr = valueToStdString(*this);
         rhsStr = valueToStdString(rhs);
-        this->data = (lhsStr != rhsStr);
-        this->type = nyx::Bool;
+        result.data = (lhsStr != rhsStr);
     } else if (isType<nyx::Bool>() && rhs.isType<nyx::Bool>()) {
-        this->data = (cast<bool>() != rhs.cast<bool>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<bool>() != rhs.cast<bool>());
     } else if (this->type == nyx::Null && rhs.type == nyx::Null) {
-        this->data = std::make_any<bool>(false);
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = std::make_any<bool>(false);
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Char>()) {
-        this->data = (cast<char>() != rhs.cast<char>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<char>() != rhs.cast<char>());
     } else {
         panic("TypeError: unexpected arguments of operator !=");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator>(const Value& rhs) {
+Value Value::operator>(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = (cast<int>() > rhs.cast<int>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<int>() > rhs.cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
-        this->data = (cast<double>() > rhs.cast<double>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<double>() > rhs.cast<double>());
     } else if (isType<nyx::String>() && rhs.isType<nyx::String>()) {
+        result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
         lhsStr = valueToStdString(*this);
         rhsStr = valueToStdString(rhs);
-        this->data = (lhsStr > rhsStr);
-        this->type = nyx::Bool;
+        result.data = (lhsStr > rhsStr);
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Char>()) {
-        this->data = (cast<char>() > rhs.cast<char>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<char>() > rhs.cast<char>());
     } else {
         panic("TypeError: unexpected arguments of operator >");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator>=(const Value& rhs) {
+Value Value::operator>=(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = (cast<int>() >= rhs.cast<int>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<int>() >= rhs.cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
-        this->data = (cast<double>() >= rhs.cast<double>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<double>() >= rhs.cast<double>());
     } else if (isType<nyx::String>() && rhs.isType<nyx::String>()) {
+        result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
         lhsStr = valueToStdString(*this);
         rhsStr = valueToStdString(rhs);
-        this->data = (lhsStr >= rhsStr);
-        this->type = nyx::Bool;
+        result.data = (lhsStr >= rhsStr);
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Char>()) {
-        this->data = (cast<char>() >= rhs.cast<char>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<char>() >= rhs.cast<char>());
     } else {
         panic("TypeError: unexpected arguments of operator >=");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator<(const Value& rhs) {
+Value Value::operator<(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = (cast<int>() < rhs.cast<int>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<int>() < rhs.cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
-        this->data = (cast<double>() < rhs.cast<double>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<double>() < rhs.cast<double>());
     } else if (isType<nyx::String>() && rhs.isType<nyx::String>()) {
+        result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
         lhsStr = valueToStdString(*this);
         rhsStr = valueToStdString(rhs);
-        this->data = (lhsStr < rhsStr);
-        this->type = nyx::Bool;
+        result.data = (lhsStr < rhsStr);
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Char>()) {
-        this->data = (cast<char>() < rhs.cast<char>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<char>() < rhs.cast<char>());
     } else {
         panic("TypeError: unexpected arguments of operator <");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator<=(const Value& rhs) {
+Value Value::operator<=(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = (cast<int>() <= rhs.cast<int>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<int>() <= rhs.cast<int>());
     } else if (isType<nyx::Double>() && rhs.isType<nyx::Double>()) {
-        this->data = (cast<double>() <= rhs.cast<double>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<double>() <= rhs.cast<double>());
     } else if (isType<nyx::String>() && rhs.isType<nyx::String>()) {
+        result.type = nyx::Bool;
         std::string lhsStr, rhsStr;
         lhsStr = valueToStdString(*this);
         rhsStr = valueToStdString(rhs);
-        this->data = (lhsStr <= rhsStr);
-        this->type = nyx::Bool;
+        result.data = (lhsStr <= rhsStr);
     } else if (isType<nyx::Char>() && rhs.isType<nyx::Char>()) {
-        this->data = (cast<char>() <= rhs.cast<char>());
-        this->type = nyx::Bool;
+        result.type = nyx::Bool;
+        result.data = (cast<char>() <= rhs.cast<char>());
     } else {
         panic("TypeError: unexpected arguments of operator <=");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator&(const Value& rhs) {
+Value Value::operator&(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = (cast<int>() & rhs.cast<int>());
-        this->type = nyx::Int;
+        result.type = nyx::Int;
+        result.data = (cast<int>() & rhs.cast<int>());
     } else {
         panic("TypeError: unexpected arguments of operator &");
     }
-    return *this;
+    return result;
 }
 
-Value& Value::operator|(const Value& rhs) {
+Value Value::operator|(const Value& rhs) const {
+    Value result;
     if (isType<nyx::Int>() && rhs.isType<nyx::Int>()) {
-        this->data = (cast<int>() | rhs.cast<int>());
-        this->type = nyx::Int;
+        result.type = nyx::Int;
+        result.data = (cast<int>() | rhs.cast<int>());
     } else {
         panic("TypeError: unexpected arguments of operator |");
     }
-    return *this;
+    return result;
 }
 
 }  // namespace nyx

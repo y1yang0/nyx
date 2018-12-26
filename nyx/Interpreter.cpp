@@ -61,18 +61,15 @@ Value Interpreter::callFunction(Runtime* rt, Function* f,
     return ret.retValue;
 }
 
-Value& Interpreter::calcUnaryExpr(Value& lhs, Token opt, int line, int column) {
+Value Interpreter::calcUnaryExpr(const Value& lhs, Token opt, int line,
+                                 int column) {
     switch (opt) {
         case TK_MINUS:
             switch (lhs.type) {
                 case Int:
-                    lhs.data = -std::any_cast<int>(lhs.data);
-                    lhs.type = nyx::Int;
-                    break;
+                    return Value(Int, -std::any_cast<int>(lhs.data));
                 case Double:
-                    lhs.data = -std::any_cast<double>(lhs.data);
-                    lhs.type = nyx::Double;
-                    break;
+                    return Value(Double, -std::any_cast<double>(lhs.data));
                 default:
                     panic(
                         "TypeError: invalid operand type for operator "
@@ -82,8 +79,7 @@ Value& Interpreter::calcUnaryExpr(Value& lhs, Token opt, int line, int column) {
             break;
         case TK_LOGNOT:
             if (lhs.type == Bool) {
-                lhs.data = !std::any_cast<bool>(lhs.data);
-                lhs.type = nyx::Bool;
+                return Value(Bool, !std::any_cast<bool>(lhs.data));
             } else {
                 panic(
                     "TypeError: invalid operand type for operator "
@@ -93,8 +89,7 @@ Value& Interpreter::calcUnaryExpr(Value& lhs, Token opt, int line, int column) {
             break;
         case TK_BITNOT:
             if (lhs.type == Int) {
-                lhs.data = ~std::any_cast<int>(lhs.data);
-                lhs.type = nyx::Int;
+                return Value(Int, ~std::any_cast<int>(lhs.data));
             } else {
                 panic(
                     "TypeError: invalid operand type for operator "
@@ -107,46 +102,61 @@ Value& Interpreter::calcUnaryExpr(Value& lhs, Token opt, int line, int column) {
     return lhs;
 }
 
-Value& Interpreter::calcBinaryExpr(Value& lhs, Token opt, Value& rhs, int line,
-                                   int column) {
+Value Interpreter::calcBinaryExpr(const Value& lhs, Token opt, const Value& rhs,
+                                  int line, int column) {
+    Value result{Null};
+
     switch (opt) {
         case TK_PLUS:
-            return (lhs + rhs);
+            result = (lhs + rhs);
+            break;
         case TK_MINUS:
-            return (lhs - rhs);
+            result = (lhs - rhs);
+            break;
         case TK_TIMES:
-            return (lhs * rhs);
+            result = (lhs * rhs);
+            break;
         case TK_DIV:
-            return (lhs / rhs);
+            result = (lhs / rhs);
+            break;
         case TK_MOD:
-            return (lhs % rhs);
+            result = (lhs % rhs);
+            break;
         case TK_LOGAND:
-            return (lhs && rhs);
+            result = (lhs && rhs);
+            break;
         case TK_LOGOR:
-            return (lhs || rhs);
+            result = (lhs || rhs);
+            break;
         case TK_EQ:
-            return (lhs == rhs);
+            result = (lhs == rhs);
+            break;
         case TK_NE:
-            return (lhs != rhs);
+            result = (lhs != rhs);
+            break;
         case TK_GT:
-            return (lhs > rhs);
+            result = (lhs > rhs);
+            break;
         case TK_GE:
-            return (lhs >= rhs);
+            result = (lhs >= rhs);
+            break;
         case TK_LT:
-            return (lhs < rhs);
+            result = (lhs < rhs);
+            break;
         case TK_LE:
-            return (lhs <= rhs);
+            result = (lhs <= rhs);
+            break;
         case TK_BITAND:
-            return (lhs & rhs);
+            result = (lhs & rhs);
+            break;
         case TK_BITOR:
-            return (lhs | rhs);
-        default:
-            lhs.type = nyx::Null;
-            return lhs;
+            result = (lhs | rhs);
+            break;
     }
+    return result;
 }
 
-Value& Interpreter::assignSwitch(Token opt, Value& lhs, Value& rhs) {
+Value Interpreter::assignSwitch(Token opt, const Value& lhs, const Value& rhs) {
     switch (opt) {
         case TK_ASSIGN:
             return rhs;
