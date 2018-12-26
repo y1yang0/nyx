@@ -141,7 +141,8 @@ Value& Interpreter::calcBinaryExpr(Value& lhs, Token opt, Value& rhs, int line,
         case TK_BITOR:
             return (lhs | rhs);
         default:
-            return Value{nyx::Null};
+            lhs.type = nyx::Null;
+            return lhs;
     }
 }
 

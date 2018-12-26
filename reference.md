@@ -280,6 +280,6 @@ func to_int(a:double) b:int
 # 强制类型转换为double
 func to_double(a:int) b:double
 
-# 返回[a,a+1,...b)的数组
+# 返回[a,a+1,...b)的数组;如果b没有指定则返回[1,2,...a)的数组
 func range(a:int,b:int): ret:array
 ```
