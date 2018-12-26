@@ -66,9 +66,13 @@ Value& Interpreter::calcUnaryExpr(Value& lhs, Token opt, int line, int column) {
         case TK_MINUS:
             switch (lhs.type) {
                 case Int:
-                    return Value(Int, -std::any_cast<int>(lhs.data));
+                    lhs.data = -std::any_cast<int>(lhs.data);
+                    lhs.type = nyx::Int;
+                    break;
                 case Double:
-                    return Value(Double, -std::any_cast<double>(lhs.data));
+                    lhs.data = -std::any_cast<double>(lhs.data);
+                    lhs.type = nyx::Double;
+                    break;
                 default:
                     panic(
                         "TypeError: invalid operand type for operator "
@@ -78,7 +82,8 @@ Value& Interpreter::calcUnaryExpr(Value& lhs, Token opt, int line, int column) {
             break;
         case TK_LOGNOT:
             if (lhs.type == Bool) {
-                return Value(Bool, !std::any_cast<bool>(lhs.data));
+                lhs.data = !std::any_cast<bool>(lhs.data);
+                lhs.type = nyx::Bool;
             } else {
                 panic(
                     "TypeError: invalid operand type for operator "
@@ -88,7 +93,8 @@ Value& Interpreter::calcUnaryExpr(Value& lhs, Token opt, int line, int column) {
             break;
         case TK_BITNOT:
             if (lhs.type == Int) {
-                return Value(Int, ~std::any_cast<int>(lhs.data));
+                lhs.data = ~std::any_cast<int>(lhs.data);
+                lhs.type = nyx::Int;
             } else {
                 panic(
                     "TypeError: invalid operand type for operator "
