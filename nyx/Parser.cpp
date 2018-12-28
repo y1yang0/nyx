@@ -34,6 +34,9 @@ Parser::Parser(const std::string& fileName)
 
 Parser::~Parser() { fs.close(); }
 
+//===----------------------------------------------------------------------===//
+// Parse expressions
+//===----------------------------------------------------------------------===//
 Expression* Parser::parsePrimaryExpr() {
     switch (getCurrentToken()) {
         case TK_IDENT: {
@@ -89,6 +92,14 @@ Expression* Parser::parsePrimaryExpr() {
                 // It's an empty array literal
                 return ret;
             }
+        }
+        case KW_FUNC: {
+            currentToken = next();
+            assert(getCurrentToken() == TK_LPAREN);
+            auto* ret = new ClosureExpr(line, column);
+            ret->params = parseParameterList();
+            ret->block = parseBlock();
+            return ret;
         }
         case LIT_INT: {
             auto val = atoi(getCurrentLexeme().c_str());
@@ -150,7 +161,7 @@ Expression* Parser::parseUnaryExpr() {
         return val;
     } else if (anyone(getCurrentToken(), LIT_DOUBLE, LIT_INT, LIT_STR, LIT_CHAR,
                       TK_IDENT, TK_LPAREN, TK_LBRACKET, KW_TRUE, KW_FALSE,
-                      KW_NULL)) {
+                      KW_NULL, KW_FUNC)) {
         return parsePrimaryExpr();
     }
     return nullptr;
@@ -189,7 +200,9 @@ Expression* Parser::parseExpression(short oldPrecedence) {
     }
     return p;
 }
-
+//===----------------------------------------------------------------------===//
+// Parse statements and save results to runtime
+//===----------------------------------------------------------------------===//
 SimpleStmt* Parser::parseExpressionStmt() {
     SimpleStmt* node = nullptr;
     if (auto p = parseExpression(); p != nullptr) {
@@ -411,6 +424,9 @@ void Parser::parse(Runtime* rt) {
     } while (getCurrentToken() != TK_EOF);
 }
 
+//===----------------------------------------------------------------------===//
+// Implementation of lexer within simple next() function
+//===----------------------------------------------------------------------===//
 std::tuple<Token, std::string> Parser::next() {
     char c = getNextChar();
 

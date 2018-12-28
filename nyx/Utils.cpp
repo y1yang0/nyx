@@ -12,13 +12,15 @@ std::string valueToStdString(const nyx::Value& v) {
             return std::to_string(v.cast<int>());
         case nyx::Null:
             return "null";
+        case nyx::String:
+            return v.cast<std::string>();
         case nyx::Char: {
             std::string str;
             str += v.cast<char>();
             return str;
         }
         case nyx::Array: {
-            std::string str = "[";
+            std::string str = "Array[";
             auto elements = v.cast<std::vector<nyx::Value>>();
             for (int i = 0; i < elements.size(); i++) {
                 str += valueToStdString(elements[i]);
@@ -30,8 +32,9 @@ std::string valueToStdString(const nyx::Value& v) {
             str += "]";
             return str;
         }
-        case nyx::String:
-            return v.cast<std::string>();
+        case nyx::Closure: {
+            return "closure";
+        }
     }
     return "unknown";
 }
@@ -73,9 +76,10 @@ bool equalValue(const nyx::Value& a, const nyx::Value& b) {
             return a.cast<int>() == b.cast<int>();
         case nyx::Null:
             return true;
-        case nyx::Char: {
+        case nyx::String:
+            return a.cast<std::string>() == b.cast<std::string>();
+        case nyx::Char:
             return a.cast<char>() == b.cast<char>();
-        }
         case nyx::Array: {
             auto elements1 = a.cast<std::vector<nyx::Value>>();
             auto elements2 = b.cast<std::vector<nyx::Value>>();
@@ -89,8 +93,6 @@ bool equalValue(const nyx::Value& a, const nyx::Value& b) {
             }
             return true;
         }
-        case nyx::String:
-            return a.cast<std::string>() == b.cast<std::string>();
     }
     return false;
 }

@@ -1,15 +1,12 @@
-print(ff=15&5|12) # print the result of 15&5|12, that is, 13
-a = [1,3,4]
-println(a) # print [1,3,4]
-a[0] = 5
-println(a) # print [5,3,4]
-a = 1
-a += 1
-println(a==2)
-a -= 3
-println(a==-1)
-a *= 4
-println(a==-4)
-a /= 2
-println(a==-2)
-a %= 2
+func weird(num){
+    closure_arr = []
+    for(i:range(num)){
+        closure_arr += func(){
+            return i
+        }    
+    }
+    return closure_arr
+}
+for(closure:weird(3)){
+    println(closure+" produces the result:"+closure())
+}

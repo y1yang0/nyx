@@ -10,7 +10,10 @@ struct Statement;
 struct Expression;
 
 namespace nyx {
-enum ValueType { Int, Double, String, Bool, Char, Null, Array };
+struct Context;
+
+enum ValueType { Int, Double, String, Bool, Char, Null, Array, Closure };
+
 enum ExecutionResultType { ExecNormal, ExecReturn, ExecBreak, ExecContinue };
 
 struct Block {
@@ -21,12 +24,11 @@ struct Block {
 
 struct Function {
     explicit Function() = default;
-    ~Function() { delete block; }
 
     std::string name;
+    std::deque<Context*>* outerContext{};
     std::vector<std::string> params;
     Block* block{};
-    Expression* retExpr{};
 };
 
 struct Value {
@@ -91,7 +93,7 @@ public:
     virtual ~Context();
 
     bool hasVariable(const std::string& identName);
-    void createVariable(const std::string& identName, Value value);
+    void createVariable(const std::string& identName, const Value& value);
     Variable* getVariable(const std::string& identName);
 
     void addFunction(const std::string& name, Function* f);
@@ -104,7 +106,7 @@ private:
 };
 
 class Runtime : public Context {
-    using BuiltinFuncType = Value (*)(Runtime*, std::deque<Context*>,
+    using BuiltinFuncType = Value (*)(Runtime*, std::deque<Context*>*,
                                       std::vector<Value>);
 
 public:

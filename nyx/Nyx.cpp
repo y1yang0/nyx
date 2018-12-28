@@ -29,7 +29,7 @@ Runtime::BuiltinFuncType Runtime::getBuiltinFunction(const std::string& name) {
     if (auto res = builtin.find(name); res != builtin.end()) {
         return res->second;
     }
-    return builtin[name];
+    return nullptr;
 }
 
 void Runtime::addStatement(Statement* stmt) { stmts.push_back(stmt); }
@@ -40,7 +40,7 @@ bool Context::hasVariable(const std::string& identName) {
     return vars.count(identName) == 1;
 }
 
-void Context::createVariable(const std::string& identName, Value value) {
+void Context::createVariable(const std::string& identName, const Value& value) {
     auto* var = new Variable;
     var->name = identName;
     var->value = value;

@@ -18,6 +18,13 @@
 
 **array** 数组类型，用于创建一个数组，数组元素可以是**任意类型**，如`[2.718,"hell",null,false,'u']`
 
+**closure** 闭包类型，用于创建一个可以捕获外部自由变量的匿名函数。如
+```
+a = 10
+add10 = func(){
+    return a+10
+}
+```
 ### 1.3 变量
 真不不敢想象没有变量的世界，我们得先介绍它。
 `name = value`即定义名为**name**的变量，具有**value**值。
@@ -221,6 +228,7 @@ for(i=0;i<10;i+=1){
 ```
 
 ## 4.函数
+### 4.1 普通函数
 函数几乎是现代编程语言最重要的抽象之一，在nyx可以使用`func`关键字引导函数定义：
 ```nyx
 # 递归计算斐波那契
@@ -260,10 +268,31 @@ func toStar(str){
 ```
 这里没有魔法。
 
+### 4.2 闭包
+定义[闭包](https://en.wikipedia.org/wiki/Closure_(computer_programming))也是由关键字`func`引导，只是没有具体名字。但是需要注意，严格意义上的闭包并不是匿名函数，**lambda**和匿名函数可以做等价替换，而闭包指定义在闭合环境的任何函数，它可以引用局部变量和形参之外的自由变量。
+```nyx
+func weird(num){
+    closure_arr = []
+    for(i:range(num)){
+        closure_arr += func(){
+            return i
+        }    
+    }
+    return closure_arr
+}
+for(closure:weird(3)){
+    println(closure+" produces the result:"+closure())
+}
+# closure produces the result:2
+# closure produces the result:2
+# closure produces the result:2
+```
+
 ## 5.内置函数
 ```nyx
-# 接受任意数目的参数，向stdout输出
-func print(a:any,b:any,c:any...)
+# 接受任意数目的参数，向stdout输出;println会额外输出一个换行符
+func print(a:any,b:any...)
+func println(a:any,b:any...)
 
 # 无参数。接受stdin输入并返回输入字符串
 func input()
@@ -280,6 +309,6 @@ func to_int(a:double) b:int
 # 强制类型转换为double
 func to_double(a:int) b:double
 
-# 返回[a,a+1,...b)的数组;如果b没有指定则返回[1,2,...a)的数组
+# 返回元素为[a,a+1,...b)的数组;如果b没有指定则返回元素为[1,2,...a)的数组
 func range(a:int,b:int): ret:array
 ```
