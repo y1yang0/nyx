@@ -298,7 +298,12 @@ nyx::ExecResult ForEachStmt::interpret(nyx::Runtime* rt,
     nyx::ExecResult ret{nyx::ExecNormal};
 
     nyx::Interpreter::newContext(ctxChain);
-    ctxChain->back()->createVariable(this->identName, nyx::Value(nyx::Null));
+
+    // Save current context for further iterator updating, we should not expect
+    // to call deque.back() to get this since later statement interpretation
+    // might push new context into context chain
+    auto& currentCtx = ctxChain->back();
+    currentCtx->createVariable(this->identName, nyx::Value(nyx::Null));
     nyx::Value list = this->list->eval(rt, ctxChain);
     if (!list.isType<nyx::Array>()) {
         panic(
@@ -307,10 +312,10 @@ nyx::ExecResult ForEachStmt::interpret(nyx::Runtime* rt,
             line, column);
     }
     std::vector<nyx::Value> listValues = list.cast<std::vector<nyx::Value>>();
-    for (const auto& val : listValues) {
-        ctxChain->back()->getVariable(identName)->value = val;
+    for (auto val : listValues) {
+        currentCtx->getVariable(identName)->value = val;
 
-        for (auto& stmt : block->stmts) {
+        for (auto stmt : this->block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == nyx::ExecReturn) {
                 goto outside;
@@ -354,7 +359,6 @@ nyx::ExecResult MatchStmt::interpret(nyx::Runtime* rt,
 
             // Stop mathcing and clean up context, it will propagate execution
             // type to upper statement
-
             goto finish;
         }
     }
