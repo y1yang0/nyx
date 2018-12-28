@@ -98,7 +98,15 @@ Expression* Parser::parsePrimaryExpr() {
             assert(getCurrentToken() == TK_LPAREN);
             auto* ret = new ClosureExpr(line, column);
             ret->params = parseParameterList();
-            ret->block = parseBlock();
+            if (getCurrentToken() == TK_LBRACE) {
+                ret->block = parseBlock();
+            } else if (getCurrentToken() == TK_MATCH) {
+                currentToken = next();
+                ret->block = new Block;
+                ret->block->stmts.push_back(parseStatement());
+            } else {
+                panic("SyntaxError: expects => or { after closure declaration");
+            }
             return ret;
         }
         case LIT_INT: {

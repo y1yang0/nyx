@@ -49,3 +49,19 @@ func weird(num){
 for(closure:weird(3)){
     println(closure+" produces the result:"+closure())
 }
+
+func currying(f){
+    return func(a){
+        return f(1,a)
+    }
+}
+
+currying_demo = currying(func(a,b){return a+b})
+println(currying_demo(2)==3)
+
+func hof(f1,f2){
+    return f1(f2)
+}
+
+res = hof(func(f1)=> return func() => return f1()+5 ,func()=>return 8)
+println(res()==13)

@@ -287,6 +287,15 @@ for(closure:weird(3)){
 # closure produces the result:2
 # closure produces the result:2
 ```
+对于只有一条语句的闭包，可以省略花括号`{}`使用匹配符号`=>`代替，这样可以使得代码更紧凑：
+```nyx
+func hof(f1,f2){
+    return f1(f2)
+}
+
+res = hof(func(f1)=> return func() => return f1()+5 ,func()=>return 8)
+println(res()==13)
+```
 
 ## 5.内置函数
 ```nyx
