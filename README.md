@@ -1,18 +1,17 @@
 # nyx
 [![Build Status](https://travis-ci.org/racaljk/nyx.svg?branch=master)](https://travis-ci.org/racaljk/nyx) | 
 [![Build status](https://ci.appveyor.com/api/projects/status/ptqln5210xp6gupc?svg=true)](https://ci.appveyor.com/project/racaljk/nyx) |
-[![CircleCI](https://circleci.com/gh/racaljk/nyx-lang.svg?style=svg)](https://circleci.com/gh/racaljk/nyx-lang) |
+[![CircleCI](https://circleci.com/gh/racaljk/nyx.svg?style=svg)](https://circleci.com/gh/racaljk/nyx) |
 [![Documentation Status](https://readthedocs.org/projects/nyx-lang/badge/?version=latest)](https://nyx-lang.readthedocs.io/zh/latest/?badge=latest) 
 
-**nyx**是又一门看似**动态类型**实则有着**严格类型系统**的脚本语言
+**nyx** is a dynamically typed scripting language with flexible and concise syntax.
+ It detects sorts of erroneous program form at compile time that benefitted from its underlying strict type system.
 
-希望她仅有`python`的灵活，`c/c++`的实用性和语法形式，`java`的工程化，以及非理想主义者的哲学 ：——）
+# Language reference
+See [reference.md](./reference.md) for detailed language reference，
+[`nyx_test/*`](./nyx_test/) contains various demos, they are probably the best way to learn how to program.
 
-# 语言手册
-语言手册参见[reference.md](./reference.md)，
-代码示例参见[`nyx_test/*`](./nyx_test/)
-
-# 源码构建
+# Build
 ```bash
 $ mkdir build && cd build
 $ cmake ..
@@ -20,23 +19,23 @@ $ make
 $ nyx <your_source_file.nyx>
 ```
 
-# 开发引导
+# Hacking
 ```bash
 racaljk@ubuntu:~/Desktop/nyx-lang/nyx$ tree .
 .
-├── Ast.h               // ast结构定义
-├── Builtin.cpp         // 语言内置函数
+├── Ast.h               // Definitions of AST nodes
+├── Builtin.cpp         // Functions that had been built in language core set
 ├── Builtin.h           
-├── Interpreter.cpp     // 解释器实现
+├── Interpreter.cpp     // Implementation of interpretere
 ├── Interpreter.h
-├── Main.cpp            // 启动函数
-├── Nyx.cpp             // nyx::Runtime,nyx::Context等运行时结构
+├── Main.cpp            // Launcher
+├── Nyx.cpp             // Runtime structures such as nyx::Runtime,nyx::Context
 ├── Nyx.hpp             // 
-├── Parser.cpp          // 语法分析器和词法分析器
+├── Parser.cpp          // Lexer and parser
 ├── Parser.h
-├── Utils.cpp           // 辅助函数
+├── Utils.cpp           // Auxiliary functions
 └── Utils.hpp
 ```
 
-# 开源协议
-**nyx**所有代码基于[MIT LICENSE](LICENSE)协议发布。
+# License
+**nyx** is licensed under the [MIT LICENSE](LICENSE)。
