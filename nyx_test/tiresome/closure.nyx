@@ -65,3 +65,24 @@ func hof(f1,f2){
 
 res = hof(func(f1)=> return func() => return f1()+5 ,func()=>return 8)
 println(res()==13)
+
+func nest_closures(){
+    top = 100
+    a = func(){
+        b = 10
+        c = b+20
+        d = func(){
+            e = top+c
+            f = func(){
+                h = 100
+                g = e+h
+                return g
+            }
+            return f()
+        }
+        return d()
+    }
+    return a()
+}
+
+println(nest_closures()==230)
