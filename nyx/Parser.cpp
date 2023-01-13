@@ -529,13 +529,14 @@ std::tuple<Token, std::string> Parser::next() {
     switch (c) {
         case '\'': {
             std::string lexeme;
-            lexeme += getNextChar();
-            if (peekNextChar() != '\'') {
-                panic(
-                        "SynxaxError: a character literal should surround with "
-                        "single-quote");
+            char nextChar = getNextChar();
+            if (nextChar != '\'') {
+                lexeme += nextChar;
+                if (peekNextChar() != '\'') {
+                    panic("SynxaxError: a character literal should surround with single-quote");
+                }
+                c = getNextChar();
             }
-            c = getNextChar();
             return std::make_tuple(LIT_CHAR, lexeme);
         }
         case '"': {

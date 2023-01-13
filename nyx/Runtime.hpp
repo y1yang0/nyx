@@ -23,6 +23,8 @@
 
 #pragma once
 
+#undef _DEBUG
+
 #include <any>
 #include <deque>
 #include <string>

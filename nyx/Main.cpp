@@ -34,6 +34,9 @@ int main(int argc, char *argv[]) {
     auto *rt = new Runtime;
 
     Parser parser(argv[1]);
+#ifdef _DEBUG
+    Parser::printLex(argv[1]);
+#endif
     parser.parse(rt);
     Interpreter nyx;
     nyx.execute(rt);
