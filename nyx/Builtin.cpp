@@ -133,8 +133,7 @@ Object *nyx_builtin_range(Runtime *rt,
                           std::deque<Context *> *ctxChain,
                           std::vector<Object *> args) {
     if (args.size() > 2) {
-        panic(
-                "ArgumentError:function %s expects one or two argument but got %d",
+        panic("ArgumentError:function %s expects one or two argument but got %d",
                 __func__, args.size());
     }
 
@@ -155,6 +154,25 @@ Object *nyx_builtin_range(Runtime *rt,
             vals.push_back(rt->newObject(Int, start));
         }
         return rt->newObject(Array, vals);
+    }
+    panic("TypeError: unexpected type of arguments within %s", __func__);
+}
+
+
+Object *nyx_builtin_assert(Runtime *rt,
+                          std::deque<Context *> *ctxChain,
+                          std::vector<Object *> args) {
+    if (args.size() > 2) {
+        panic("ArgumentError:function %s expects one or two argument but got %d",
+                __func__, args.size());
+    }
+
+    if (args[0]->isType<Bool>() && args[1]->isType<String>()) {
+        if (args[0]->as<bool>() == false) {
+            std::cerr<<"AssertionFailure: "<< args[1]->as<std::string>()<<std::endl;
+            std::abort();
+        }
+        return rt->newNullObject();
     }
     panic("TypeError: unexpected type of arguments within %s", __func__);
 }

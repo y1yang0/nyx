@@ -58,3 +58,7 @@ Object *nyx_builtin_to_double(Runtime *rt,
 Object *nyx_builtin_range(Runtime *rt,
                           std::deque<Context *> *ctxChain,
                           std::vector<Object *> args);
+
+Object *nyx_builtin_assert(Runtime *rt,
+                          std::deque<Context *> *ctxChain,
+                          std::vector<Object *> args);

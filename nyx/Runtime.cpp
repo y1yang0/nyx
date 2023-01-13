@@ -41,6 +41,7 @@ Runtime::Runtime() {
     builtin["to_int"] = &nyx_builtin_to_int;
     builtin["to_double"] = &nyx_builtin_to_double;
     builtin["range"] = &nyx_builtin_range;
+    builtin["assert"] = &nyx_builtin_assert;
 }
 
 bool Runtime::hasBuiltinFunction(const std::string &name) {
