@@ -1,0 +1,10 @@
+func sideeffect(arr, i){
+  println(arr)
+  if(i==length(arr)-1){return}
+  arr[i] = 0
+  sideeffect(arr,i+1)
+}
+
+arr=[ 3,2,6,7,87,2]
+sideeffect(arr,0)
+println(arr)

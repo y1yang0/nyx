@@ -1,45 +1,31 @@
+// MIT License
+//
+// Copyright (c) 2018-2023 y1yang0 <kelthuzadx@qq.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+
 #include <cstdarg>
-#include "Nyx.hpp"
+#include "Runtime.hpp"
 #include "Utils.hpp"
 
-std::string valueToStdString(const nyx::Value& v) {
-    switch (v.type) {
-        case nyx::Bool:
-            return v.cast<bool>() ? "true" : "false";
-        case nyx::Double:
-            return std::to_string(v.cast<double>());
-        case nyx::Int:
-            return std::to_string(v.cast<int>());
-        case nyx::Null:
-            return "null";
-        case nyx::String:
-            return v.cast<std::string>();
-        case nyx::Char: {
-            std::string str;
-            str += v.cast<char>();
-            return str;
-        }
-        case nyx::Array: {
-            std::string str = "Array[";
-            auto elements = v.cast<std::vector<nyx::Value>>();
-            for (int i = 0; i < elements.size(); i++) {
-                str += valueToStdString(elements[i]);
-
-                if (i != elements.size() - 1) {
-                    str += ",";
-                }
-            }
-            str += "]";
-            return str;
-        }
-        case nyx::Closure: {
-            return "closure";
-        }
-    }
-    return "unknown";
-}
-
-std::string repeatString(int count, const std::string& str) {
+std::string repeatString(int count, const std::string &str) {
     std::string result;
     for (int i = 0; i < count; i++) {
         result += str;
@@ -47,15 +33,7 @@ std::string repeatString(int count, const std::string& str) {
     return result;
 }
 
-std::vector<nyx::Value> repeatArray(int count, std::vector<nyx::Value>&& arr) {
-    std::vector<nyx::Value> result;
-    for (int i = 0; i < count; i++) {
-        result.insert(result.begin(), arr.begin(), arr.end());
-    }
-    return result;
-}
-
-[[noreturn]] void panic(char const* const format, ...) {
+[[noreturn]] void panic(char const *const format, ...) {
     va_list args;
     va_start(args, format);
     vfprintf(stdout, format, args);
@@ -63,36 +41,27 @@ std::vector<nyx::Value> repeatArray(int count, std::vector<nyx::Value>&& arr) {
     exit(EXIT_FAILURE);
 }
 
-bool equalValue(const nyx::Value& a, const nyx::Value& b) {
-    if (a.type != b.type) {
-        return false;
+std::string type2String(ValueType type) {
+    switch (type) {
+        case Bool:
+            return "bool";
+        case Double:
+            return "double";
+        case Int:
+            return "int";
+        case String:
+            return "string";
+        case Null:
+            return "null";
+        case Char:
+            return "char";
+        case Array:
+            return "array";
+        case Closure:
+            return "closure";
+        default:
+            panic("TypeError: arguments with unknown type passed into %s",
+                  __func__);
     }
-    switch (a.type) {
-        case nyx::Bool:
-            return a.cast<bool>() == b.cast<bool>();
-        case nyx::Double:
-            return a.cast<double>() == b.cast<double>();
-        case nyx::Int:
-            return a.cast<int>() == b.cast<int>();
-        case nyx::Null:
-            return true;
-        case nyx::String:
-            return a.cast<std::string>() == b.cast<std::string>();
-        case nyx::Char:
-            return a.cast<char>() == b.cast<char>();
-        case nyx::Array: {
-            auto elements1 = a.cast<std::vector<nyx::Value>>();
-            auto elements2 = b.cast<std::vector<nyx::Value>>();
-            if (elements1.size() != elements2.size()) {
-                return false;
-            }
-            for (int i = 0; i < elements1.size(); i++) {
-                if (!equalValue(elements1[i], elements2[i])) {
-                    return false;
-                }
-            }
-            return true;
-        }
-    }
-    return false;
+    return "<unknown>";
 }

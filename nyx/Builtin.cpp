@@ -1,165 +1,159 @@
+// MIT License
+//
+// Copyright (c) 2018-2023 y1yang0 <kelthuzadx@qq.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
 #include <iostream>
 #include <vector>
 #include "Ast.h"
 #include "Builtin.h"
-#include "Nyx.hpp"
+#include "Runtime.hpp"
 #include "Utils.hpp"
 
-nyx::Value nyx_builtin_print(nyx::Runtime* rt,
-                             std::deque<nyx::Context*>* ctxChain,
-                             std::vector<nyx::Value> args) {
-    for (auto arg : args) {
-        std::cout << valueToStdString(arg);
+Object *nyx_builtin_print(Runtime *rt,
+                          std::deque<Context *> *ctxChain,
+                          std::vector<Object *> args) {
+    for (auto arg: args) {
+        std::cout << arg->toString();
     }
-    return nyx::Value(nyx::Int, (int)args.size());
+    return rt->newObject(Int, (int) args.size());
 }
 
-nyx::Value nyx_builtin_println(nyx::Runtime* rt,
-                               std::deque<nyx::Context*>* ctxChain,
-                               std::vector<nyx::Value> args) {
-    if (args.size() != 0) {
-        for (auto arg : args) {
-            std::cout << valueToStdString(arg) << "\n";
+Object *nyx_builtin_println(Runtime *rt,
+                            std::deque<Context *> *ctxChain,
+                            std::vector<Object *> args) {
+    if (!args.empty()) {
+        for (auto arg: args) {
+            std::cout << arg->toString() << "\n";
         }
     } else {
         std::cout << "\n";
     }
 
-    return nyx::Value(nyx::Int, (int)args.size());
+    return rt->newObject(Int, (int) args.size());
 }
 
-nyx::Value nyx_builtin_input(nyx::Runtime* rt,
-                             std::deque<nyx::Context*>* ctxChain,
-                             std::vector<nyx::Value> args) {
-    nyx::Value result{nyx::String};
+Object *nyx_builtin_input(Runtime *rt,
+                          std::deque<Context *> *ctxChain,
+                          std::vector<Object *> args) {
+    Object *result = rt->newObject(String, "");
 
     std::string str;
     std::cin >> str;
-    result.data = std::make_any<std::string>(std::move(str));
+    result->set(std::make_any<std::string>(std::move(str)));
     return result;
 }
 
-nyx::Value nyx_builtin_typeof(nyx::Runtime* rt,
-                              std::deque<nyx::Context*>* ctxChain,
-                              std::vector<nyx::Value> args) {
+Object *nyx_builtin_typeof(Runtime *rt,
+                           std::deque<Context *> *ctxChain,
+                           std::vector<Object *> args) {
     if (args.size() != 1) {
         panic("ArgumentError:function %s expects one argument but got %d",
               __func__, args.size());
     }
-    nyx::Value result(nyx::String);
-    switch (args[0].type) {
-        case nyx::Bool:
-            result.set<std::string>("bool");
-            break;
-        case nyx::Double:
-            result.set<std::string>("double");
-            break;
-        case nyx::Int:
-            result.set<std::string>("int");
-            break;
-        case nyx::String:
-            result.set<std::string>("string");
-            break;
-        case nyx::Null:
-            result.set<std::string>("null");
-            break;
-        case nyx::Char:
-            result.set<std::string>("char");
-            break;
-        case nyx::Array:
-            result.set<std::string>("array");
-            break;
-        case nyx::Closure:
-            result.set<std::string>("closure");
-            break;
-        default:
-            panic("TypeError: arguments with unknown type passed into %s",
-                  __func__);
-    }
+    Object *result = rt->newObject(String, "");
+    result->set<std::string>(type2String(args[0]->getType()));
     return result;
 }
 
-nyx::Value nyx_builtin_length(nyx::Runtime* rt,
-                              std::deque<nyx::Context*>* ctxChain,
-                              std::vector<nyx::Value> args) {
+Object *nyx_builtin_length(Runtime *rt,
+                           std::deque<Context *> *ctxChain,
+                           std::vector<Object *> args) {
     if (args.size() != 1) {
         panic("ArgumentError:function %s expects one argument but got %d",
               __func__, args.size());
     }
 
-    if (args[0].isType<nyx::String>()) {
-        return nyx::Value(
-            nyx::Int, std::make_any<int>(args[0].cast<std::string>().length()));
+    if (args[0]->isType<String>()) {
+        return rt->newObject(
+                Int, std::make_any<int>(args[0]->as<std::string>().length()));
     }
-    if (args[0].isType<nyx::Array>()) {
-        return nyx::Value(
-            nyx::Int,
-            std::make_any<int>(args[0].cast<std::vector<nyx::Value>>().size()));
+    if (args[0]->isType<Array>()) {
+        return rt->newObject(
+                Int,
+                std::make_any<int>(args[0]->as<std::vector<Object *>>().size()));
     }
 
     panic(
-        "TypeError: unexpected type of arguments,function %s requires string "
-        "type or "
-        "array type",
-        __func__);
+            "TypeError: unexpected type of arguments,function %s requires string "
+            "type or "
+            "array type",
+            __func__);
 }
 
-nyx::Value nyx_builtin_to_int(nyx::Runtime* rt,
-                              std::deque<nyx::Context*>* ctxChain,
-                              std::vector<nyx::Value> args) {
+Object *nyx_builtin_to_int(Runtime *rt,
+                           std::deque<Context *> *ctxChain,
+                           std::vector<Object *> args) {
     if (args.size() != 1) {
         panic("ArgumentError:function %s expects one argument but got %d",
               __func__, args.size());
     }
 
-    if (args[0].isType<nyx::Double>()) {
-        return nyx::Value(nyx::Int, std::make_any<int>(args[0].cast<double>()));
+    if (args[0]->isType<Double>()) {
+        return rt->newObject(Int, std::make_any<int>(args[0]->as<double>()));
     }
     panic("TypeError:function %s unexpected type of arguments within to_int()",
           __func__);
 }
 
-nyx::Value nyx_builtin_to_double(nyx::Runtime* rt,
-                                 std::deque<nyx::Context*>* ctxChain,
-                                 std::vector<nyx::Value> args) {
+Object *nyx_builtin_to_double(Runtime *rt,
+                              std::deque<Context *> *ctxChain,
+                              std::vector<Object *> args) {
     if (args.size() != 1) {
         panic("ArgumentError:function %s expects one argument but got %d",
               __func__, args.size());
     }
 
-    if (args[0].isType<nyx::Int>()) {
-        return nyx::Value(nyx::Double,
-                          std::make_any<double>(args[0].cast<int>()));
+    if (args[0]->isType<Int>()) {
+        return rt->newObject(Double,
+                             std::make_any<double>(args[0]->as<int>()));
     }
     panic("TypeError: unexpected type of arguments within to_double()");
 }
 
-nyx::Value nyx_builtin_range(nyx::Runtime* rt,
-                             std::deque<nyx::Context*>* ctxChain,
-                             std::vector<nyx::Value> args) {
+Object *nyx_builtin_range(Runtime *rt,
+                          std::deque<Context *> *ctxChain,
+                          std::vector<Object *> args) {
     if (args.size() > 2) {
         panic(
-            "ArgumentError:function %s expects one or two argument but got %d",
-            __func__, args.size());
+                "ArgumentError:function %s expects one or two argument but got %d",
+                __func__, args.size());
     }
 
-    if (args[0].isType<nyx::Int>()) {
-        std::vector<nyx::Value> vals;
-        if (args[0].cast<int>() <= 0) {
-            return nyx::Value(nyx::Array, vals);
+    if (args[0]->isType<Int>()) {
+        std::vector<Object *> vals;
+        if (args[0]->as<int>() <= 0) {
+            return rt->newObject(Array, vals);
         }
         int start = 0, stop = 0;
         if (args.size() == 1) {
             start = 0;
-            stop = args[0].cast<int>();
+            stop = args[0]->as<int>();
         } else {
-            start = args[0].cast<int>();
-            stop = args[1].cast<int>();
+            start = args[0]->as<int>();
+            stop = args[1]->as<int>();
         }
         for (; start < stop; start++) {
-            vals.push_back(nyx::Value(nyx::Int, start));
+            vals.push_back(rt->newObject(Int, start));
         }
-        return nyx::Value(nyx::Array, vals);
+        return rt->newObject(Array, vals);
     }
     panic("TypeError: unexpected type of arguments within %s", __func__);
 }

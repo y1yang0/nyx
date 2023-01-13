@@ -1,10 +1,32 @@
+// MIT License
+//
+// Copyright (c) 2018-2023 y1yang0 <kelthuzadx@qq.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
 #include <deque>
 #include <memory>
 #include <vector>
 #include "Ast.h"
 #include "Builtin.h"
 #include "Interpreter.h"
-#include "Nyx.hpp"
+#include "Runtime.hpp"
 #include "Utils.hpp"
 
 //===----------------------------------------------------------------------===//
@@ -12,206 +34,165 @@
 // top-level source file. This part defines internal functions of interpreter
 // and leaves actually statement performing later.
 //===----------------------------------------------------------------------===//
-namespace nyx {
 
-void Interpreter::execute(nyx::Runtime* rt) {
+void Interpreter::execute(Runtime *rt) {
     Interpreter::newContext(ctxChain);
-    for (auto stmt : rt->getStatements()) {
+    for (auto stmt: rt->getStatements()) {
         stmt->interpret(rt, ctxChain);
     }
 }
 
-void Interpreter::newContext(std::deque<Context*>* ctxChain) {
-    auto* tempContext = new Context;
+void Interpreter::newContext(std::deque<Context *> *ctxChain) {
+    auto *tempContext = new Context;
     ctxChain->push_back(tempContext);
 }
 
-Value Interpreter::callFunction(Runtime* rt, Function* f,
-                                std::deque<Context*>* previousCtxChain,
-                                std::vector<Expression*> args) {
-    std::deque<Context*>* funcCtxChain = nullptr;
+Object *Interpreter::callFunction(Runtime *rt, Function *f,
+                                  std::deque<Context *> *previousCtxChain,
+                                  std::vector<Expression *> args) {
+    std::deque<Context *> *funcCtxChain = nullptr;
     if (!f->name.empty() || f->outerContext == nullptr) {
-        funcCtxChain = new std::deque<Context*>();
+        funcCtxChain = new std::deque<Context *>();
     } else {
         funcCtxChain = f->outerContext;
     }
     Interpreter::newContext(funcCtxChain);
 
-    auto* funcCtx = funcCtxChain->back();
+    auto *funcCtx = funcCtxChain->back();
     for (int i = 0; i < f->params.size(); i++) {
         std::string paramName = f->params[i];
-        // Evaluate argument values from previouse context chain and push them
+        // Evaluate argument values from previous context chain and push them
         // into newly created context chain
-        Value argValue = args[i]->eval(rt, previousCtxChain);
-        funcCtx->createVariable(f->params[i], argValue);
+        Object *argValue = args[i]->eval(rt, previousCtxChain);
+        if (argValue->isPrimitive()) {
+            // Pass by value
+            funcCtx->createVariable(paramName, argValue->clone());
+        } else {
+            // Pass by reference
+            funcCtx->createVariable(paramName, argValue);
+        }
     }
 
     // Execute user defined function
     ExecResult ret(ExecNormal);
-    for (auto& stmt : f->block->stmts) {
+    for (auto &stmt: f->block->stmts) {
         ret = stmt->interpret(rt, funcCtxChain);
         if (ret.execType == ExecReturn) {
             break;
         }
     }
-
+    // Do not free context memory deliberately since we are not ready yet...
     return ret.retValue;
 }
 
-Value Interpreter::calcUnaryExpr(const Value& lhs, Token opt, int line,
-                                 int column) {
+Object *Interpreter::calcUnaryExpr(Object *lhs, Token opt, int line, int column) {
     switch (opt) {
         case TK_MINUS:
-            switch (lhs.type) {
-                case Int:
-                    return Value(Int, -std::any_cast<int>(lhs.data));
-                case Double:
-                    return Value(Double, -std::any_cast<double>(lhs.data));
-                default:
-                    panic(
-                        "TypeError: invalid operand type for operator "
-                        "-(negative) at line %d, col %d\n",
-                        line, column);
-            }
-            break;
+            return lhs->operator-();
         case TK_LOGNOT:
-            if (lhs.type == Bool) {
-                return Value(Bool, !std::any_cast<bool>(lhs.data));
-            } else {
-                panic(
-                    "TypeError: invalid operand type for operator "
-                    "!(logical not) at line %d, col %d\n",
-                    line, column);
-            }
-            break;
+            return lhs->operator!();
         case TK_BITNOT:
-            if (lhs.type == Int) {
-                return Value(Int, ~std::any_cast<int>(lhs.data));
-            } else {
-                panic(
-                    "TypeError: invalid operand type for operator "
-                    "~(bit not) at line %d, col %d\n",
-                    line, column);
-            }
-            break;
+            return lhs->operator~();
     }
 
     return lhs;
 }
 
-Value Interpreter::calcBinaryExpr(const Value& lhs, Token opt, const Value& rhs,
-                                  int line, int column) {
-    Value result{Null};
-
+Object *Interpreter::calcBinaryExpr(Object *lhs, Token opt, Object *rhs,
+                                    int line, int column) {
     switch (opt) {
         case TK_PLUS:
-            result = (lhs + rhs);
-            break;
+            return lhs->operator+(rhs);
         case TK_MINUS:
-            result = (lhs - rhs);
-            break;
+            return lhs->operator-(rhs);
         case TK_TIMES:
-            result = (lhs * rhs);
-            break;
+            return lhs->operator*(rhs);
         case TK_DIV:
-            result = (lhs / rhs);
-            break;
+            return lhs->operator/(rhs);
         case TK_MOD:
-            result = (lhs % rhs);
-            break;
+            return lhs->operator%(rhs);
         case TK_LOGAND:
-            result = (lhs && rhs);
-            break;
+            return lhs->operator&&(rhs);
         case TK_LOGOR:
-            result = (lhs || rhs);
-            break;
+            return lhs->operator||(rhs);
         case TK_EQ:
-            result = (lhs == rhs);
-            break;
+            return lhs->operator==(rhs);
         case TK_NE:
-            result = (lhs != rhs);
+            return lhs->operator!=(rhs);
             break;
         case TK_GT:
-            result = (lhs > rhs);
-            break;
+            return lhs->operator>(rhs);
         case TK_GE:
-            result = (lhs >= rhs);
-            break;
+            return lhs->operator>=(rhs);
         case TK_LT:
-            result = (lhs < rhs);
-            break;
+            return lhs->operator<(rhs);
         case TK_LE:
-            result = (lhs <= rhs);
-            break;
+            return lhs->operator<=(rhs);
         case TK_BITAND:
-            result = (lhs & rhs);
-            break;
+            return lhs->operator&(rhs);
         case TK_BITOR:
-            result = (lhs | rhs);
-            break;
+            return lhs->operator|(rhs);
     }
-    return result;
+    return nullptr;
 }
 
-Value Interpreter::assignSwitch(Token opt, const Value& lhs, const Value& rhs) {
+Object *Interpreter::assignSwitch(Token opt, Object *lhs, Object *rhs) {
     switch (opt) {
         case TK_ASSIGN:
             return rhs;
         case TK_PLUS_AGN:
-            return lhs + rhs;
+            return lhs->operator+(rhs);
         case TK_MINUS_AGN:
-            return lhs - rhs;
+            return lhs->operator-(rhs);
         case TK_TIMES_AGN:
-            return lhs * rhs;
+            return lhs->operator*(rhs);
         case TK_DIV_AGN:
-            return lhs / rhs;
+            return lhs->operator/(rhs);
         case TK_MOD_AGN:
-            return lhs % rhs;
+            return lhs->operator&(rhs);
         default:
-            panic("InteralError: unexpected branch reached");
+            panic("InternalError: unexpected branch reached");
     }
 }
-
-}  // namespace nyx
 
 //===----------------------------------------------------------------------===//
 // Interpret various statements within given runtime and context chain. Runtime
 // holds all necessary data that widely used in every context. Context chain
 // saves a linked contexts of current execution flow.
 //===----------------------------------------------------------------------===//
-nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
-                                  std::deque<nyx::Context*>* ctxChain) {
-    nyx::ExecResult ret(nyx::ExecNormal);
-    Value cond = this->cond->eval(rt, ctxChain);
-    if (!cond.isType<nyx::Bool>()) {
+ExecResult IfStmt::interpret(Runtime *rt,
+                             std::deque<Context *> *ctxChain) {
+    ExecResult ret(ExecNormal);
+    Object *cond = this->cond->eval(rt, ctxChain);
+    if (!cond->isType<Bool>()) {
         panic(
-            "TypeError: expects bool type in while condition at line %d, "
-            "col %d\n",
-            line, column);
+                "TypeError: expects bool type in while condition at line %d, "
+                "col %d\n",
+                line, column);
     }
-    if (true == cond.cast<bool>()) {
-        nyx::Interpreter::newContext(ctxChain);
-        for (auto& stmt : block->stmts) {
+    if (true == cond->as<bool>()) {
+        Interpreter::newContext(ctxChain);
+        for (auto &stmt: block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
-            if (ret.execType == nyx::ExecReturn) {
+            if (ret.execType == ExecReturn) {
                 break;
-            } else if (ret.execType == nyx::ExecBreak) {
+            } else if (ret.execType == ExecBreak) {
                 break;
-            } else if (ret.execType == nyx::ExecContinue) {
+            } else if (ret.execType == ExecContinue) {
                 break;
             }
         }
 
     } else {
         if (elseBlock != nullptr) {
-            nyx::Interpreter::newContext(ctxChain);
-            for (auto& elseStmt : elseBlock->stmts) {
+            Interpreter::newContext(ctxChain);
+            for (auto &elseStmt: elseBlock->stmts) {
                 ret = elseStmt->interpret(rt, ctxChain);
-                if (ret.execType == nyx::ExecReturn) {
+                if (ret.execType == ExecReturn) {
                     break;
-                } else if (ret.execType == nyx::ExecBreak) {
+                } else if (ret.execType == ExecBreak) {
                     break;
-                } else if (ret.execType == nyx::ExecContinue) {
+                } else if (ret.execType == ExecContinue) {
                     break;
                 }
             }
@@ -220,308 +201,313 @@ nyx::ExecResult IfStmt::interpret(nyx::Runtime* rt,
     return ret;
 }
 
-nyx::ExecResult WhileStmt::interpret(nyx::Runtime* rt,
-                                     std::deque<nyx::Context*>* ctxChain) {
-    nyx::ExecResult ret{nyx::ExecNormal};
+ExecResult WhileStmt::interpret(Runtime *rt,
+                                std::deque<Context *> *ctxChain) {
+    ExecResult ret{ExecNormal};
 
-    nyx::Interpreter::newContext(ctxChain);
-    Value cond = this->cond->eval(rt, ctxChain);
+    Interpreter::newContext(ctxChain);
+    Object *cond = this->cond->eval(rt, ctxChain);
 
-    while (true == cond.cast<bool>()) {
-        for (auto& stmt : block->stmts) {
+    while (true == cond->as<bool>()) {
+        for (auto &stmt: block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
-            if (ret.execType == nyx::ExecReturn) {
+            if (ret.execType == ExecReturn) {
                 goto outside;
-            } else if (ret.execType == nyx::ExecBreak) {
+            } else if (ret.execType == ExecBreak) {
                 // Disable propagating through the whole chain
-                ret.execType = nyx::ExecNormal;
+                ret.execType = ExecNormal;
                 goto outside;
-            } else if (ret.execType == nyx::ExecContinue) {
+            } else if (ret.execType == ExecContinue) {
                 // Disable propagating through the whole chain
-                ret.execType = nyx::ExecNormal;
+                ret.execType = ExecNormal;
                 break;
             }
         }
         cond = this->cond->eval(rt, ctxChain);
-        if (!cond.isType<nyx::Bool>()) {
+        if (!cond->isType<Bool>()) {
             panic(
-                "TypeError: expects bool type in while condition at line %d, "
-                "col %d\n",
-                line, column);
+                    "TypeError: expects bool type in while condition at line %d, "
+                    "col %d\n",
+                    line, column);
         }
     }
 
-outside:
+    outside:
 
     return ret;
 }
 
-nyx::ExecResult ForStmt::interpret(nyx::Runtime* rt,
-                                   std::deque<nyx::Context*>* ctxChain) {
-    nyx::ExecResult ret{nyx::ExecNormal};
+ExecResult ForStmt::interpret(Runtime *rt,
+                              std::deque<Context *> *ctxChain) {
+    ExecResult ret{ExecNormal};
 
-    nyx::Interpreter::newContext(ctxChain);
+    Interpreter::newContext(ctxChain);
     this->init->eval(rt, ctxChain);
-    Value cond = this->cond->eval(rt, ctxChain);
+    Object *cond = this->cond->eval(rt, ctxChain);
 
-    while (true == cond.cast<bool>()) {
-        for (auto& stmt : block->stmts) {
+    while (cond->as<bool>()) {
+        for (auto &stmt: block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
-            if (ret.execType == nyx::ExecReturn) {
+            if (ret.execType == ExecReturn) {
                 goto outside;
-            } else if (ret.execType == nyx::ExecBreak) {
-                ret.execType = nyx::ExecNormal;
+            } else if (ret.execType == ExecBreak) {
+                ret.execType = ExecNormal;
                 goto outside;
-            } else if (ret.execType == nyx::ExecContinue) {
-                ret.execType = nyx::ExecNormal;
+            } else if (ret.execType == ExecContinue) {
+                ret.execType = ExecNormal;
                 break;
             }
         }
 
         this->post->eval(rt, ctxChain);
         cond = this->cond->eval(rt, ctxChain);
-        if (!cond.isType<nyx::Bool>()) {
+        if (!cond->isType<Bool>()) {
             panic(
-                "TypeError: expects bool type in while condition at line %d, "
-                "col %d\n",
-                line, column);
+                    "TypeError: expects bool type in while condition at line %d, "
+                    "col %d\n",
+                    line, column);
         }
     }
 
-outside:
+    outside:
 
     return ret;
 }
 
-nyx::ExecResult ForEachStmt::interpret(nyx::Runtime* rt,
-                                       std::deque<nyx::Context*>* ctxChain) {
-    nyx::ExecResult ret{nyx::ExecNormal};
+ExecResult ForEachStmt::interpret(Runtime *rt,
+                                  std::deque<Context *> *ctxChain) {
+    ExecResult ret{ExecNormal};
 
-    nyx::Interpreter::newContext(ctxChain);
+    Interpreter::newContext(ctxChain);
 
     // Save current context for further iterator updating, we should not expect
     // to call deque.back() to get this since later statement interpretation
     // might push new context into context chain
-    auto& currentCtx = ctxChain->back();
-    currentCtx->createVariable(this->identName, nyx::Value(nyx::Null));
-    nyx::Value list = this->list->eval(rt, ctxChain);
-    if (!list.isType<nyx::Array>()) {
+    auto &currentCtx = ctxChain->back();
+    currentCtx->createVariable(this->identName, rt->newNullObject());
+    Object *listV = this->list->eval(rt, ctxChain);
+    if (!listV->isType<Array>()) {
         panic(
-            "TypeError: expects array type within foreach statement at line "
-            "%d, col %d\n",
-            line, column);
+                "TypeError: expects array type within foreach statement at line "
+                "%d, col %d\n",
+                line, column);
     }
-    std::vector<nyx::Value> listValues = list.cast<std::vector<nyx::Value>>();
-    for (auto val : listValues) {
+    auto listValues = listV->as<std::vector<Object *>>();
+    for (auto val: listValues) {
         currentCtx->getVariable(identName)->value = val;
 
-        for (auto stmt : this->block->stmts) {
+        for (auto stmt: this->block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
-            if (ret.execType == nyx::ExecReturn) {
+            if (ret.execType == ExecReturn) {
                 goto outside;
-            } else if (ret.execType == nyx::ExecBreak) {
-                ret.execType = nyx::ExecNormal;
+            } else if (ret.execType == ExecBreak) {
+                ret.execType = ExecNormal;
                 goto outside;
-            } else if (ret.execType == nyx::ExecContinue) {
-                ret.execType = nyx::ExecNormal;
+            } else if (ret.execType == ExecContinue) {
+                ret.execType = ExecNormal;
                 break;
             }
         }
     }
 
-outside:
+    outside:
 
     return ret;
 }
 
-nyx::ExecResult MatchStmt::interpret(nyx::Runtime* rt,
-                                     std::deque<nyx::Context*>* ctxChain) {
-    nyx::ExecResult ret{nyx::ExecNormal};
+ExecResult MatchStmt::interpret(Runtime *rt,
+                                std::deque<Context *> *ctxChain) {
+    ExecResult ret{ExecNormal};
 
-    nyx::Value cond;
+    Object *cond;
 
     if (this->cond != nullptr) {
         cond = this->cond->eval(rt, ctxChain);
     } else {
-        cond = nyx::Value{nyx::Bool, true};
+        cond = rt->newObject(Bool, true);
     }
 
-    for (const auto& [theCase, theBranch, isAny] : this->matches) {
+    for (const auto&[theCase, theBranch, isAny]: this->matches) {
         // We must first check if it's an any(_) match because the later one
         // will actually evaluate the value of case expression, that is, the
-        // identifier _ will be evaluate and might cause undefined variable
+        // identifier _ will be evaluated and might cause undefined variable
         // error.
-        if (isAny || equalValue(cond, theCase->eval(rt, ctxChain))) {
-            nyx::Interpreter::newContext(ctxChain);
-            for (auto stmt : theBranch->stmts) {
+        if (isAny || cond->equalsDeep(theCase->eval(rt, ctxChain))) {
+            Interpreter::newContext(ctxChain);
+            for (auto stmt: theBranch->stmts) {
                 ret = stmt->interpret(rt, ctxChain);
             }
 
-            // Stop mathcing and clean up context, it will propagate execution
+            // Stop matching and clean up context, it will propagate execution
             // type to upper statement
             goto finish;
         }
     }
 
-finish:
+    finish:
     return ret;
 }
 
-nyx::ExecResult SimpleStmt::interpret(nyx::Runtime* rt,
-                                      std::deque<nyx::Context*>* ctxChain) {
+ExecResult SimpleStmt::interpret(Runtime *rt,
+                                 std::deque<Context *> *ctxChain) {
     this->expr->eval(rt, ctxChain);
-    return nyx::ExecResult(nyx::ExecNormal);
+    return ExecResult(ExecNormal);
 }
 
-nyx::ExecResult ReturnStmt::interpret(nyx::Runtime* rt,
-                                      std::deque<nyx::Context*>* ctxChain) {
-    Value retVal = this->ret->eval(rt, ctxChain);
-    return nyx::ExecResult(nyx::ExecReturn, retVal);
+ExecResult ReturnStmt::interpret(Runtime *rt,
+                                 std::deque<Context *> *ctxChain) {
+    if (this->ret != nullptr) {
+        Object *retVal = this->ret->eval(rt, ctxChain);
+        return ExecResult(ExecReturn, retVal);
+    } else {
+        return ExecResult(ExecReturn, nullptr);
+    }
 }
 
-nyx::ExecResult BreakStmt::interpret(nyx::Runtime* rt,
-                                     std::deque<nyx::Context*>* ctxChain) {
-    return nyx::ExecResult(nyx::ExecBreak);
+ExecResult BreakStmt::interpret(Runtime *rt,
+                                std::deque<Context *> *ctxChain) {
+    return ExecResult(ExecBreak);
 }
 
-nyx::ExecResult ContinueStmt::interpret(nyx::Runtime* rt,
-                                        std::deque<nyx::Context*>* ctxChain) {
-    return nyx::ExecResult(nyx::ExecContinue);
+ExecResult ContinueStmt::interpret(Runtime *rt,
+                                   std::deque<Context *> *ctxChain) {
+    return ExecResult(ExecContinue);
 }
+
 //===----------------------------------------------------------------------===//
-// Evaulate all expressions and return a nyx::Value structure, this object
+// Evaulate all expressions and return a Object structure, this object
 // contains evaulated data and corresponding data type, it represents sorts
 // of(also all) data type in nyx and can get value by interpreter directly.
 //===----------------------------------------------------------------------===//
-nyx::Value NullExpr::eval(nyx::Runtime* rt,
-                          std::deque<nyx::Context*>* ctxChain) {
-    return nyx::Value(nyx::Null);
+Object *NullExpr::eval(Runtime *rt,
+                       std::deque<Context *> *ctxChain) {
+    return rt->newNullObject();
 }
 
-nyx::Value BoolExpr::eval(nyx::Runtime* rt,
-                          std::deque<nyx::Context*>* ctxChain) {
-    return nyx::Value(nyx::Bool, this->literal);
+Object *BoolExpr::eval(Runtime *rt,
+                       std::deque<Context *> *ctxChain) {
+    return rt->newObject(Bool, this->literal);
 }
 
-nyx::Value CharExpr::eval(nyx::Runtime* rt,
-                          std::deque<nyx::Context*>* ctxChain) {
-    return nyx::Value(nyx::Char, this->literal);
+Object *CharExpr::eval(Runtime *rt,
+                       std::deque<Context *> *ctxChain) {
+    return rt->newObject(Char, this->literal);
 }
 
-nyx::Value IntExpr::eval(nyx::Runtime* rt,
-                         std::deque<nyx::Context*>* ctxChain) {
-    return nyx::Value(nyx::Int, this->literal);
+Object *IntExpr::eval(Runtime *rt,
+                      std::deque<Context *> *ctxChain) {
+    return rt->newObject(Int, this->literal);
 }
 
-nyx::Value DoubleExpr::eval(nyx::Runtime* rt,
-                            std::deque<nyx::Context*>* ctxChain) {
-    return nyx::Value(nyx::Double, this->literal);
+Object *DoubleExpr::eval(Runtime *rt,
+                         std::deque<Context *> *ctxChain) {
+    return rt->newObject(Double, this->literal);
 }
 
-nyx::Value StringExpr::eval(nyx::Runtime* rt,
-                            std::deque<nyx::Context*>* ctxChain) {
-    return nyx::Value(nyx::String, this->literal);
+Object *StringExpr::eval(Runtime *rt,
+                         std::deque<Context *> *ctxChain) {
+    return rt->newObject(String, this->literal);
 }
 
-nyx::Value ArrayExpr::eval(nyx::Runtime* rt,
-                           std::deque<nyx::Context*>* ctxChain) {
-    std::vector<nyx::Value> elements;
-    for (auto& e : this->literal) {
+Object *ArrayExpr::eval(Runtime *rt,
+                        std::deque<Context *> *ctxChain) {
+    std::vector<Object *> elements;
+    for (auto &e: this->literal) {
         elements.push_back(e->eval(rt, ctxChain));
     }
 
-    return nyx::Value(nyx::Array, elements);
+    return rt->newObject(Array, elements);
 }
 
-nyx::Value ClosureExpr::eval(nyx::Runtime* rt,
-                             std::deque<nyx::Context*>* ctxChain) {
-    auto* f = new nyx::Function;
+Object *ClosureExpr::eval(Runtime *rt,
+                          std::deque<Context *> *ctxChain) {
+    auto *f = new Function;
     f->params = std::move(this->params);
     f->block = this->block;
     f->outerContext = ctxChain;  // Save outer context for closure
-    return nyx::Value(nyx::Closure, *f);
+    return rt->newObject(Closure, *f);
 }
 
-nyx::Value IdentExpr::eval(nyx::Runtime* rt,
-                           std::deque<nyx::Context*>* ctxChain) {
+Object *IdentExpr::eval(Runtime *rt,
+                        std::deque<Context *> *ctxChain) {
     for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
-        auto* ctx = *p;
-        if (auto* var = ctx->getVariable(this->identName); var != nullptr) {
+        auto *ctx = *p;
+        if (auto *var = ctx->getVariable(this->identName); var != nullptr) {
             return var->value;
         }
     }
     panic(
-        "RuntimeError: use of undefined variable \"%s\" at line %d, col "
-        "%d\n",
-        identName.c_str(), this->line, this->column);
+            "RuntimeError: use of undefined variable \"%s\" at line %d, col "
+            "%d\n",
+            identName.c_str(), this->line, this->column);
 }
 
-nyx::Value IndexExpr::eval(nyx::Runtime* rt,
-                           std::deque<nyx::Context*>* ctxChain) {
+Object *IndexExpr::eval(Runtime *rt,
+                        std::deque<Context *> *ctxChain) {
     for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
-        auto* ctx = *p;
-        if (auto* var = ctx->getVariable(this->identName); var != nullptr) {
+        auto *ctx = *p;
+        if (auto *var = ctx->getVariable(this->identName); var != nullptr) {
             auto idx = this->index->eval(rt, ctxChain);
-            if (!idx.isType<nyx::Int>()) {
+            if (!idx->isType<Int>()) {
                 panic(
-                    "TypeError: expects int type within indexing "
-                    "expression at "
-                    "line %d, col %d\n",
-                    line, column);
+                        "TypeError: expects int type within indexing "
+                        "expression at "
+                        "line %d, col %d\n",
+                        line, column);
             }
-            if (idx.cast<int>() >=
-                var->value.cast<std::vector<nyx::Value>>().size()) {
+            if (idx->as<int>() >=
+                var->value->as<std::vector<Object *>>().size()) {
                 panic(
-                    "IndexError: index %d out of range at line %d, col "
-                    "%d\n",
-                    idx.cast<int>(), line, column);
+                        "IndexError: index %d out of range at line %d, col "
+                        "%d\n",
+                        idx->as<int>(), line, column);
             }
-            return var->value.cast<std::vector<nyx::Value>>()[idx.cast<int>()];
+            return var->value->as<std::vector<Object *>>()[idx->as<int>()];
         }
     }
     panic(
-        "RuntimeError: use of undefined variable \"%s\" at line %d, col "
-        "%d\n",
-        identName.c_str(), this->line, this->column);
+            "RuntimeError: use of undefined variable \"%s\" at line %d, col "
+            "%d\n",
+            identName.c_str(), this->line, this->column);
 }
 
-nyx::Value AssignExpr::eval(nyx::Runtime* rt,
-                            std::deque<nyx::Context*>* ctxChain) {
-    nyx::Value rhs = this->rhs->eval(rt, ctxChain);
+Object *AssignExpr::eval(Runtime *rt,
+                         std::deque<Context *> *ctxChain) {
+    Object *rhs = this->rhs->eval(rt, ctxChain);
     if (typeid(*lhs) == typeid(IdentExpr)) {
-        std::string identName = dynamic_cast<IdentExpr*>(lhs)->identName;
+        std::string identName = dynamic_cast<IdentExpr *>(lhs)->identName;
 
         for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
-            if (auto* var = (*p)->getVariable(identName); var != nullptr) {
+            if (auto *var = (*p)->getVariable(identName); var != nullptr) {
                 var->value =
-                    nyx::Interpreter::assignSwitch(this->opt, var->value, rhs);
+                        Interpreter::assignSwitch(this->opt, var->value, rhs);
                 return rhs;
             }
         }
 
         (ctxChain->back())->createVariable(identName, rhs);
     } else if (typeid(*lhs) == typeid(IndexExpr)) {
-        std::string identName = dynamic_cast<IndexExpr*>(lhs)->identName;
-        nyx::Value index =
-            dynamic_cast<IndexExpr*>(lhs)->index->eval(rt, ctxChain);
-        if (!index.isType<nyx::Int>()) {
+        std::string identName = dynamic_cast<IndexExpr *>(lhs)->identName;
+        Object *index =
+                dynamic_cast<IndexExpr *>(lhs)->index->eval(rt, ctxChain);
+        if (!index->isType<Int>()) {
             panic(
-                "TypeError: expects int type when applying indexing "
-                "to variable %s at line %d, col %d\n",
-                identName.c_str(), line, column);
+                    "TypeError: expects int type when applying indexing "
+                    "to variable %s at line %d, col %d\n",
+                    identName.c_str(), line, column);
         }
         for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
-            if (auto* var = (*p)->getVariable(identName); var != nullptr) {
-                if (!var->value.isType<nyx::Array>()) {
+            if (auto *var = (*p)->getVariable(identName); var != nullptr) {
+                if (!var->value->isType<Array>()) {
                     panic(
-                        "TypeError: expects array type of variable %s "
-                        "at line %d, col %d\n",
-                        identName.c_str(), line, column);
+                            "TypeError: expects array type of variable %s "
+                            "at line %d, col %d\n",
+                            identName.c_str(), line, column);
                 }
-                auto&& temp = var->value.cast<std::vector<nyx::Value>>();
-                temp[index.cast<int>()] = nyx::Interpreter::assignSwitch(
-                    this->opt, temp[index.cast<int>()], rhs);
-                var->value.data = std::move(temp);
+                auto &&temp = var->value->as<std::vector<Object *>>();
+                temp[index->as<int>()] = Interpreter::assignSwitch(
+                        this->opt, temp[index->as<int>()], rhs);
+                var->value->set(std::move(temp));
                 return rhs;
             }
         }
@@ -534,82 +520,83 @@ nyx::Value AssignExpr::eval(nyx::Runtime* rt,
     return rhs;
 }
 
-nyx::Value FunCallExpr::eval(nyx::Runtime* rt,
-                             std::deque<nyx::Context*>* ctxChain) {
+Object *FunCallExpr::eval(Runtime *rt,
+                          std::deque<Context *> *ctxChain) {
     // Find it as the builtin-in function firstly
-    if (auto* builtinFunc = rt->getBuiltinFunction(this->funcName);
-        builtinFunc != nullptr) {
-        std::vector<Value> arguments;
-        for (auto e : this->args) {
+    if (auto *builtinFunc = rt->getBuiltinFunction(this->funcName);
+            builtinFunc != nullptr) {
+        std::vector<Object *> arguments;
+        for (auto e: this->args) {
             arguments.push_back(e->eval(rt, ctxChain));
         }
         return builtinFunc(rt, ctxChain, arguments);
     }
 
     // Find it as a user defined function
-    if (auto* normalFunc = rt->getFunction(this->funcName);
-        normalFunc != nullptr) {
+    if (auto *normalFunc = rt->getFunction(this->funcName);
+            normalFunc != nullptr) {
         if (normalFunc->params.size() != this->args.size()) {
             panic(
-                "ArgumentError: expects %d arguments but got %d at line %d, "
-                "col %d\n",
-                normalFunc->params.size(), this->args.size(), line, column);
+                    "ArgumentError: expects %d arguments but got %d at line %d, "
+                    "col %d\n",
+                    normalFunc->params.size(), this->args.size(), line, column);
         }
-        return nyx::Interpreter::callFunction(rt, normalFunc, ctxChain,
-                                              this->args);
+        return Interpreter::callFunction(rt, normalFunc, ctxChain,
+                                         this->args);
     }
 
     // Find it as a closure function
     for (auto ctx = ctxChain->crbegin(); ctx != ctxChain->crend(); ++ctx) {
-        if (auto* closure = (*ctx)->getVariable(this->funcName);
-            closure != nullptr && closure->value.isType<nyx::Closure>()) {
-            auto closureFunc = closure->value.cast<nyx::Function>();
+        if (auto *closure = (*ctx)->getVariable(this->funcName);
+                closure != nullptr && closure->value->isType<Closure>()) {
+            auto closureFunc = closure->value->as<Function>();
             if (closureFunc.params.size() != this->args.size()) {
                 panic(
-                    "ArgumentError: expects %d arguments but got %d at line "
-                    "%d, col %d\n",
-                    closureFunc.params.size(), this->args.size(), line, column);
+                        "ArgumentError: expects %d arguments but got %d at line "
+                        "%d, col %d\n",
+                        closureFunc.params.size(), this->args.size(), line, column);
             }
-            return nyx::Interpreter::callFunction(rt, &closureFunc, ctxChain,
-                                                  this->args);
+            return Interpreter::callFunction(rt, &closureFunc, ctxChain,
+                                             this->args);
         }
     }
 
     // Panicking since this function was not found
     panic(
-        "RuntimeError: can not find function definition of %s at line %d, col "
-        "%d",
-        this->funcName.c_str(), line, column);
+            "RuntimeError: can not find function definition of %s at line %d, col "
+            "%d",
+            this->funcName.c_str(), line, column);
 }
 
-nyx::Value BinaryExpr::eval(nyx::Runtime* rt,
-                            std::deque<nyx::Context*>* ctxChain) {
-    nyx::Value lhs =
-        this->lhs ? this->lhs->eval(rt, ctxChain) : nyx::Value(nyx::Null);
-    nyx::Value rhs =
-        this->rhs ? this->rhs->eval(rt, ctxChain) : nyx::Value(nyx::Null);
+Object *BinaryExpr::eval(Runtime *rt,
+                         std::deque<Context *> *ctxChain) {
+    Object *lhs =
+            this->lhs ? this->lhs->eval(rt, ctxChain) : rt->newNullObject();
+    Object *rhs =
+            this->rhs ? this->rhs->eval(rt, ctxChain) : rt->newNullObject();
     Token opt = this->opt;
 
-    if (!lhs.isType<nyx::Null>() && rhs.isType<nyx::Null>()) {
-        return nyx::Interpreter::calcUnaryExpr(lhs, opt, line, column);
+    if (!lhs->isType<Null>() && rhs->isType<Null>()) {
+        return Interpreter::calcUnaryExpr(lhs, opt, line, column);
     }
 
-    return nyx::Interpreter::calcBinaryExpr(lhs, opt, rhs, line, column);
-}
-nyx::Value Expression::eval(nyx::Runtime* rt,
-                            std::deque<nyx::Context*>* ctxChain) {
-    panic(
-        "RuntimeError: can not evaluate abstract expression at line %d, "
-        "col "
-        "%d\n",
-        line, column);
+    return Interpreter::calcBinaryExpr(lhs, opt, rhs, line, column);
 }
 
-nyx::ExecResult Statement::interpret(nyx::Runtime* rt,
-                                     std::deque<nyx::Context*>* ctxChain) {
+Object *Expression::eval(Runtime *rt,
+                         std::deque<Context *> *ctxChain) {
     panic(
-        "RuntimeError: can not interpret abstract statement at line %d, "
-        "col"
-        "%d\n",
-        line, column);
+            "RuntimeError: can not evaluate abstract expression at line %d, "
+            "col "
+            "%d\n",
+            line, column);
+}
+
+ExecResult Statement::interpret(Runtime *rt,
+                                std::deque<Context *> *ctxChain) {
+    panic(
+            "RuntimeError: can not interpret abstract statement at line %d, "
+            "col"
+            "%d\n",
+            line, column);
 }

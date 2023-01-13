@@ -1,7 +1,31 @@
+// MIT License
+//
+// Copyright (c) 2018-2023 y1yang0 <kelthuzadx@qq.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+
 #pragma once
+
 #include <deque>
 #include <map>
-#include "Nyx.hpp"
+#include "Runtime.hpp"
 
 //===----------------------------------------------------------------------===//
 // Token definitions of nyx
@@ -66,11 +90,7 @@ enum Token {
     KW_MATCH,     // match
 };
 
-using nyx::Block;
-using nyx::Context;
-using nyx::ExecResult;
-using nyx::Runtime;
-using nyx::Value;
+
 struct Expression;
 struct Statement;
 
@@ -79,6 +99,7 @@ struct Statement;
 //===----------------------------------------------------------------------===//
 struct AstNode {
     explicit AstNode(int line, int column) : line(line), column(column) {}
+
     virtual ~AstNode() = default;
 
     int line = -1;
@@ -90,7 +111,7 @@ struct Expression : public AstNode {
 
     virtual ~Expression() = default;
 
-    virtual Value eval(Runtime* rt, std::deque<Context*>* ctxChain);
+    virtual Object *eval(Runtime *rt, std::deque<Context *> *ctxChain);
 };
 
 struct BoolExpr : public Expression {
@@ -98,7 +119,7 @@ struct BoolExpr : public Expression {
 
     bool literal;
 
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct CharExpr : public Expression {
@@ -106,13 +127,13 @@ struct CharExpr : public Expression {
 
     char literal;
 
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct NullExpr : public Expression {
     using Expression::Expression;
 
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct IntExpr : public Expression {
@@ -120,7 +141,7 @@ struct IntExpr : public Expression {
 
     int literal;
 
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct DoubleExpr : public Expression {
@@ -128,7 +149,7 @@ struct DoubleExpr : public Expression {
 
     double literal;
 
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct StringExpr : public Expression {
@@ -136,67 +157,70 @@ struct StringExpr : public Expression {
 
     std::string literal;
 
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct ArrayExpr : public Expression {
     using Expression::Expression;
 
-    std::vector<Expression*> literal;
+    std::vector<Expression *> literal;
 
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct IdentExpr : public Expression {
     using Expression::Expression;
 
     std::string identName;
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct IndexExpr : public Expression {
     using Expression::Expression;
 
     std::string identName;
-    Expression* index{};
+    Expression *index{};
 
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct BinaryExpr : public Expression {
     using Expression::Expression;
 
-    Expression* lhs{};
+    Expression *lhs{};
     Token opt{};
-    Expression* rhs{};
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    Expression *rhs{};
+
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct FunCallExpr : public Expression {
     using Expression::Expression;
 
     std::string funcName;
-    std::vector<Expression*> args;
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    std::vector<Expression *> args;
+
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct AssignExpr : public Expression {
     using Expression::Expression;
 
-    Expression* lhs{};
+    Expression *lhs{};
     Token opt;
-    Expression* rhs{};
+    Expression *rhs{};
 
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct ClosureExpr : public Expression {
     using Expression::Expression;
 
     std::vector<std::string> params;
-    Block* block{};
+    Block *block{};
 
-    Value eval(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    Object *eval(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 //===----------------------------------------------------------------------===//
@@ -206,82 +230,83 @@ struct Statement : public AstNode {
     using AstNode::AstNode;
 
     virtual ~Statement() = default;
-    virtual ExecResult interpret(Runtime* rt, std::deque<Context*>* ctxChain);
+
+    virtual ExecResult interpret(Runtime *rt, std::deque<Context *> *ctxChain);
 };
 
 struct BreakStmt : public Statement {
     using Statement::Statement;
 
-    ExecResult interpret(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    ExecResult interpret(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct ContinueStmt : public Statement {
     using Statement::Statement;
 
-    ExecResult interpret(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    ExecResult interpret(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct SimpleStmt : public Statement {
     using Statement::Statement;
 
-    Expression* expr{};
+    Expression *expr{};
 
-    ExecResult interpret(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    ExecResult interpret(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct ReturnStmt : public Statement {
     using Statement::Statement;
 
-    Expression* ret{};
+    Expression *ret{};
 
-    ExecResult interpret(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    ExecResult interpret(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct IfStmt : public Statement {
     using Statement::Statement;
 
-    Expression* cond{};
-    Block* block{};
-    Block* elseBlock{};
+    Expression *cond{};
+    Block *block{};
+    Block *elseBlock{};
 
-    ExecResult interpret(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    ExecResult interpret(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct WhileStmt : public Statement {
     using Statement::Statement;
 
-    Expression* cond{};
-    Block* block{};
+    Expression *cond{};
+    Block *block{};
 
-    ExecResult interpret(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    ExecResult interpret(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct ForStmt : public Statement {
     using Statement::Statement;
 
-    Expression* init{};
-    Expression* cond{};
-    Expression* post{};
-    Block* block{};
+    Expression *init{};
+    Expression *cond{};
+    Expression *post{};
+    Block *block{};
 
-    ExecResult interpret(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    ExecResult interpret(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct ForEachStmt : public Statement {
     using Statement::Statement;
 
     std::string identName;
-    Expression* list{};
-    Block* block{};
+    Expression *list{};
+    Block *block{};
 
-    ExecResult interpret(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    ExecResult interpret(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };
 
 struct MatchStmt : public Statement {
     using Statement::Statement;
 
-    Expression* cond{};
-    std::vector<std::tuple<Expression*, Block*, bool>> matches;
+    Expression *cond{};
+    std::vector<std::tuple<Expression *, Block *, bool>> matches;
 
-    ExecResult interpret(Runtime* rt, std::deque<Context*>* ctxChain) override;
+    ExecResult interpret(Runtime *rt, std::deque<Context *> *ctxChain) override;
 };

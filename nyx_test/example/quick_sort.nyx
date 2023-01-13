@@ -1,0 +1,33 @@
+ func quickSort(arr, left, right){
+        if(left>right) {
+            return
+        }
+        i = left
+        j = right
+        pivot = arr[left]
+        while(i<j){
+            while(i<j && arr[j]>pivot){
+                j-=1
+            }
+            if(i<j){
+                arr[i] = arr[j]
+                i+=1
+            }
+            while(i<j && arr[i]<pivot){
+                 i+=1
+            }
+            if(i<j){
+                arr[j] = arr[i]
+                j-=1
+            }
+
+        }
+        arr[i] = pivot
+        quickSort(arr,left,i-1)
+        quickSort(arr,i+1,right)
+    }
+
+arr= [4, -5, 9,15,-6,-2,0]
+print(arr)
+quickSort(arr,0,length(arr)-1)
+println(" => " + arr)

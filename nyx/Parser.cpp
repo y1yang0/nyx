@@ -1,10 +1,32 @@
+// MIT License
+//
+// Copyright (c) 2018-2023 y1yang0 <kelthuzadx@qq.com>
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+//
+
 #include <typeinfo>
-#include "Nyx.hpp"
+#include "Runtime.hpp"
 #include "Parser.h"
 #include "Utils.hpp"
 
-namespace nyx {
-void Parser::printLex(const std::string& fileName) {
+void Parser::printLex(const std::string &fileName) {
     Parser p(fileName);
     std::tuple<Token, std::string> tk;
     do {
@@ -13,19 +35,19 @@ void Parser::printLex(const std::string& fileName) {
     } while (std::get<0>(tk) != TK_EOF);
 }
 
-Parser::Parser(const std::string& fileName)
-    : keywords({{"if", KW_IF},
-                {"else", KW_ELSE},
-                {"while", KW_WHILE},
-                {"null", KW_NULL},
-                {"true", KW_TRUE},
-                {"false", KW_FALSE},
-                {"for", KW_FOR},
-                {"func", KW_FUNC},
-                {"return", KW_RETURN},
-                {"break", KW_BREAK},
-                {"continue", KW_CONTINUE},
-                {"match", KW_MATCH}}) {
+Parser::Parser(const std::string &fileName)
+        : keywords({{"if",       KW_IF},
+                    {"else",     KW_ELSE},
+                    {"while",    KW_WHILE},
+                    {"null",     KW_NULL},
+                    {"true",     KW_TRUE},
+                    {"false",    KW_FALSE},
+                    {"for",      KW_FOR},
+                    {"func",     KW_FUNC},
+                    {"return",   KW_RETURN},
+                    {"break",    KW_BREAK},
+                    {"continue", KW_CONTINUE},
+                    {"match",    KW_MATCH}}) {
     fs.open(fileName);
     if (!fs.is_open()) {
         panic("ParserError: can not open source file");
@@ -37,7 +59,7 @@ Parser::~Parser() { fs.close(); }
 //===----------------------------------------------------------------------===//
 // Parse expressions
 //===----------------------------------------------------------------------===//
-Expression* Parser::parsePrimaryExpr() {
+Expression *Parser::parsePrimaryExpr() {
     switch (getCurrentToken()) {
         case TK_IDENT: {
             auto ident = getCurrentLexeme();
@@ -45,7 +67,7 @@ Expression* Parser::parsePrimaryExpr() {
             switch (getCurrentToken()) {
                 case TK_LPAREN: {
                     currentToken = next();
-                    auto* val = new FunCallExpr(line, column);
+                    auto *val = new FunCallExpr(line, column);
                     val->funcName = ident;
                     while (getCurrentToken() != TK_RPAREN) {
                         val->args.push_back(parseExpression());
@@ -59,7 +81,7 @@ Expression* Parser::parsePrimaryExpr() {
                 }
                 case TK_LBRACKET: {
                     currentToken = next();
-                    auto* val = new IndexExpr(line, column);
+                    auto *val = new IndexExpr(line, column);
                     val->identName = ident;
                     val->index = parseExpression();
                     assert(val->index != nullptr);
@@ -68,7 +90,7 @@ Expression* Parser::parsePrimaryExpr() {
                     return val;
                 }
                 default: {
-                    auto* node = new IdentExpr(line, column);
+                    auto *node = new IdentExpr(line, column);
                     node->identName = ident;
                     return node;
                 }
@@ -76,7 +98,7 @@ Expression* Parser::parsePrimaryExpr() {
         }
         case TK_LBRACKET: {
             currentToken = next();
-            auto* ret = new ArrayExpr(line, column);
+            auto *ret = new ArrayExpr(line, column);
             if (getCurrentToken() != TK_RBRACKET) {
                 while (getCurrentToken() != TK_RBRACKET) {
                     ret->literal.push_back(parseExpression());
@@ -96,7 +118,7 @@ Expression* Parser::parsePrimaryExpr() {
         case KW_FUNC: {
             currentToken = next();
             assert(getCurrentToken() == TK_LPAREN);
-            auto* ret = new ClosureExpr(line, column);
+            auto *ret = new ClosureExpr(line, column);
             ret->params = parseParameterList();
             if (getCurrentToken() == TK_LBRACE) {
                 ret->block = parseBlock();
@@ -112,28 +134,28 @@ Expression* Parser::parsePrimaryExpr() {
         case LIT_INT: {
             auto val = atoi(getCurrentLexeme().c_str());
             currentToken = next();
-            auto* ret = new IntExpr(line, column);
+            auto *ret = new IntExpr(line, column);
             ret->literal = val;
             return ret;
         }
         case LIT_DOUBLE: {
             auto val = atof(getCurrentLexeme().c_str());
             currentToken = next();
-            auto* ret = new DoubleExpr(line, column);
+            auto *ret = new DoubleExpr(line, column);
             ret->literal = val;
             return ret;
         }
         case LIT_STR: {
             auto val = getCurrentLexeme();
             currentToken = next();
-            auto* ret = new StringExpr(line, column);
+            auto *ret = new StringExpr(line, column);
             ret->literal = val;
             return ret;
         }
         case LIT_CHAR: {
             auto val = getCurrentLexeme();
             currentToken = next();
-            auto* ret = new CharExpr(line, column);
+            auto *ret = new CharExpr(line, column);
             ret->literal = val[0];
             return ret;
         }
@@ -141,7 +163,7 @@ Expression* Parser::parsePrimaryExpr() {
         case KW_FALSE: {
             auto val = (KW_TRUE == getCurrentToken());
             currentToken = next();
-            auto* ret = new BoolExpr(line, column);
+            auto *ret = new BoolExpr(line, column);
             ret->literal = val;
             return ret;
         }
@@ -160,7 +182,7 @@ Expression* Parser::parsePrimaryExpr() {
     return nullptr;
 }
 
-Expression* Parser::parseUnaryExpr() {
+Expression *Parser::parseUnaryExpr() {
     if (anyone(getCurrentToken(), TK_MINUS, TK_LOGNOT, TK_BITNOT)) {
         auto val = new BinaryExpr(line, column);
         val->opt = getCurrentToken();
@@ -175,8 +197,8 @@ Expression* Parser::parseUnaryExpr() {
     return nullptr;
 }
 
-Expression* Parser::parseExpression(short oldPrecedence) {
-    auto* p = parseUnaryExpr();
+Expression *Parser::parseExpression(short oldPrecedence) {
+    auto *p = parseUnaryExpr();
 
     if (anyone(getCurrentToken(), TK_ASSIGN, TK_PLUS_AGN, TK_MINUS_AGN,
                TK_TIMES_AGN, TK_DIV_AGN, TK_MOD_AGN)) {
@@ -184,7 +206,7 @@ Expression* Parser::parseExpression(short oldPrecedence) {
             typeid(*p) != typeid(IndexExpr)) {
             panic("SyntaxError: can not assign to %s", typeid(*p).name());
         }
-        auto* assignExpr = new AssignExpr(line, column);
+        auto *assignExpr = new AssignExpr(line, column);
         assignExpr->opt = getCurrentToken();
         assignExpr->lhs = p;
         currentToken = next();
@@ -208,11 +230,12 @@ Expression* Parser::parseExpression(short oldPrecedence) {
     }
     return p;
 }
+
 //===----------------------------------------------------------------------===//
 // Parse statements and save results to runtime
 //===----------------------------------------------------------------------===//
-SimpleStmt* Parser::parseExpressionStmt() {
-    SimpleStmt* node = nullptr;
+SimpleStmt *Parser::parseExpressionStmt() {
+    SimpleStmt *node = nullptr;
     if (auto p = parseExpression(); p != nullptr) {
         node = new SimpleStmt(line, column);
         node->expr = p;
@@ -220,8 +243,8 @@ SimpleStmt* Parser::parseExpressionStmt() {
     return node;
 }
 
-IfStmt* Parser::parseIfStmt() {
-    auto* node = new IfStmt(line, column);
+IfStmt *Parser::parseIfStmt() {
+    auto *node = new IfStmt(line, column);
     currentToken = next();
     node->cond = parseExpression();
     assert(getCurrentToken() == TK_RPAREN);
@@ -234,8 +257,8 @@ IfStmt* Parser::parseIfStmt() {
     return node;
 }
 
-WhileStmt* Parser::parseWhileStmt() {
-    auto* node = new WhileStmt(line, column);
+WhileStmt *Parser::parseWhileStmt() {
+    auto *node = new WhileStmt(line, column);
     currentToken = next();
     node->cond = parseExpression();
     assert(getCurrentToken() == TK_RPAREN);
@@ -244,12 +267,12 @@ WhileStmt* Parser::parseWhileStmt() {
     return node;
 }
 
-Statement* Parser::parseForStmt() {
+Statement *Parser::parseForStmt() {
     currentToken = next();
     auto init = parseExpression();
     if (typeid(*init) == typeid(IdentExpr) && getCurrentToken() == TK_COLON) {
-        auto* node = new ForEachStmt(line, column);
-        node->identName = dynamic_cast<IdentExpr*>(init)->identName;
+        auto *node = new ForEachStmt(line, column);
+        node->identName = dynamic_cast<IdentExpr *>(init)->identName;
         currentToken = next();
         node->list = parseExpression();
         assert(getCurrentToken() == TK_RPAREN);
@@ -257,7 +280,7 @@ Statement* Parser::parseForStmt() {
         node->block = parseBlock();
         return node;
     } else {
-        auto* node = new ForStmt(line, column);
+        auto *node = new ForStmt(line, column);
         node->init = init;
         assert(getCurrentToken() == TK_SEMICOLON);
         currentToken = next();
@@ -272,8 +295,8 @@ Statement* Parser::parseForStmt() {
     }
 }
 
-MatchStmt* Parser::parseMatchStmt() {
-    auto* node = new MatchStmt(line, column);
+MatchStmt *Parser::parseMatchStmt() {
+    auto *node = new MatchStmt(line, column);
 
     // If we met "{" after "match" keyword, we will skip consuming condition
     // expression and the match statement degenerated to normaml multi
@@ -289,8 +312,8 @@ MatchStmt* Parser::parseMatchStmt() {
     currentToken = next();
 
     if (getCurrentToken() != TK_RBRACE) {
-        Expression* theCase = nullptr;
-        Block* block = nullptr;
+        Expression *theCase = nullptr;
+        Block *block = nullptr;
         do {
             theCase = parseExpression();
             assert(getCurrentToken() == TK_MATCH);
@@ -303,7 +326,7 @@ MatchStmt* Parser::parseMatchStmt() {
             }
 
             if (typeid(*theCase) == typeid(IdentExpr) &&
-                dynamic_cast<IdentExpr*>(theCase)->identName == "_") {
+                dynamic_cast<IdentExpr *>(theCase)->identName == "_") {
                 node->matches.emplace_back(theCase, block, true);
             } else {
                 node->matches.emplace_back(theCase, block, false);
@@ -314,14 +337,14 @@ MatchStmt* Parser::parseMatchStmt() {
     return node;
 }
 
-ReturnStmt* Parser::parseReturnStmt() {
-    auto* node = new ReturnStmt(line, column);
+ReturnStmt *Parser::parseReturnStmt() {
+    auto *node = new ReturnStmt(line, column);
     node->ret = parseExpression();
     return node;
 }
 
-Statement* Parser::parseStatement() {
-    Statement* node;
+Statement *Parser::parseStatement() {
+    Statement *node;
     switch (getCurrentToken()) {
         case KW_IF:
             currentToken = next();
@@ -358,17 +381,17 @@ Statement* Parser::parseStatement() {
     return node;
 }
 
-std::vector<Statement*> Parser::parseStatementList() {
-    std::vector<Statement*> node;
-    Statement* p;
+std::vector<Statement *> Parser::parseStatementList() {
+    std::vector<Statement *> node;
+    Statement *p;
     while ((p = parseStatement()) != nullptr) {
         node.push_back(p);
     }
     return node;
 }
 
-Block* Parser::parseBlock() {
-    Block* node{new Block};
+Block *Parser::parseBlock() {
+    Block *node{new Block};
     currentToken = next();
     node->stmts = parseStatementList();
     assert(getCurrentToken() == TK_RBRACE);
@@ -397,7 +420,7 @@ std::vector<std::string> Parser::parseParameterList() {
     return move(node);
 }
 
-Function* Parser::parseFuncDef(Context* context) {
+Function *Parser::parseFuncDef(Context *context) {
     assert(getCurrentToken() == KW_FUNC);
     currentToken = next();
 
@@ -407,7 +430,7 @@ Function* Parser::parseFuncDef(Context* context) {
               getCurrentLexeme().c_str());
     }
 
-    auto* node = new Function;
+    auto *node = new Function;
     node->name = getCurrentLexeme();
     currentToken = next();
     assert(getCurrentToken() == TK_LPAREN);
@@ -417,14 +440,14 @@ Function* Parser::parseFuncDef(Context* context) {
     return node;
 }
 
-void Parser::parse(Runtime* rt) {
+void Parser::parse(Runtime *rt) {
     currentToken = next();
     if (getCurrentToken() == TK_EOF) {
         return;
     }
     do {
         if (getCurrentToken() == KW_FUNC) {
-            auto* f = parseFuncDef(rt);
+            auto *f = parseFuncDef(rt);
             rt->addFunction(f->name, f);
         } else {
             rt->addStatement(parseStatement());
@@ -455,7 +478,7 @@ std::tuple<Token, std::string> Parser::next() {
     }
 
     if (c == '#') {
-    another_comment:
+        another_comment:
         while (c != '\n' && c != EOF) {
             c = getNextChar();
         }
@@ -499,8 +522,8 @@ std::tuple<Token, std::string> Parser::next() {
         }
         auto result = keywords.find(lexeme);
         return result != keywords.end()
-                   ? std::make_tuple(result->second, lexeme)
-                   : std::make_tuple(TK_IDENT, lexeme);
+               ? std::make_tuple(result->second, lexeme)
+               : std::make_tuple(TK_IDENT, lexeme);
     }
 
     switch (c) {
@@ -509,8 +532,8 @@ std::tuple<Token, std::string> Parser::next() {
             lexeme += getNextChar();
             if (peekNextChar() != '\'') {
                 panic(
-                    "SynxaxError: a character literal should surround with "
-                    "single-quote");
+                        "SynxaxError: a character literal should surround with "
+                        "single-quote");
             }
             c = getNextChar();
             return std::make_tuple(LIT_CHAR, lexeme);
@@ -638,7 +661,7 @@ std::tuple<Token, std::string> Parser::next() {
             return std::make_tuple(TK_LT, "<");
         }
         default: {
-            panic("SynxaxError: unknown token %c", c);
+            panic("SyntaxError: unknown token %c", c);
         }
     }
 }
@@ -670,4 +693,3 @@ short Parser::precedence(Token op) {
             return 0;
     }
 }
-}  // namespace nyx
