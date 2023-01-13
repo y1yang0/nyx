@@ -26,6 +26,7 @@
 #include <deque>
 #include <map>
 #include "Runtime.hpp"
+#include "Object.hpp"
 
 //===----------------------------------------------------------------------===//
 // Token definitions of nyx

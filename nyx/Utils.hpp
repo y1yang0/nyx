@@ -27,6 +27,7 @@
 #include <deque>
 #include <string>
 #include "Runtime.hpp"
+#include "Object.hpp"
 
 std::string repeatString(int count, const std::string &str);
 

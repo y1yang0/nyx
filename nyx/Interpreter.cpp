@@ -28,6 +28,7 @@
 #include "Interpreter.h"
 #include "Runtime.hpp"
 #include "Utils.hpp"
+#include "Object.hpp"
 
 //===----------------------------------------------------------------------===//
 // Nyx interpreter, as its name described, will interpret all statements within

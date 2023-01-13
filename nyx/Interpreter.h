@@ -25,6 +25,7 @@
 #include <memory>
 #include "Runtime.hpp"
 #include "Parser.h"
+#include "Object.hpp"
 
 class Interpreter {
 public:

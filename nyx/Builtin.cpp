@@ -26,6 +26,7 @@
 #include "Builtin.h"
 #include "Runtime.hpp"
 #include "Utils.hpp"
+#include "Object.hpp"
 
 Object *nyx_builtin_print(Runtime *rt,
                           std::deque<Context *> *ctxChain,

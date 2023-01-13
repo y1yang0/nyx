@@ -24,6 +24,7 @@
 #include <cstdarg>
 #include "Runtime.hpp"
 #include "Utils.hpp"
+#include "Object.hpp"
 
 std::string repeatString(int count, const std::string &str) {
     std::string result;

@@ -28,15 +28,12 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "Object.hpp"
 
 struct Statement;
 struct Expression;
 
 struct Context;
-
-enum ValueType {
-    Int, Double, String, Bool, Char, Null, Array, Closure
-};
 
 enum ExecutionResultType {
     ExecNormal, ExecReturn, ExecBreak, ExecContinue
@@ -55,80 +52,6 @@ struct Function {
     std::deque<Context *> *outerContext{};
     std::vector<std::string> params;
     Block *block{};
-};
-
-class Object {
-    friend class Runtime;
-
-public:
-    template<int _NyxType>
-    inline bool isType() const;
-
-    template<typename _CastingType>
-    inline _CastingType as();
-
-    template<typename _CastingType>
-    inline _CastingType as() const;
-
-    template<typename _DataType>
-    inline void set(_DataType data);
-
-    Object *operator+(Object *rhs) const;
-
-    Object *operator-(Object *rhs) const;
-
-    Object *operator*(Object *rhs) const;
-
-    Object *operator/(Object *rhs) const;
-
-    Object *operator%(Object *rhs) const;
-
-    Object *operator&&(Object *rhs) const;
-
-    Object *operator||(Object *rhs) const;
-
-    Object *operator==(Object *rhs) const;
-
-    Object *operator!=(Object *rhs) const;
-
-    Object *operator>(Object *rhs) const;
-
-    Object *operator>=(Object *rhs) const;
-
-    Object *operator<(Object *rhs) const;
-
-    Object *operator<=(Object *rhs) const;
-
-    Object *operator&(Object *rhs) const;
-
-    Object *operator|(Object *rhs) const;
-
-    Object *operator-() const;
-
-    Object *operator!() const;
-
-    Object *operator~() const;
-
-    bool equalsDeep(Object *b);
-
-    std::string toString() const;
-
-    Object *clone() const;
-
-    bool isPrimitive();
-
-    ValueType getType() const { return type; }
-
-private:
-    explicit Object() = default;
-
-    explicit Object(ValueType type) : type(type) {}
-
-    explicit Object(ValueType type, std::any data)
-            : type(type), data(std::move(data)) {}
-
-    ValueType type;
-    std::any data;
 };
 
 struct ExecResult {
@@ -194,24 +117,3 @@ private:
     std::unordered_map<std::string, BuiltinFuncType> builtin;
     std::vector<Statement *> stmts;
 };
-
-template<int _NyxType>
-inline bool Object::isType() const {
-    return this->type == _NyxType;
-}
-
-template<typename _CastingType>
-inline _CastingType Object::as() {
-    return std::any_cast<_CastingType>(data);
-}
-
-template<typename _CastingType>
-inline _CastingType Object::as() const {
-    return std::any_cast<_CastingType>(data);
-}
-
-template<typename _DataType>
-inline void Object::set(_DataType data) {
-    this->data = std::make_any<_DataType>(std::move(data));
-}
-

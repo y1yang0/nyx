@@ -25,6 +25,7 @@
 #include <deque>
 #include <vector>
 #include "Runtime.hpp"
+#include "Object.hpp"
 
 Object *nyx_builtin_print(Runtime *rt,
                           std::deque<Context *> *ctxChain,

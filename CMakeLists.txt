@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(nyx)
 
 set(CMAKE_CXX_STANDARD 17)
-set(NYX_SRC nyx/Builtin.cpp nyx/Interpreter.cpp nyx/Main.cpp nyx/Parser.cpp nyx/Utils.cpp nyx/Runtime.cpp)
-
+file(GLOB NYX_SRC nyx/**.cpp)
 
 # Nyx compiler
 add_executable(nyx ${NYX_SRC})
