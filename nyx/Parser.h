@@ -74,7 +74,7 @@ private:
 
     std::vector<std::string> parseParameterList();
 
-    Function* parseFuncDef(Context* context);
+    Func* parseFuncDef(Context* context);
 
 private:
     short precedence(Token op);

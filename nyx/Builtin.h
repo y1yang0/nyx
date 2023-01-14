@@ -62,3 +62,7 @@ Object* nyx_builtin_range(Runtime* rt,
 Object* nyx_builtin_assert(Runtime* rt,
                            ContextChain* ctxChain,
                            ObjectArray args);
+
+Object* nyx_builtin_dump_ast(Runtime* rt,
+                             ContextChain* ctxChain,
+                             ObjectArray args);

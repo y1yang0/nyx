@@ -21,7 +21,6 @@
 // THE SOFTWARE.
 //
 
-#include <iostream>
 #include "Debug.hpp"
 #include "Interpreter.h"
 #include "Utils.hpp"

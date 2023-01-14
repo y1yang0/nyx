@@ -93,6 +93,59 @@ enum Token {
 
 struct Expression;
 struct Statement;
+struct AstNode;
+
+struct AstVisitor;
+struct BoolExpr;
+struct CharExpr;
+struct NullExpr;
+struct IntExpr;
+struct DoubleExpr;
+struct StringExpr;
+struct ArrayExpr;
+struct NameExpr;
+struct IndexExpr;
+struct BinaryExpr;
+struct FunCallExpr;
+struct AssignExpr;
+struct ClosureExpr;
+struct Statement;
+struct BreakStmt;
+struct ContinueStmt;
+struct SimpleStmt;
+struct ReturnStmt;
+struct IfStmt;
+struct WhileStmt;
+struct ForStmt;
+struct ForEachStmt;
+struct MatchStmt;
+
+struct AstVisitor {
+    virtual void visitExpression(Expression* node) {}
+    virtual void visitBoolExpr(BoolExpr* node) {}
+    virtual void visitCharExpr(CharExpr* node) {}
+    virtual void visitNullExpr(NullExpr* node) {}
+    virtual void visitIntExpr(IntExpr* node) {}
+    virtual void visitDoubleExpr(DoubleExpr* node) {}
+    virtual void visitStringExpr(StringExpr* node) {}
+    virtual void visitArrayExpr(ArrayExpr* node) {}
+    virtual void visitNameExpr(NameExpr* node) {}
+    virtual void visitIndexExpr(IndexExpr* node) {}
+    virtual void visitBinaryExpr(BinaryExpr* node) {}
+    virtual void visitFunCallExpr(FunCallExpr* node) {}
+    virtual void visitAssignExpr(AssignExpr* node) {}
+    virtual void visitClosureExpr(ClosureExpr* node) {}
+    virtual void visitStatement(Statement* node) {}
+    virtual void visitBreakStmt(BreakStmt* node) {}
+    virtual void visitContinueStmt(ContinueStmt* node) {}
+    virtual void visitSimpleStmt(SimpleStmt* node) {}
+    virtual void visitReturnStmt(ReturnStmt* node) {}
+    virtual void visitIfStmt(IfStmt* node) {}
+    virtual void visitWhileStmt(WhileStmt* node) {}
+    virtual void visitForStmt(ForStmt* node) {}
+    virtual void visitForEachStmt(ForEachStmt* node) {}
+    virtual void visitMatchStmt(MatchStmt* node) {}
+};
 
 //===----------------------------------------------------------------------===//
 // Expression
@@ -102,6 +155,8 @@ struct AstNode {
 
     virtual ~AstNode() = default;
 
+    virtual void visit(AstVisitor* visitor) = 0;
+
     int line = -1;
     int column = -1;
 };
@@ -109,9 +164,10 @@ struct AstNode {
 struct Expression : public AstNode {
     using AstNode::AstNode;
 
-    virtual ~Expression() = default;
-
+    ~Expression() override = default;
     virtual Object* eval(Runtime* rt, ContextChain* ctxChain);
+
+    void visit(AstVisitor* visitor) override { visitor->visitExpression(this); }
 };
 
 struct BoolExpr : public Expression {
@@ -120,6 +176,8 @@ struct BoolExpr : public Expression {
     bool literal;
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+
+    void visit(AstVisitor* visitor) override { visitor->visitBoolExpr(this); }
 };
 
 struct CharExpr : public Expression {
@@ -128,6 +186,8 @@ struct CharExpr : public Expression {
     char literal;
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+
+    void visit(AstVisitor* visitor) override { visitor->visitCharExpr(this); }
 };
 
 struct NullExpr : public Expression {
@@ -142,6 +202,8 @@ struct IntExpr : public Expression {
     int literal;
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+
+    void visit(AstVisitor* visitor) override { visitor->visitIntExpr(this); }
 };
 
 struct DoubleExpr : public Expression {
@@ -150,6 +212,8 @@ struct DoubleExpr : public Expression {
     double literal;
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+
+    void visit(AstVisitor* visitor) override { visitor->visitDoubleExpr(this); }
 };
 
 struct StringExpr : public Expression {
@@ -158,6 +222,7 @@ struct StringExpr : public Expression {
     std::string literal;
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitStringExpr(this); }
 };
 
 struct ArrayExpr : public Expression {
@@ -166,14 +231,16 @@ struct ArrayExpr : public Expression {
     std::vector<Expression*> literal;
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitArrayExpr(this); }
 };
 
-struct IdentExpr : public Expression {
+struct NameExpr : public Expression {
     using Expression::Expression;
 
     std::string identName;
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitNameExpr(this); }
 };
 
 struct IndexExpr : public Expression {
@@ -183,6 +250,7 @@ struct IndexExpr : public Expression {
     Expression* index{};
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitIndexExpr(this); }
 };
 
 struct BinaryExpr : public Expression {
@@ -193,6 +261,8 @@ struct BinaryExpr : public Expression {
     Expression* rhs{};
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+
+    void visit(AstVisitor* visitor) override { visitor->visitBinaryExpr(this); }
 };
 
 struct FunCallExpr : public Expression {
@@ -202,6 +272,9 @@ struct FunCallExpr : public Expression {
     std::vector<Expression*> args;
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override {
+        visitor->visitFunCallExpr(this);
+    }
 };
 
 struct AssignExpr : public Expression {
@@ -212,6 +285,7 @@ struct AssignExpr : public Expression {
     Expression* rhs{};
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitAssignExpr(this); }
 };
 
 struct ClosureExpr : public Expression {
@@ -221,6 +295,9 @@ struct ClosureExpr : public Expression {
     Block* block{};
 
     Object* eval(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override {
+        visitor->visitClosureExpr(this);
+    }
 };
 
 //===----------------------------------------------------------------------===//
@@ -232,18 +309,23 @@ struct Statement : public AstNode {
     virtual ~Statement() = default;
 
     virtual ExecResult interpret(Runtime* rt, ContextChain* ctxChain);
+    void visit(AstVisitor* visitor) override { visitor->visitStatement(this); }
 };
 
 struct BreakStmt : public Statement {
     using Statement::Statement;
 
     ExecResult interpret(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitBreakStmt(this); }
 };
 
 struct ContinueStmt : public Statement {
     using Statement::Statement;
 
     ExecResult interpret(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override {
+        visitor->visitContinueStmt(this);
+    }
 };
 
 struct SimpleStmt : public Statement {
@@ -252,6 +334,7 @@ struct SimpleStmt : public Statement {
     Expression* expr{};
 
     ExecResult interpret(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitSimpleStmt(this); }
 };
 
 struct ReturnStmt : public Statement {
@@ -260,6 +343,7 @@ struct ReturnStmt : public Statement {
     Expression* ret{};
 
     ExecResult interpret(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitReturnStmt(this); }
 };
 
 struct IfStmt : public Statement {
@@ -270,6 +354,7 @@ struct IfStmt : public Statement {
     Block* elseBlock{};
 
     ExecResult interpret(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitIfStmt(this); }
 };
 
 struct WhileStmt : public Statement {
@@ -279,6 +364,7 @@ struct WhileStmt : public Statement {
     Block* block{};
 
     ExecResult interpret(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitWhileStmt(this); }
 };
 
 struct ForStmt : public Statement {
@@ -290,6 +376,7 @@ struct ForStmt : public Statement {
     Block* block{};
 
     ExecResult interpret(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitForStmt(this); }
 };
 
 struct ForEachStmt : public Statement {
@@ -300,6 +387,9 @@ struct ForEachStmt : public Statement {
     Block* block{};
 
     ExecResult interpret(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override {
+        visitor->visitForEachStmt(this);
+    }
 };
 
 struct MatchStmt : public Statement {
@@ -309,4 +399,5 @@ struct MatchStmt : public Statement {
     std::vector<std::tuple<Expression*, Block*, bool>> matches;
 
     ExecResult interpret(Runtime* rt, ContextChain* ctxChain) override;
+    void visit(AstVisitor* visitor) override { visitor->visitMatchStmt(this); }
 };

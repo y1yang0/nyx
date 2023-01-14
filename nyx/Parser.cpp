@@ -77,7 +77,7 @@ Expression* Parser::parsePrimaryExpr() {
                     return val;
                 }
                 default: {
-                    auto* node = new IdentExpr(line, column);
+                    auto* node = new NameExpr(line, column);
                     node->identName = ident;
                     return node;
                 }
@@ -189,8 +189,7 @@ Expression* Parser::parseExpression(short oldPrecedence) {
 
     if (anyone(getCurrentToken(), TK_ASSIGN, TK_PLUS_AGN, TK_MINUS_AGN,
                TK_TIMES_AGN, TK_DIV_AGN, TK_MOD_AGN)) {
-        if (typeid(*p) != typeid(IdentExpr) &&
-            typeid(*p) != typeid(IndexExpr)) {
+        if (typeid(*p) != typeid(NameExpr) && typeid(*p) != typeid(IndexExpr)) {
             panic("SyntaxError: can not assign to %s", typeid(*p).name());
         }
         auto* assignExpr = new AssignExpr(line, column);
@@ -257,9 +256,9 @@ WhileStmt* Parser::parseWhileStmt() {
 Statement* Parser::parseForStmt() {
     currentToken = next();
     auto init = parseExpression();
-    if (typeid(*init) == typeid(IdentExpr) && getCurrentToken() == TK_COLON) {
+    if (typeid(*init) == typeid(NameExpr) && getCurrentToken() == TK_COLON) {
         auto* node = new ForEachStmt(line, column);
-        node->identName = dynamic_cast<IdentExpr*>(init)->identName;
+        node->identName = dynamic_cast<NameExpr*>(init)->identName;
         currentToken = next();
         node->list = parseExpression();
         assert(getCurrentToken() == TK_RPAREN);
@@ -312,8 +311,8 @@ MatchStmt* Parser::parseMatchStmt() {
                 block->stmts.push_back(parseExpressionStmt());
             }
 
-            if (typeid(*theCase) == typeid(IdentExpr) &&
-                dynamic_cast<IdentExpr*>(theCase)->identName == "_") {
+            if (typeid(*theCase) == typeid(NameExpr) &&
+                dynamic_cast<NameExpr*>(theCase)->identName == "_") {
                 node->matches.emplace_back(theCase, block, true);
             } else {
                 node->matches.emplace_back(theCase, block, false);
@@ -407,7 +406,7 @@ std::vector<std::string> Parser::parseParameterList() {
     return move(node);
 }
 
-Function* Parser::parseFuncDef(Context* context) {
+Func* Parser::parseFuncDef(Context* context) {
     assert(getCurrentToken() == KW_FUNC);
     currentToken = next();
 
@@ -417,7 +416,7 @@ Function* Parser::parseFuncDef(Context* context) {
               getCurrentLexeme().c_str());
     }
 
-    auto* node = new Function;
+    auto* node = new Func;
     node->name = getCurrentLexeme();
     currentToken = next();
     assert(getCurrentToken() == TK_LPAREN);

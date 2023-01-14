@@ -46,6 +46,7 @@ Runtime::Runtime() {
     builtin["to_double"] = &nyx_builtin_to_double;
     builtin["range"] = &nyx_builtin_range;
     builtin["assert"] = &nyx_builtin_assert;
+    builtin["dump_ast"] = &nyx_builtin_dump_ast;
 }
 
 bool Runtime::hasBuiltinFunction(const std::string& name) {
@@ -118,8 +119,8 @@ Object* Runtime::newObject(ObjectArray data) {
     heap.push_back(object);
     return object;
 }
-Object* Runtime::newObject(Function data) {
-    auto* mem = new Function;
+Object* Runtime::newObject(Func data) {
+    auto* mem = new Func;
     mem[0] = data;
     auto* object = new Object(Closure, mem);
     heap.push_back(object);
@@ -165,7 +166,7 @@ Variable* Context::getVariable(const std::string& identName) {
     return nullptr;
 }
 
-void Context::addFunction(const std::string& name, Function* f) {
+void Context::addFunction(const std::string& name, Func* f) {
     funcs.insert(std::make_pair(name, f));
 }
 
@@ -173,7 +174,7 @@ bool Context::hasFunction(const std::string& name) {
     return funcs.count(name) == 1;
 }
 
-Function* Context::getFunction(const std::string& name) {
+Func* Context::getFunction(const std::string& name) {
     if (auto f = funcs.find(name); f != funcs.end()) {
         return f->second;
     }

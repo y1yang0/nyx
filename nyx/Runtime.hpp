@@ -44,8 +44,8 @@ struct Block {
     std::vector<Statement*> stmts;
 };
 
-struct Function {
-    explicit Function() = default;
+struct Func {
+    explicit Func() = default;
 
     std::string name;
     ContextChain* outerContext{};
@@ -83,15 +83,15 @@ public:
 
     Variable* getVariable(const std::string& identName);
 
-    void addFunction(const std::string& name, Function* f);
+    void addFunction(const std::string& name, Func* f);
 
     bool hasFunction(const std::string& name);
 
-    Function* getFunction(const std::string& name);
+    Func* getFunction(const std::string& name);
 
 private:
     std::unordered_map<std::string, Variable*> vars;
-    std::unordered_map<std::string, Function*> funcs;
+    std::unordered_map<std::string, Func*> funcs;
 };
 
 class Runtime : public Context {
@@ -114,7 +114,7 @@ public:
     Object* newObject(bool data);
     Object* newObject(char c);
     Object* newObject(ObjectArray data);
-    Object* newObject(Function data);
+    Object* newObject(Func data);
     Object* newObject();
     Object* cloneObject(Object* object);
 

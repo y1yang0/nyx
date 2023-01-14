@@ -69,7 +69,26 @@ n = 9      [1,8,28,56,70,56,28,8,1]
                           *********
                              ***
 ```
-
++ [nyx_test/example/ast.nyx](nyx_test/example/ast.nyx)
+```
+-Func[fibonacci_rec]
+  -IfStmt
+    -BinaryExpr[23]
+      -NameExpr[num]
+      -IntExpr[2]
+    -ReturnStmt
+      -IntExpr[1]
+    -ReturnStmt
+      -BinaryExpr[13]
+        -FunCallExpr[fibonacci_rec]
+          -BinaryExpr[14]
+            -NameExpr[num]
+            -IntExpr[2]
+        -FunCallExpr[fibonacci_rec]
+          -BinaryExpr[14]
+            -NameExpr[num]
+            -IntExpr[1]
+```
 ## Language Reference
 See [reference.md](./docs/reference.md) for detailed language reference，
 [`nyx_test/*`](./nyx_test/) contains various nyx code snippets, they are probably the best way to learn how to program in **nyx**.

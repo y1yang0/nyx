@@ -1,0 +1,7 @@
+func fibonacci_rec(num){
+    if(num<=2){
+        return 1
+    }
+    return fibonacci_rec(num-2) + fibonacci_rec(num-1)
+}
+dump_ast(fibonacci_rec)

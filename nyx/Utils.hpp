@@ -26,13 +26,14 @@
 #include <deque>
 #include <iostream>
 #include <string>
+#include "Ast.h"
 #include "Object.hpp"
 #include "Runtime.hpp"
 
 std::string repeatString(int count, const std::string& str);
 
-template <typename _DesireType, typename... _ArgumentType>
-inline bool anyone(_DesireType k, _ArgumentType... args) {
+template <typename DesireType, typename... ArgumentType>
+inline bool anyone(DesireType k, ArgumentType... args) {
     return ((args == k) || ...);
 }
 
@@ -44,3 +45,5 @@ void checkArgsCount(int expectedCount, ObjectArray* args);
 void checkArgsType(int idx, ObjectArray* args, ValueType expectedType);
 
 void checkObjectType(const Object* object, ValueType t);
+
+void dumpFuncAst(Func* func);

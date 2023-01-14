@@ -144,3 +144,13 @@ Object* nyx_builtin_assert(Runtime* rt,
     }
     return rt->newObject();
 }
+
+Object* nyx_builtin_dump_ast(Runtime* rt,
+                             ContextChain* ctxChain,
+                             ObjectArray args) {
+    checkArgsCount(1, &args);
+    checkArgsType(0, &args, Closure);
+    auto func = args[0]->asClosure();
+    dumpFuncAst(&func);
+    return nullptr;
+}

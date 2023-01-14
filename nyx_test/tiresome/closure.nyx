@@ -28,14 +28,14 @@ func trible(p){
     return c
 }
 t = trible(3)
-println(t()==9)
-println(add(1,2)==3)
+assert(t()==9)
+assert(add(1,2)==3)
 a = add3(4)
 println(typeof(a)=="closure")
-println(a()==7)
+assert(a()==7)
 q=twice()
-println(q()==10)
-println(q()==10)
+assert(q()==10)
+assert(q()==10)
 println(q)
 func weird(num){
     closure_arr = []
@@ -64,7 +64,7 @@ func hof(f1,f2){
 }
 
 res = hof(func(f1)=> return func() => return f1()+5 ,func()=>return 8)
-println(res()==13)
+assert(res()==13)
 
 func nest_closures(){
     top = 100
@@ -85,4 +85,4 @@ func nest_closures(){
     return a()
 }
 
-println(nest_closures()==230)
+assert(nest_closures()==230)

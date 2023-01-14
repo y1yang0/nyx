@@ -50,7 +50,7 @@ public:
     char asChar() const { return *(char*)(data); }
     std::nullptr_t asNull() const { return nullptr; }
     ObjectArray asArray() const { return *(ObjectArray*)(data); }
-    Function asClosure() const { return *(Function*)(data); }
+    Func asClosure() const { return *(Func*)(data); }
 
     inline bool isType(ValueType t) const { return t == type; }
 

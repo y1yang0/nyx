@@ -40,7 +40,7 @@ public:
     static void newContext(ContextChain* ctxChain);
 
     static Object* callFunction(Runtime* rt,
-                                Function* f,
+                                Func* f,
                                 ContextChain* previousCtxChain,
                                 std::vector<Expression*> args);
 

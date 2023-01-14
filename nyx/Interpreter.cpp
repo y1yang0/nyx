@@ -49,7 +49,7 @@ void Interpreter::newContext(ContextChain* ctxChain) {
 }
 
 Object* Interpreter::callFunction(Runtime* rt,
-                                  Function* f,
+                                  Func* f,
                                   ContextChain* previousCtxChain,
                                   std::vector<Expression*> args) {
     ContextChain* funcCtxChain = nullptr;
@@ -412,20 +412,29 @@ Object* ArrayExpr::eval(Runtime* rt, ContextChain* ctxChain) {
 }
 
 Object* ClosureExpr::eval(Runtime* rt, ContextChain* ctxChain) {
-    auto* f = new Function;
+    auto* f = new Func;
     f->params = std::move(this->params);
     f->block = this->block;
     f->outerContext = ctxChain;  // Save outer context for closure
     return rt->newObject(*f);
 }
 
-Object* IdentExpr::eval(Runtime* rt, ContextChain* ctxChain) {
+Object* NameExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
         auto* ctx = *p;
         if (auto* var = ctx->getVariable(this->identName); var != nullptr) {
             return var->value;
         }
+        if (auto* var = ctx->getFunction(this->identName); var != nullptr) {
+            return rt->newObject(*var);
+        }
     }
+    // Lookup function in global scope
+    auto* globalFunc = rt->getFunction(this->identName);
+    if (globalFunc != nullptr) {
+        return rt->newObject(*globalFunc);
+    }
+
     panic(
         "RuntimeError: use of undefined variable \"%s\" at line %d, col "
         "%d\n",
@@ -461,8 +470,8 @@ Object* IndexExpr::eval(Runtime* rt, ContextChain* ctxChain) {
 
 Object* AssignExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     Object* rhs = this->rhs->eval(rt, ctxChain);
-    if (typeid(*lhs) == typeid(IdentExpr)) {
-        std::string identName = dynamic_cast<IdentExpr*>(lhs)->identName;
+    if (typeid(*lhs) == typeid(NameExpr)) {
+        std::string identName = dynamic_cast<NameExpr*>(lhs)->identName;
 
         for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
             if (auto* var = (*p)->getVariable(identName); var != nullptr) {
