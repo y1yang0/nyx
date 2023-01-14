@@ -23,8 +23,6 @@
 
 #pragma once
 
-#undef _DEBUG
-
 #include <deque>
 #include <string>
 #include <unordered_map>
@@ -34,6 +32,9 @@ struct Statement;
 struct Expression;
 struct Context;
 class Object;
+
+using ObjectArray = std::vector<Object*>;
+using ContextChain = std::deque<Context*>;
 
 enum ExecutionResultType { ExecNormal, ExecReturn, ExecBreak, ExecContinue };
 
@@ -47,7 +48,7 @@ struct Function {
     explicit Function() = default;
 
     std::string name;
-    std::deque<Context*>* outerContext{};
+    ContextChain* outerContext{};
     std::vector<std::string> params;
     Block* block{};
 };
@@ -94,9 +95,7 @@ private:
 };
 
 class Runtime : public Context {
-    using BuiltinFuncType = Object* (*)(Runtime*,
-                                        std::deque<Context*>*,
-                                        std::vector<Object*>);
+    using BuiltinFuncType = Object* (*)(Runtime*, ContextChain*, ObjectArray);
 
 public:
     explicit Runtime();
@@ -114,7 +113,7 @@ public:
     Object* newObject(std::string data);
     Object* newObject(bool data);
     Object* newObject(char c);
-    Object* newObject(std::vector<Object*> data);
+    Object* newObject(ObjectArray data);
     Object* newObject(Function data);
     Object* newObject();
     Object* cloneObject(Object* object);
@@ -127,7 +126,7 @@ private:
     std::vector<Statement*> stmts;
     // TODO: create object in managed heap and support GC to make it a "real
     // heap"
-    std::vector<Object*> heap;
+    ObjectArray heap;
 };
 
 extern Runtime* runtime;

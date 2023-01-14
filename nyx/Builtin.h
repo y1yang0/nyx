@@ -28,37 +28,37 @@
 #include "Runtime.hpp"
 
 Object* nyx_builtin_print(Runtime* rt,
-                          std::deque<Context*>* ctxChain,
-                          std::vector<Object*> args);
+                          ContextChain* ctxChain,
+                          ObjectArray args);
 
 Object* nyx_builtin_println(Runtime* rt,
-                            std::deque<Context*>* ctxChain,
-                            std::vector<Object*> args);
+                            ContextChain* ctxChain,
+                            ObjectArray args);
 
 Object* nyx_builtin_input(Runtime* rt,
-                          std::deque<Context*>* ctxChain,
-                          std::vector<Object*> args);
+                          ContextChain* ctxChain,
+                          ObjectArray args);
 
 Object* nyx_builtin_typeof(Runtime* rt,
-                           std::deque<Context*>* ctxChain,
-                           std::vector<Object*> args);
+                           ContextChain* ctxChain,
+                           ObjectArray args);
 
 Object* nyx_builtin_length(Runtime* rt,
-                           std::deque<Context*>* ctxChain,
-                           std::vector<Object*> args);
+                           ContextChain* ctxChain,
+                           ObjectArray args);
 
 Object* nyx_builtin_to_int(Runtime* rt,
-                           std::deque<Context*>* ctxChain,
-                           std::vector<Object*> args);
+                           ContextChain* ctxChain,
+                           ObjectArray args);
 
 Object* nyx_builtin_to_double(Runtime* rt,
-                              std::deque<Context*>* ctxChain,
-                              std::vector<Object*> args);
+                              ContextChain* ctxChain,
+                              ObjectArray args);
 
 Object* nyx_builtin_range(Runtime* rt,
-                          std::deque<Context*>* ctxChain,
-                          std::vector<Object*> args);
+                          ContextChain* ctxChain,
+                          ObjectArray args);
 
 Object* nyx_builtin_assert(Runtime* rt,
-                           std::deque<Context*>* ctxChain,
-                           std::vector<Object*> args);
+                           ContextChain* ctxChain,
+                           ObjectArray args);

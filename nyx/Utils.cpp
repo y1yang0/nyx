@@ -66,15 +66,13 @@ std::string type2String(ValueType type) {
     }
     return "<unknown>";
 }
-void checkArgsCount(int expectedCount, std::vector<Object*>* args) {
+void checkArgsCount(int expectedCount, ObjectArray* args) {
     if (args->size() < expectedCount) {
         panic("RuntimeError: expect %d arguments but received %d",
               expectedCount, args->size());
     }
 }
-void checkArgsType(int idx,
-                   std::vector<Object*>* args,
-                   ValueType expectedType) {
+void checkArgsType(int idx, ObjectArray* args, ValueType expectedType) {
     if (args->size() <= idx) {
         panic("RuntimeError: missing arguments");
     }

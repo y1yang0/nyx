@@ -31,7 +31,7 @@
 #include "Utils.hpp"
 
 //===----------------------------------------------------------------------===//
-// Nyx interpreter, as its name described, will interpret all statements within
+// Interpreter, as its name described, will interpret all statements within
 // top-level source file. This part defines internal functions of interpreter
 // and leaves actually statement performing later.
 //===----------------------------------------------------------------------===//
@@ -43,18 +43,18 @@ void Interpreter::execute(Runtime* rt) {
     }
 }
 
-void Interpreter::newContext(std::deque<Context*>* ctxChain) {
+void Interpreter::newContext(ContextChain* ctxChain) {
     auto* tempContext = new Context;
     ctxChain->push_back(tempContext);
 }
 
 Object* Interpreter::callFunction(Runtime* rt,
                                   Function* f,
-                                  std::deque<Context*>* previousCtxChain,
+                                  ContextChain* previousCtxChain,
                                   std::vector<Expression*> args) {
-    std::deque<Context*>* funcCtxChain = nullptr;
+    ContextChain* funcCtxChain = nullptr;
     if (!f->name.empty() || f->outerContext == nullptr) {
-        funcCtxChain = new std::deque<Context*>();
+        funcCtxChain = new ContextChain();
     } else {
         funcCtxChain = f->outerContext;
     }
@@ -168,7 +168,7 @@ Object* Interpreter::assignSwitch(Token opt, Object* lhs, Object* rhs) {
 // holds all necessary data that widely used in every context. Context chain
 // saves a linked contexts of current execution flow.
 //===----------------------------------------------------------------------===//
-ExecResult IfStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
+ExecResult IfStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     ExecResult ret(ExecNormal);
     Object* cond = this->cond->eval(rt, ctxChain);
     if (!cond->isType(Bool)) {
@@ -208,7 +208,7 @@ ExecResult IfStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     return ret;
 }
 
-ExecResult WhileStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
+ExecResult WhileStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     ExecResult ret{ExecNormal};
 
     Interpreter::newContext(ctxChain);
@@ -243,7 +243,7 @@ outside:
     return ret;
 }
 
-ExecResult ForStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
+ExecResult ForStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     ExecResult ret{ExecNormal};
 
     Interpreter::newContext(ctxChain);
@@ -279,7 +279,7 @@ outside:
     return ret;
 }
 
-ExecResult ForEachStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
+ExecResult ForEachStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     ExecResult ret{ExecNormal};
 
     Interpreter::newContext(ctxChain);
@@ -319,7 +319,7 @@ outside:
     return ret;
 }
 
-ExecResult MatchStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
+ExecResult MatchStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     ExecResult ret{ExecNormal};
 
     Object* cond;
@@ -351,12 +351,12 @@ finish:
     return ret;
 }
 
-ExecResult SimpleStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
+ExecResult SimpleStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     this->expr->eval(rt, ctxChain);
     return ExecResult(ExecNormal);
 }
 
-ExecResult ReturnStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
+ExecResult ReturnStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     if (this->ret != nullptr) {
         Object* retVal = this->ret->eval(rt, ctxChain);
         return ExecResult(ExecReturn, retVal);
@@ -365,12 +365,11 @@ ExecResult ReturnStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     }
 }
 
-ExecResult BreakStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
+ExecResult BreakStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     return ExecResult(ExecBreak);
 }
 
-ExecResult ContinueStmt::interpret(Runtime* rt,
-                                   std::deque<Context*>* ctxChain) {
+ExecResult ContinueStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     return ExecResult(ExecContinue);
 }
 
@@ -379,32 +378,32 @@ ExecResult ContinueStmt::interpret(Runtime* rt,
 // contains evaulated data and corresponding data type, it represents sorts
 // of(also all) data type in nyx and can get value by interpreter directly.
 //===----------------------------------------------------------------------===//
-Object* NullExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* NullExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     return rt->newObject();
 }
 
-Object* BoolExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* BoolExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     return rt->newObject(this->literal);
 }
 
-Object* CharExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* CharExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     return rt->newObject(this->literal);
 }
 
-Object* IntExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* IntExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     return rt->newObject(this->literal);
 }
 
-Object* DoubleExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* DoubleExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     return rt->newObject(this->literal);
 }
 
-Object* StringExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* StringExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     return rt->newObject(this->literal);
 }
 
-Object* ArrayExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
-    std::vector<Object*> elements;
+Object* ArrayExpr::eval(Runtime* rt, ContextChain* ctxChain) {
+    ObjectArray elements;
     for (auto& e : this->literal) {
         elements.push_back(e->eval(rt, ctxChain));
     }
@@ -412,7 +411,7 @@ Object* ArrayExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     return rt->newObject(elements);
 }
 
-Object* ClosureExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* ClosureExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     auto* f = new Function;
     f->params = std::move(this->params);
     f->block = this->block;
@@ -420,7 +419,7 @@ Object* ClosureExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     return rt->newObject(*f);
 }
 
-Object* IdentExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* IdentExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
         auto* ctx = *p;
         if (auto* var = ctx->getVariable(this->identName); var != nullptr) {
@@ -433,7 +432,7 @@ Object* IdentExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
         identName.c_str(), this->line, this->column);
 }
 
-Object* IndexExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* IndexExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
         auto* ctx = *p;
         if (auto* var = ctx->getVariable(this->identName); var != nullptr) {
@@ -460,7 +459,7 @@ Object* IndexExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
         identName.c_str(), this->line, this->column);
 }
 
-Object* AssignExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* AssignExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     Object* rhs = this->rhs->eval(rt, ctxChain);
     if (typeid(*lhs) == typeid(IdentExpr)) {
         std::string identName = dynamic_cast<IdentExpr*>(lhs)->identName;
@@ -508,11 +507,11 @@ Object* AssignExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     return rhs;
 }
 
-Object* FunCallExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* FunCallExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     // Find it as the builtin-in function firstly
     if (auto* builtinFunc = rt->getBuiltinFunction(this->funcName);
         builtinFunc != nullptr) {
-        std::vector<Object*> arguments;
+        ObjectArray arguments;
         for (auto e : this->args) {
             arguments.push_back(e->eval(rt, ctxChain));
         }
@@ -554,7 +553,7 @@ Object* FunCallExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
         this->funcName.c_str(), line, column);
 }
 
-Object* BinaryExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* BinaryExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     Object* lhsObject =
         this->lhs ? this->lhs->eval(rt, ctxChain) : rt->newObject();
     Object* rhsObject =
@@ -569,7 +568,7 @@ Object* BinaryExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
                                        column);
 }
 
-Object* Expression::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+Object* Expression::eval(Runtime* rt, ContextChain* ctxChain) {
     panic(
         "RuntimeError: abstract expression at line %d, "
         "col "
@@ -577,7 +576,7 @@ Object* Expression::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
         line, column);
 }
 
-ExecResult Statement::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
+ExecResult Statement::interpret(Runtime* rt, ContextChain* ctxChain) {
     panic(
         "RuntimeError: abstract statement at line %d, "
         "col"

@@ -32,16 +32,16 @@
 //===----------------------------------------------------------------------===//
 class Interpreter {
 public:
-    Interpreter() : ctxChain(new std::deque<Context*>) {}
+    Interpreter() : ctxChain(new ContextChain) {}
 
     void execute(Runtime* rt);
 
 public:
-    static void newContext(std::deque<Context*>* ctxChain);
+    static void newContext(ContextChain* ctxChain);
 
     static Object* callFunction(Runtime* rt,
                                 Function* f,
-                                std::deque<Context*>* previousCtxChain,
+                                ContextChain* previousCtxChain,
                                 std::vector<Expression*> args);
 
     static Object* calcBinaryExpr(Object* lhs,
@@ -55,6 +55,5 @@ public:
     static Object* assignSwitch(Token opt, Object* lhs, Object* rhs);
 
 private:
-    std::deque<Context*>* ctxChain;
-    static Runtime* rt;
+    ContextChain* ctxChain;
 };

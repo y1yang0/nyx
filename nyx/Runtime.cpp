@@ -111,8 +111,8 @@ Object* Runtime::newObject(char data) {
     heap.push_back(object);
     return object;
 }
-Object* Runtime::newObject(std::vector<Object*> data) {
-    auto* mem = new std::vector<Object*>;
+Object* Runtime::newObject(ObjectArray data) {
+    auto* mem = new ObjectArray;
     *mem = data;
     auto* object = new Object(Array, mem);
     heap.push_back(object);

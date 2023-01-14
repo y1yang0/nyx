@@ -1,6 +1,6 @@
 // MIT License
 //
-// Copyright (c) 2018-2023 y1yang0 <kelthuzadx@qq.com>
+// Copyright (c) 2023 y1yang0 <kelthuzadx@qq.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,26 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#ifndef NYX_DEBUG_HPP
+#define NYX_DEBUG_HPP
 
-#include <iostream>
-#include "Debug.hpp"
-#include "Interpreter.h"
-#include "Utils.hpp"
+#include <string>
 
-int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        panic("Feed your *.nyx source file to interpreter!\n");
-    }
+#undef _DEBUG
 
-    auto* rt = new Runtime;
+void printLex(const std::string& fileName);
 
-    Parser parser(argv[1]);
-#ifdef _DEBUG
-    printLex(argv[1]);
-#endif
-    parser.parse(rt);
-    Interpreter nyx;
-    nyx.execute(rt);
-
-    return 0;
-}
+#endif  // NYX_DEBUG_HPP

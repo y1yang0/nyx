@@ -26,28 +26,13 @@
 #include "Runtime.hpp"
 #include "Utils.hpp"
 
-void Parser::printLex(const std::string& fileName) {
-    Parser p(fileName);
-    std::tuple<Token, std::string> tk;
-    do {
-        tk = p.next();
-        std::cout << "[" << std::get<0>(tk) << "," << std::get<1>(tk) << "]\n";
-    } while (std::get<0>(tk) != TK_EOF);
-}
+static const std::unordered_map<std::string, Token> KEYWORDS = {
+    {"if", KW_IF},       {"else", KW_ELSE},         {"while", KW_WHILE},
+    {"null", KW_NULL},   {"true", KW_TRUE},         {"false", KW_FALSE},
+    {"for", KW_FOR},     {"func", KW_FUNC},         {"return", KW_RETURN},
+    {"break", KW_BREAK}, {"continue", KW_CONTINUE}, {"match", KW_MATCH}};
 
-Parser::Parser(const std::string& fileName)
-    : keywords({{"if", KW_IF},
-                {"else", KW_ELSE},
-                {"while", KW_WHILE},
-                {"null", KW_NULL},
-                {"true", KW_TRUE},
-                {"false", KW_FALSE},
-                {"for", KW_FOR},
-                {"func", KW_FUNC},
-                {"return", KW_RETURN},
-                {"break", KW_BREAK},
-                {"continue", KW_CONTINUE},
-                {"match", KW_MATCH}}) {
+Parser::Parser(const std::string& fileName) {
     fs.open(fileName);
     if (!fs.is_open()) {
         panic("ParserError: can not open source file");
@@ -522,8 +507,8 @@ std::tuple<Token, std::string> Parser::next() {
             lexeme += c;
             cn = peekNextChar();
         }
-        auto result = keywords.find(lexeme);
-        return result != keywords.end()
+        auto result = KEYWORDS.find(lexeme);
+        return result != KEYWORDS.end()
                    ? std::make_tuple(result->second, lexeme)
                    : std::make_tuple(TK_IDENT, lexeme);
     }

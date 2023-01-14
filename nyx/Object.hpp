@@ -49,9 +49,7 @@ public:
     bool asBool() const { return *(bool*)(data); }
     char asChar() const { return *(char*)(data); }
     std::nullptr_t asNull() const { return nullptr; }
-    std::vector<Object*> asArray() const {
-        return *(std::vector<Object*>*)(data);
-    }
+    ObjectArray asArray() const { return *(ObjectArray*)(data); }
     Function asClosure() const { return *(Function*)(data); }
 
     inline bool isType(ValueType t) const { return t == type; }

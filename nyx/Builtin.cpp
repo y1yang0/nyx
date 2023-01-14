@@ -29,8 +29,8 @@
 #include "Utils.hpp"
 
 Object* nyx_builtin_print(Runtime* rt,
-                          std::deque<Context*>* ctxChain,
-                          std::vector<Object*> args) {
+                          ContextChain* ctxChain,
+                          ObjectArray args) {
     for (auto arg : args) {
         std::cout << arg->toString();
     }
@@ -38,8 +38,8 @@ Object* nyx_builtin_print(Runtime* rt,
 }
 
 Object* nyx_builtin_println(Runtime* rt,
-                            std::deque<Context*>* ctxChain,
-                            std::vector<Object*> args) {
+                            ContextChain* ctxChain,
+                            ObjectArray args) {
     if (!args.empty()) {
         for (auto arg : args) {
             std::cout << arg->toString() << "\n";
@@ -52,8 +52,8 @@ Object* nyx_builtin_println(Runtime* rt,
 }
 
 Object* nyx_builtin_input(Runtime* rt,
-                          std::deque<Context*>* ctxChain,
-                          std::vector<Object*> args) {
+                          ContextChain* ctxChain,
+                          ObjectArray args) {
     checkArgsCount(0, &args);
 
     std::string str;
@@ -62,15 +62,15 @@ Object* nyx_builtin_input(Runtime* rt,
 }
 
 Object* nyx_builtin_typeof(Runtime* rt,
-                           std::deque<Context*>* ctxChain,
-                           std::vector<Object*> args) {
+                           ContextChain* ctxChain,
+                           ObjectArray args) {
     checkArgsCount(1, &args);
     return rt->newObject(type2String(args[0]->getType()));
 }
 
 Object* nyx_builtin_length(Runtime* rt,
-                           std::deque<Context*>* ctxChain,
-                           std::vector<Object*> args) {
+                           ContextChain* ctxChain,
+                           ObjectArray args) {
     checkArgsCount(1, &args);
 
     if (args[0]->isType(String)) {
@@ -88,8 +88,8 @@ Object* nyx_builtin_length(Runtime* rt,
 }
 
 Object* nyx_builtin_to_int(Runtime* rt,
-                           std::deque<Context*>* ctxChain,
-                           std::vector<Object*> args) {
+                           ContextChain* ctxChain,
+                           ObjectArray args) {
     checkArgsCount(1, &args);
     checkArgsType(0, &args, Double);
 
@@ -97,8 +97,8 @@ Object* nyx_builtin_to_int(Runtime* rt,
 }
 
 Object* nyx_builtin_to_double(Runtime* rt,
-                              std::deque<Context*>* ctxChain,
-                              std::vector<Object*> args) {
+                              ContextChain* ctxChain,
+                              ObjectArray args) {
     checkArgsCount(1, &args);
     checkArgsType(0, &args, Int);
 
@@ -106,11 +106,11 @@ Object* nyx_builtin_to_double(Runtime* rt,
 }
 
 Object* nyx_builtin_range(Runtime* rt,
-                          std::deque<Context*>* ctxChain,
-                          std::vector<Object*> args) {
+                          ContextChain* ctxChain,
+                          ObjectArray args) {
     checkArgsCount(1, &args);
 
-    std::vector<Object*> vals;
+    ObjectArray vals;
     if (args[0]->asInt() <= 0) {
         return rt->newObject(vals);
     }
@@ -129,8 +129,8 @@ Object* nyx_builtin_range(Runtime* rt,
 }
 
 Object* nyx_builtin_assert(Runtime* rt,
-                           std::deque<Context*>* ctxChain,
-                           std::vector<Object*> args) {
+                           ContextChain* ctxChain,
+                           ObjectArray args) {
     checkArgsType(0, &args, Bool);
     if (!args[0]->asBool()) {
         if (args.size() == 2) {

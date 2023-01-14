@@ -40,7 +40,7 @@ inline bool anyone(_DesireType k, _ArgumentType... args) {
 
 std::string type2String(ValueType type);
 
-void checkArgsCount(int expectedCount, std::vector<Object*>* args);
-void checkArgsType(int idx, std::vector<Object*>* args, ValueType expectedType);
+void checkArgsCount(int expectedCount, ObjectArray* args);
+void checkArgsType(int idx, ObjectArray* args, ValueType expectedType);
 
 void checkObjectType(const Object* object, ValueType t);

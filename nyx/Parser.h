@@ -44,8 +44,7 @@ public:
 
 public:
     void parse(Runtime* rt);
-
-    static void printLex(const std::string& fileName);
+    std::tuple<Token, std::string> next();
 
 private:
     Expression* parsePrimaryExpr();
@@ -80,8 +79,6 @@ private:
 private:
     short precedence(Token op);
 
-    std::tuple<Token, std::string> next();
-
     inline char getNextChar() {
         column++;
         return static_cast<char>(fs.get());
@@ -98,8 +95,6 @@ private:
     }
 
 private:
-    const std::unordered_map<std::string, Token> keywords;
-
     std::tuple<Token, std::string> currentToken;
 
     std::fstream fs;
