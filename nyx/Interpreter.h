@@ -27,6 +27,9 @@
 #include "Parser.h"
 #include "Runtime.hpp"
 
+//===----------------------------------------------------------------------===//
+// Interpret AST nodes with execution context
+//===----------------------------------------------------------------------===//
 class Interpreter {
 public:
     Interpreter() : ctxChain(new std::deque<Context*>) {}

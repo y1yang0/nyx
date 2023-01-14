@@ -5,6 +5,7 @@ func weird(num){
             return i
         }    
     }
+    println(closure_arr)
     return closure_arr
 }
 for(closure:weird(3)){

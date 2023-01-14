@@ -34,7 +34,7 @@ Object* nyx_builtin_print(Runtime* rt,
     for (auto arg : args) {
         std::cout << arg->toString();
     }
-    return rt->newObject(Int, (int)args.size());
+    return rt->newObject((int)args.size());
 }
 
 Object* nyx_builtin_println(Runtime* rt,
@@ -48,7 +48,7 @@ Object* nyx_builtin_println(Runtime* rt,
         std::cout << "\n";
     }
 
-    return rt->newObject(Int, (int)args.size());
+    return rt->newObject((int)args.size());
 }
 
 Object* nyx_builtin_input(Runtime* rt,
@@ -58,14 +58,14 @@ Object* nyx_builtin_input(Runtime* rt,
 
     std::string str;
     std::cin >> str;
-    return rt->newObject(String, std::make_any<std::string>(std::move(str)));
+    return rt->newObject(str);
 }
 
 Object* nyx_builtin_typeof(Runtime* rt,
                            std::deque<Context*>* ctxChain,
                            std::vector<Object*> args) {
     checkArgsCount(1, &args);
-    return rt->newObject(String, type2String(args[0]->getType()));
+    return rt->newObject(type2String(args[0]->getType()));
 }
 
 Object* nyx_builtin_length(Runtime* rt,
@@ -74,13 +74,10 @@ Object* nyx_builtin_length(Runtime* rt,
     checkArgsCount(1, &args);
 
     if (args[0]->isType(String)) {
-        return rt->newObject(
-            Int, std::make_any<int>(args[0]->as<std::string>().length()));
+        return rt->newObject((int)args[0]->as<std::string>().length());
     }
     if (args[0]->isType(Array)) {
-        return rt->newObject(
-            Int,
-            std::make_any<int>(args[0]->as<std::vector<Object*>>().size()));
+        return rt->newObject((int)args[0]->as<std::vector<Object*>>().size());
     }
 
     panic(
@@ -96,7 +93,7 @@ Object* nyx_builtin_to_int(Runtime* rt,
     checkArgsCount(1, &args);
     checkArgsType(0, &args, Double);
 
-    return rt->newObject(Int, std::make_any<int>(args[0]->as<double>()));
+    return rt->newObject((int)args[0]->as<double>());
 }
 
 Object* nyx_builtin_to_double(Runtime* rt,
@@ -105,7 +102,7 @@ Object* nyx_builtin_to_double(Runtime* rt,
     checkArgsCount(1, &args);
     checkArgsType(0, &args, Int);
 
-    return rt->newObject(Double, std::make_any<double>(args[0]->as<int>()));
+    return rt->newObject((double)args[0]->as<int>());
 }
 
 Object* nyx_builtin_range(Runtime* rt,
@@ -115,7 +112,7 @@ Object* nyx_builtin_range(Runtime* rt,
 
     std::vector<Object*> vals;
     if (args[0]->as<int>() <= 0) {
-        return rt->newObject(Array, vals);
+        return rt->newObject(vals);
     }
     int start = 0, stop = 0;
     if (args.size() == 1) {
@@ -126,9 +123,9 @@ Object* nyx_builtin_range(Runtime* rt,
         stop = args[1]->as<int>();
     }
     for (; start < stop; start++) {
-        vals.push_back(rt->newObject(Int, start));
+        vals.push_back(rt->newObject(start));
     }
-    return rt->newObject(Array, vals);
+    return rt->newObject(vals);
 }
 
 Object* nyx_builtin_assert(Runtime* rt,

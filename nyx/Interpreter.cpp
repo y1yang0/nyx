@@ -68,7 +68,7 @@ Object* Interpreter::callFunction(Runtime* rt,
         Object* argValue = args[i]->eval(rt, previousCtxChain);
         if (argValue->isPrimitive()) {
             // Pass by value
-            funcCtx->createVariable(paramName, argValue->clone());
+            funcCtx->createVariable(paramName, rt->cloneObject(argValue));
         } else {
             // Pass by reference
             funcCtx->createVariable(paramName, argValue);
@@ -327,7 +327,7 @@ ExecResult MatchStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     if (this->cond != nullptr) {
         cond = this->cond->eval(rt, ctxChain);
     } else {
-        cond = rt->newObject(Bool, true);
+        cond = rt->newObject(true);
     }
 
     for (const auto& [theCase, theBranch, isAny] : this->matches) {
@@ -384,23 +384,23 @@ Object* NullExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
 }
 
 Object* BoolExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
-    return rt->newObject(Bool, this->literal);
+    return rt->newObject(this->literal);
 }
 
 Object* CharExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
-    return rt->newObject(Char, this->literal);
+    return rt->newObject(this->literal);
 }
 
 Object* IntExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
-    return rt->newObject(Int, this->literal);
+    return rt->newObject(this->literal);
 }
 
 Object* DoubleExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
-    return rt->newObject(Double, this->literal);
+    return rt->newObject(this->literal);
 }
 
 Object* StringExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
-    return rt->newObject(String, this->literal);
+    return rt->newObject(this->literal);
 }
 
 Object* ArrayExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
@@ -409,7 +409,7 @@ Object* ArrayExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
         elements.push_back(e->eval(rt, ctxChain));
     }
 
-    return rt->newObject(Array, elements);
+    return rt->newObject(elements);
 }
 
 Object* ClosureExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
@@ -417,7 +417,7 @@ Object* ClosureExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     f->params = std::move(this->params);
     f->block = this->block;
     f->outerContext = ctxChain;  // Save outer context for closure
-    return rt->newObject(Closure, *f);
+    return rt->newObject(*f);
 }
 
 Object* IdentExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
@@ -493,10 +493,10 @@ Object* AssignExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
                         "at line %d, col %d\n",
                         identName.c_str(), line, column);
                 }
-                auto&& temp = var->value->as<std::vector<Object*>>();
+                auto temp = var->value->as<std::vector<Object*>>();
                 temp[index->as<int>()] = Interpreter::assignSwitch(
                     this->opt, temp[index->as<int>()], rhs);
-                rt->resetObject(var->value, std::move(temp));
+                rt->resetObject(var->value, temp);
                 return rhs;
             }
         }
@@ -566,11 +566,13 @@ Object* BinaryExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
         return Interpreter::calcUnaryExpr(lhsObject, exprOpt, line, column);
     }
 
-    return Interpreter::calcBinaryExpr(lhsObject, exprOpt, rhsObject, line, column);
+    return Interpreter::calcBinaryExpr(lhsObject, exprOpt, rhsObject, line,
+                                       column);
 }
 
 Object* Expression::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
-    panic("RuntimeError: abstract expression at line %d, "
+    panic(
+        "RuntimeError: abstract expression at line %d, "
         "col "
         "%d\n",
         line, column);

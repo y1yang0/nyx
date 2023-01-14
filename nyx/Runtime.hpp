@@ -111,16 +111,28 @@ public:
 
     std::vector<Statement*>& getStatements();
 
-    Object* newObject(ValueType type, std::any data);
-
+    Object* newObject(int data);
+    Object* newObject(double data);
+    Object* newObject(std::string data);
+    Object* newObject(bool data);
+    Object* newObject(char c);
+    Object* newObject(std::vector<Object*> data);
+    Object* newObject(Function data);
     Object* newNullObject();
+    Object* cloneObject(Object* object);
 
-    Object* resetObject(Object* object, std::any data);
+    template <typename T>
+    void resetObject(Object* object, T data);
 
 private:
     std::unordered_map<std::string, BuiltinFuncType> builtin;
     std::vector<Statement*> stmts;
     std::vector<Object*> heap;  // TODO: make it a "real" heap
 };
+
+template <typename T>
+void Runtime::resetObject(Object* object, T data) {
+    *(T*)(object->data) = data;
+}
 
 extern Runtime* runtime;

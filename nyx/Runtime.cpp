@@ -22,6 +22,8 @@
 //
 
 #include "Runtime.hpp"
+
+#include <utility>
 #include "Builtin.h"
 #include "Object.hpp"
 #include "Utils.hpp"
@@ -65,22 +67,85 @@ std::vector<Statement*>& Runtime::getStatements() {
     return stmts;
 }
 
-Object* Runtime::newObject(ValueType type, std::any data) {
+Object* Runtime::newNullObject() {
     // TODO: create object in managed heap and support GC
-    Object* object = new Object(type, std::move(data));
+    auto* object = new Object(Null, nullptr);
     heap.push_back(object);
     return object;
 }
 
-Object* Runtime::newNullObject() {
-    // TODO: create object in managed heap and support GC
-    Object* object = new Object(Null, nullptr);
+Object* Runtime::newObject(int data) {
+    int* mem = new int;
+    *mem = data;
+    auto* object = new Object(Int, mem);
     heap.push_back(object);
     return object;
 }
-Object* Runtime::resetObject(Object* object, std::any data) {
-    object->data = std::move(data);
+Object* Runtime::newObject(double data) {
+    auto* mem = new double;
+    *mem = data;
+    auto* object = new Object(Double, mem);
+    heap.push_back(object);
     return object;
+}
+
+Object* Runtime::newObject(std::string data) {
+    auto* mem = new std::string;
+    *mem = std::move(data);
+    auto* object = new Object(String, mem);
+    heap.push_back(object);
+    return object;
+}
+
+Object* Runtime::newObject(bool data) {
+    bool* mem = new bool;
+    *mem = data;
+    auto* object = new Object(Bool, mem);
+    heap.push_back(object);
+    return object;
+}
+
+Object* Runtime::newObject(char data) {
+    char* mem = new char;
+    *mem = data;
+    auto* object = new Object(Char, mem);
+    heap.push_back(object);
+    return object;
+}
+Object* Runtime::newObject(std::vector<Object*> data) {
+    auto* mem = new std::vector<Object*>;
+    *mem = data;
+    auto* object = new Object(Array, mem);
+    heap.push_back(object);
+    return object;
+}
+Object* Runtime::newObject(Function data) {
+    auto* mem = new Function;
+    mem[0] = data;
+    auto* object = new Object(Closure, mem);
+    heap.push_back(object);
+    return object;
+}
+Object* Runtime::cloneObject(Object* object) {
+    switch (object->getType()) {
+        case Int:
+            return newObject(object->as<int>());
+        case Double:
+            return newObject(object->as<double>());
+        case String:
+            return newObject(object->as<std::string>());
+        case Bool:
+            return newObject(object->as<bool>());
+        case Char:
+            return newObject(object->as<char>());
+        case Array:
+            return newObject(object->as<std::vector<Object*>>());
+        case Closure:
+            return newObject(object->as<Function>());
+        default:
+            panic("TypeError: unknown object type (%p)", object->type,
+                  object->data);
+    }
 }
 
 bool Context::hasVariable(const std::string& identName) {

@@ -28,12 +28,18 @@ enum ValueType { Int, Double, String, Bool, Char, Null, Array, Closure };
 
 #include <any>
 #include <deque>
+#include <string>
+#include <unordered_map>
 #include <vector>
+
 #include "Runtime.hpp"
 
 struct Statement;
 struct Context;
 
+//===----------------------------------------------------------------------===//
+// Runtime object
+//===----------------------------------------------------------------------===//
 class Object {
     friend class Runtime;
 
@@ -86,8 +92,6 @@ public:
 
     std::string toString() const;
 
-    Object* clone() const;
-
     bool isPrimitive() const;
 
     ValueType getType() const { return type; }
@@ -95,27 +99,20 @@ public:
 private:
     explicit Object() = default;
 
-    explicit Object(ValueType type, std::any data)
-        : type(type), data(std::move(data)) {}
+    explicit Object(ValueType type, void* data) : type(type), data(data) {}
 
     ValueType type;
-    std::any data;
+    void* data;
 };
 
 template <typename _CastingType>
 inline _CastingType Object::as() {
-    return std::any_cast<_CastingType>(data);
+    return *(_CastingType*)(data);
 }
 
 template <typename _CastingType>
 inline _CastingType Object::as() const {
-    return std::any_cast<_CastingType>(data);
+    return *(_CastingType*)(data);
 }
-
-#include <any>
-#include <deque>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
 #endif  // NYX_OBJECT_HPP

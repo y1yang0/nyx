@@ -33,6 +33,9 @@
 #include "Ast.h"
 #include "Runtime.hpp"
 
+//===----------------------------------------------------------------------===//
+// Parse source file to AST nodes for further use
+//===----------------------------------------------------------------------===//
 class Parser {
 public:
     explicit Parser(const std::string& fileName);
