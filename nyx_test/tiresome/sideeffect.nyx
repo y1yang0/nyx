@@ -1,10 +1,12 @@
 func sideeffect(arr, i){
   println(arr)
-  if(i==length(arr)-1){return}
+  if(i==length(arr)){return}
   arr[i] = 0
   sideeffect(arr,i+1)
 }
 
 arr=[ 3,2,6,7,87,2]
+assert(arr==[ 3,2,6,7,87,2])
 sideeffect(arr,0)
+assert(arr==[0,0,0,0,0,0])
 println(arr)

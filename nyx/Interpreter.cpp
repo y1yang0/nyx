@@ -20,15 +20,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#include "Interpreter.h"
 #include <deque>
 #include <memory>
 #include <vector>
 #include "Ast.h"
 #include "Builtin.h"
-#include "Interpreter.h"
+#include "Object.hpp"
 #include "Runtime.hpp"
 #include "Utils.hpp"
-#include "Object.hpp"
 
 //===----------------------------------------------------------------------===//
 // Nyx interpreter, as its name described, will interpret all statements within
@@ -36,35 +36,36 @@
 // and leaves actually statement performing later.
 //===----------------------------------------------------------------------===//
 
-void Interpreter::execute(Runtime *rt) {
+void Interpreter::execute(Runtime* rt) {
     Interpreter::newContext(ctxChain);
-    for (auto stmt: rt->getStatements()) {
+    for (auto stmt : rt->getStatements()) {
         stmt->interpret(rt, ctxChain);
     }
 }
 
-void Interpreter::newContext(std::deque<Context *> *ctxChain) {
-    auto *tempContext = new Context;
+void Interpreter::newContext(std::deque<Context*>* ctxChain) {
+    auto* tempContext = new Context;
     ctxChain->push_back(tempContext);
 }
 
-Object *Interpreter::callFunction(Runtime *rt, Function *f,
-                                  std::deque<Context *> *previousCtxChain,
-                                  std::vector<Expression *> args) {
-    std::deque<Context *> *funcCtxChain = nullptr;
+Object* Interpreter::callFunction(Runtime* rt,
+                                  Function* f,
+                                  std::deque<Context*>* previousCtxChain,
+                                  std::vector<Expression*> args) {
+    std::deque<Context*>* funcCtxChain = nullptr;
     if (!f->name.empty() || f->outerContext == nullptr) {
-        funcCtxChain = new std::deque<Context *>();
+        funcCtxChain = new std::deque<Context*>();
     } else {
         funcCtxChain = f->outerContext;
     }
     Interpreter::newContext(funcCtxChain);
 
-    auto *funcCtx = funcCtxChain->back();
+    auto* funcCtx = funcCtxChain->back();
     for (int i = 0; i < f->params.size(); i++) {
         std::string paramName = f->params[i];
         // Evaluate argument values from previous context chain and push them
         // into newly created context chain
-        Object *argValue = args[i]->eval(rt, previousCtxChain);
+        Object* argValue = args[i]->eval(rt, previousCtxChain);
         if (argValue->isPrimitive()) {
             // Pass by value
             funcCtx->createVariable(paramName, argValue->clone());
@@ -76,7 +77,7 @@ Object *Interpreter::callFunction(Runtime *rt, Function *f,
 
     // Execute user defined function
     ExecResult ret(ExecNormal);
-    for (auto &stmt: f->block->stmts) {
+    for (auto& stmt : f->block->stmts) {
         ret = stmt->interpret(rt, funcCtxChain);
         if (ret.execType == ExecReturn) {
             break;
@@ -86,7 +87,10 @@ Object *Interpreter::callFunction(Runtime *rt, Function *f,
     return ret.retValue;
 }
 
-Object *Interpreter::calcUnaryExpr(Object *lhs, Token opt, int line, int column) {
+Object* Interpreter::calcUnaryExpr(Object* lhs,
+                                   Token opt,
+                                   int line,
+                                   int column) {
     switch (opt) {
         case TK_MINUS:
             return lhs->operator-();
@@ -99,8 +103,11 @@ Object *Interpreter::calcUnaryExpr(Object *lhs, Token opt, int line, int column)
     return lhs;
 }
 
-Object *Interpreter::calcBinaryExpr(Object *lhs, Token opt, Object *rhs,
-                                    int line, int column) {
+Object* Interpreter::calcBinaryExpr(Object* lhs,
+                                    Token opt,
+                                    Object* rhs,
+                                    int line,
+                                    int column) {
     switch (opt) {
         case TK_PLUS:
             return lhs->operator+(rhs);
@@ -137,7 +144,7 @@ Object *Interpreter::calcBinaryExpr(Object *lhs, Token opt, Object *rhs,
     return nullptr;
 }
 
-Object *Interpreter::assignSwitch(Token opt, Object *lhs, Object *rhs) {
+Object* Interpreter::assignSwitch(Token opt, Object* lhs, Object* rhs) {
     switch (opt) {
         case TK_ASSIGN:
             return rhs;
@@ -161,19 +168,18 @@ Object *Interpreter::assignSwitch(Token opt, Object *lhs, Object *rhs) {
 // holds all necessary data that widely used in every context. Context chain
 // saves a linked contexts of current execution flow.
 //===----------------------------------------------------------------------===//
-ExecResult IfStmt::interpret(Runtime *rt,
-                             std::deque<Context *> *ctxChain) {
+ExecResult IfStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     ExecResult ret(ExecNormal);
-    Object *cond = this->cond->eval(rt, ctxChain);
-    if (!cond->isType<Bool>()) {
+    Object* cond = this->cond->eval(rt, ctxChain);
+    if (!cond->isType(Bool)) {
         panic(
-                "TypeError: expects bool type in while condition at line %d, "
-                "col %d\n",
-                line, column);
+            "TypeError: expects bool type in while condition at line %d, "
+            "col %d\n",
+            line, column);
     }
     if (true == cond->as<bool>()) {
         Interpreter::newContext(ctxChain);
-        for (auto &stmt: block->stmts) {
+        for (auto& stmt : block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == ExecReturn) {
                 break;
@@ -187,7 +193,7 @@ ExecResult IfStmt::interpret(Runtime *rt,
     } else {
         if (elseBlock != nullptr) {
             Interpreter::newContext(ctxChain);
-            for (auto &elseStmt: elseBlock->stmts) {
+            for (auto& elseStmt : elseBlock->stmts) {
                 ret = elseStmt->interpret(rt, ctxChain);
                 if (ret.execType == ExecReturn) {
                     break;
@@ -202,15 +208,14 @@ ExecResult IfStmt::interpret(Runtime *rt,
     return ret;
 }
 
-ExecResult WhileStmt::interpret(Runtime *rt,
-                                std::deque<Context *> *ctxChain) {
+ExecResult WhileStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     ExecResult ret{ExecNormal};
 
     Interpreter::newContext(ctxChain);
-    Object *cond = this->cond->eval(rt, ctxChain);
+    Object* cond = this->cond->eval(rt, ctxChain);
 
     while (true == cond->as<bool>()) {
-        for (auto &stmt: block->stmts) {
+        for (auto& stmt : block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == ExecReturn) {
                 goto outside;
@@ -225,29 +230,28 @@ ExecResult WhileStmt::interpret(Runtime *rt,
             }
         }
         cond = this->cond->eval(rt, ctxChain);
-        if (!cond->isType<Bool>()) {
+        if (!cond->isType(Bool)) {
             panic(
-                    "TypeError: expects bool type in while condition at line %d, "
-                    "col %d\n",
-                    line, column);
+                "TypeError: expects bool type in while condition at line %d, "
+                "col %d\n",
+                line, column);
         }
     }
 
-    outside:
+outside:
 
     return ret;
 }
 
-ExecResult ForStmt::interpret(Runtime *rt,
-                              std::deque<Context *> *ctxChain) {
+ExecResult ForStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     ExecResult ret{ExecNormal};
 
     Interpreter::newContext(ctxChain);
     this->init->eval(rt, ctxChain);
-    Object *cond = this->cond->eval(rt, ctxChain);
+    Object* cond = this->cond->eval(rt, ctxChain);
 
     while (cond->as<bool>()) {
-        for (auto &stmt: block->stmts) {
+        for (auto& stmt : block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == ExecReturn) {
                 goto outside;
@@ -262,21 +266,20 @@ ExecResult ForStmt::interpret(Runtime *rt,
 
         this->post->eval(rt, ctxChain);
         cond = this->cond->eval(rt, ctxChain);
-        if (!cond->isType<Bool>()) {
+        if (!cond->isType(Bool)) {
             panic(
-                    "TypeError: expects bool type in while condition at line %d, "
-                    "col %d\n",
-                    line, column);
+                "TypeError: expects bool type in while condition at line %d, "
+                "col %d\n",
+                line, column);
         }
     }
 
-    outside:
+outside:
 
     return ret;
 }
 
-ExecResult ForEachStmt::interpret(Runtime *rt,
-                                  std::deque<Context *> *ctxChain) {
+ExecResult ForEachStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     ExecResult ret{ExecNormal};
 
     Interpreter::newContext(ctxChain);
@@ -284,20 +287,20 @@ ExecResult ForEachStmt::interpret(Runtime *rt,
     // Save current context for further iterator updating, we should not expect
     // to call deque.back() to get this since later statement interpretation
     // might push new context into context chain
-    auto &currentCtx = ctxChain->back();
+    auto& currentCtx = ctxChain->back();
     currentCtx->createVariable(this->identName, rt->newNullObject());
-    Object *listV = this->list->eval(rt, ctxChain);
-    if (!listV->isType<Array>()) {
+    Object* listV = this->list->eval(rt, ctxChain);
+    if (!listV->isType(Array)) {
         panic(
-                "TypeError: expects array type within foreach statement at line "
-                "%d, col %d\n",
-                line, column);
+            "TypeError: expects array type within foreach statement at line "
+            "%d, col %d\n",
+            line, column);
     }
-    auto listValues = listV->as<std::vector<Object *>>();
-    for (auto val: listValues) {
+    auto listValues = listV->as<std::vector<Object*>>();
+    for (auto val : listValues) {
         currentCtx->getVariable(identName)->value = val;
 
-        for (auto stmt: this->block->stmts) {
+        for (auto stmt : this->block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == ExecReturn) {
                 goto outside;
@@ -311,16 +314,15 @@ ExecResult ForEachStmt::interpret(Runtime *rt,
         }
     }
 
-    outside:
+outside:
 
     return ret;
 }
 
-ExecResult MatchStmt::interpret(Runtime *rt,
-                                std::deque<Context *> *ctxChain) {
+ExecResult MatchStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     ExecResult ret{ExecNormal};
 
-    Object *cond;
+    Object* cond;
 
     if (this->cond != nullptr) {
         cond = this->cond->eval(rt, ctxChain);
@@ -328,14 +330,14 @@ ExecResult MatchStmt::interpret(Runtime *rt,
         cond = rt->newObject(Bool, true);
     }
 
-    for (const auto&[theCase, theBranch, isAny]: this->matches) {
+    for (const auto& [theCase, theBranch, isAny] : this->matches) {
         // We must first check if it's an any(_) match because the later one
         // will actually evaluate the value of case expression, that is, the
         // identifier _ will be evaluated and might cause undefined variable
         // error.
         if (isAny || cond->equalsDeep(theCase->eval(rt, ctxChain))) {
             Interpreter::newContext(ctxChain);
-            for (auto stmt: theBranch->stmts) {
+            for (auto stmt : theBranch->stmts) {
                 ret = stmt->interpret(rt, ctxChain);
             }
 
@@ -345,33 +347,30 @@ ExecResult MatchStmt::interpret(Runtime *rt,
         }
     }
 
-    finish:
+finish:
     return ret;
 }
 
-ExecResult SimpleStmt::interpret(Runtime *rt,
-                                 std::deque<Context *> *ctxChain) {
+ExecResult SimpleStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     this->expr->eval(rt, ctxChain);
     return ExecResult(ExecNormal);
 }
 
-ExecResult ReturnStmt::interpret(Runtime *rt,
-                                 std::deque<Context *> *ctxChain) {
+ExecResult ReturnStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     if (this->ret != nullptr) {
-        Object *retVal = this->ret->eval(rt, ctxChain);
+        Object* retVal = this->ret->eval(rt, ctxChain);
         return ExecResult(ExecReturn, retVal);
     } else {
         return ExecResult(ExecReturn, nullptr);
     }
 }
 
-ExecResult BreakStmt::interpret(Runtime *rt,
-                                std::deque<Context *> *ctxChain) {
+ExecResult BreakStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     return ExecResult(ExecBreak);
 }
 
-ExecResult ContinueStmt::interpret(Runtime *rt,
-                                   std::deque<Context *> *ctxChain) {
+ExecResult ContinueStmt::interpret(Runtime* rt,
+                                   std::deque<Context*>* ctxChain) {
     return ExecResult(ExecContinue);
 }
 
@@ -380,134 +379,123 @@ ExecResult ContinueStmt::interpret(Runtime *rt,
 // contains evaulated data and corresponding data type, it represents sorts
 // of(also all) data type in nyx and can get value by interpreter directly.
 //===----------------------------------------------------------------------===//
-Object *NullExpr::eval(Runtime *rt,
-                       std::deque<Context *> *ctxChain) {
+Object* NullExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     return rt->newNullObject();
 }
 
-Object *BoolExpr::eval(Runtime *rt,
-                       std::deque<Context *> *ctxChain) {
+Object* BoolExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     return rt->newObject(Bool, this->literal);
 }
 
-Object *CharExpr::eval(Runtime *rt,
-                       std::deque<Context *> *ctxChain) {
+Object* CharExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     return rt->newObject(Char, this->literal);
 }
 
-Object *IntExpr::eval(Runtime *rt,
-                      std::deque<Context *> *ctxChain) {
+Object* IntExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     return rt->newObject(Int, this->literal);
 }
 
-Object *DoubleExpr::eval(Runtime *rt,
-                         std::deque<Context *> *ctxChain) {
+Object* DoubleExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     return rt->newObject(Double, this->literal);
 }
 
-Object *StringExpr::eval(Runtime *rt,
-                         std::deque<Context *> *ctxChain) {
+Object* StringExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     return rt->newObject(String, this->literal);
 }
 
-Object *ArrayExpr::eval(Runtime *rt,
-                        std::deque<Context *> *ctxChain) {
-    std::vector<Object *> elements;
-    for (auto &e: this->literal) {
+Object* ArrayExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+    std::vector<Object*> elements;
+    for (auto& e : this->literal) {
         elements.push_back(e->eval(rt, ctxChain));
     }
 
     return rt->newObject(Array, elements);
 }
 
-Object *ClosureExpr::eval(Runtime *rt,
-                          std::deque<Context *> *ctxChain) {
-    auto *f = new Function;
+Object* ClosureExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+    auto* f = new Function;
     f->params = std::move(this->params);
     f->block = this->block;
     f->outerContext = ctxChain;  // Save outer context for closure
     return rt->newObject(Closure, *f);
 }
 
-Object *IdentExpr::eval(Runtime *rt,
-                        std::deque<Context *> *ctxChain) {
+Object* IdentExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
-        auto *ctx = *p;
-        if (auto *var = ctx->getVariable(this->identName); var != nullptr) {
+        auto* ctx = *p;
+        if (auto* var = ctx->getVariable(this->identName); var != nullptr) {
             return var->value;
         }
     }
     panic(
-            "RuntimeError: use of undefined variable \"%s\" at line %d, col "
-            "%d\n",
-            identName.c_str(), this->line, this->column);
+        "RuntimeError: use of undefined variable \"%s\" at line %d, col "
+        "%d\n",
+        identName.c_str(), this->line, this->column);
 }
 
-Object *IndexExpr::eval(Runtime *rt,
-                        std::deque<Context *> *ctxChain) {
+Object* IndexExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
-        auto *ctx = *p;
-        if (auto *var = ctx->getVariable(this->identName); var != nullptr) {
+        auto* ctx = *p;
+        if (auto* var = ctx->getVariable(this->identName); var != nullptr) {
             auto idx = this->index->eval(rt, ctxChain);
-            if (!idx->isType<Int>()) {
+            if (!idx->isType(Int)) {
                 panic(
-                        "TypeError: expects int type within indexing "
-                        "expression at "
-                        "line %d, col %d\n",
-                        line, column);
+                    "TypeError: expects int type within indexing "
+                    "expression at "
+                    "line %d, col %d\n",
+                    line, column);
             }
             if (idx->as<int>() >=
-                var->value->as<std::vector<Object *>>().size()) {
+                var->value->as<std::vector<Object*>>().size()) {
                 panic(
-                        "IndexError: index %d out of range at line %d, col "
-                        "%d\n",
-                        idx->as<int>(), line, column);
+                    "IndexError: index %d out of range at line %d, col "
+                    "%d\n",
+                    idx->as<int>(), line, column);
             }
-            return var->value->as<std::vector<Object *>>()[idx->as<int>()];
+            return var->value->as<std::vector<Object*>>()[idx->as<int>()];
         }
     }
     panic(
-            "RuntimeError: use of undefined variable \"%s\" at line %d, col "
-            "%d\n",
-            identName.c_str(), this->line, this->column);
+        "RuntimeError: use of undefined variable \"%s\" at line %d, col "
+        "%d\n",
+        identName.c_str(), this->line, this->column);
 }
 
-Object *AssignExpr::eval(Runtime *rt,
-                         std::deque<Context *> *ctxChain) {
-    Object *rhs = this->rhs->eval(rt, ctxChain);
+Object* AssignExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+    Object* rhs = this->rhs->eval(rt, ctxChain);
     if (typeid(*lhs) == typeid(IdentExpr)) {
-        std::string identName = dynamic_cast<IdentExpr *>(lhs)->identName;
+        std::string identName = dynamic_cast<IdentExpr*>(lhs)->identName;
 
         for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
-            if (auto *var = (*p)->getVariable(identName); var != nullptr) {
+            if (auto* var = (*p)->getVariable(identName); var != nullptr) {
                 var->value =
-                        Interpreter::assignSwitch(this->opt, var->value, rhs);
+                    Interpreter::assignSwitch(this->opt, var->value, rhs);
                 return rhs;
             }
         }
 
         (ctxChain->back())->createVariable(identName, rhs);
     } else if (typeid(*lhs) == typeid(IndexExpr)) {
-        std::string identName = dynamic_cast<IndexExpr *>(lhs)->identName;
-        Object *index =
-                dynamic_cast<IndexExpr *>(lhs)->index->eval(rt, ctxChain);
-        if (!index->isType<Int>()) {
+        std::string identName = dynamic_cast<IndexExpr*>(lhs)->identName;
+        Object* index =
+            dynamic_cast<IndexExpr*>(lhs)->index->eval(rt, ctxChain);
+        if (!index->isType(Int)) {
             panic(
-                    "TypeError: expects int type when applying indexing "
-                    "to variable %s at line %d, col %d\n",
-                    identName.c_str(), line, column);
+                "TypeError: expects int type when applying indexing "
+                "to variable %s at line %d, col %d\n",
+                identName.c_str(), line, column);
         }
         for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
-            if (auto *var = (*p)->getVariable(identName); var != nullptr) {
-                if (!var->value->isType<Array>()) {
+            if (auto* var = (*p)->getVariable(identName); var != nullptr) {
+                if (!var->value->isType(Array)) {
                     panic(
-                            "TypeError: expects array type of variable %s "
-                            "at line %d, col %d\n",
-                            identName.c_str(), line, column);
+                        "TypeError: expects array type of variable %s "
+                        "at line %d, col %d\n",
+                        identName.c_str(), line, column);
                 }
-                auto &&temp = var->value->as<std::vector<Object *>>();
+                auto&& temp = var->value->as<std::vector<Object*>>();
                 temp[index->as<int>()] = Interpreter::assignSwitch(
-                        this->opt, temp[index->as<int>()], rhs);
+                    this->opt, temp[index->as<int>()], rhs);
                 var->value->set(std::move(temp));
                 return rhs;
             }
@@ -521,41 +509,39 @@ Object *AssignExpr::eval(Runtime *rt,
     return rhs;
 }
 
-Object *FunCallExpr::eval(Runtime *rt,
-                          std::deque<Context *> *ctxChain) {
+Object* FunCallExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     // Find it as the builtin-in function firstly
-    if (auto *builtinFunc = rt->getBuiltinFunction(this->funcName);
-            builtinFunc != nullptr) {
-        std::vector<Object *> arguments;
-        for (auto e: this->args) {
+    if (auto* builtinFunc = rt->getBuiltinFunction(this->funcName);
+        builtinFunc != nullptr) {
+        std::vector<Object*> arguments;
+        for (auto e : this->args) {
             arguments.push_back(e->eval(rt, ctxChain));
         }
         return builtinFunc(rt, ctxChain, arguments);
     }
 
     // Find it as a user defined function
-    if (auto *normalFunc = rt->getFunction(this->funcName);
-            normalFunc != nullptr) {
+    if (auto* normalFunc = rt->getFunction(this->funcName);
+        normalFunc != nullptr) {
         if (normalFunc->params.size() != this->args.size()) {
             panic(
-                    "ArgumentError: expects %d arguments but got %d at line %d, "
-                    "col %d\n",
-                    normalFunc->params.size(), this->args.size(), line, column);
+                "ArgumentError: expects %d arguments but got %d at line %d, "
+                "col %d\n",
+                normalFunc->params.size(), this->args.size(), line, column);
         }
-        return Interpreter::callFunction(rt, normalFunc, ctxChain,
-                                         this->args);
+        return Interpreter::callFunction(rt, normalFunc, ctxChain, this->args);
     }
 
     // Find it as a closure function
     for (auto ctx = ctxChain->crbegin(); ctx != ctxChain->crend(); ++ctx) {
-        if (auto *closure = (*ctx)->getVariable(this->funcName);
-                closure != nullptr && closure->value->isType<Closure>()) {
+        if (auto* closure = (*ctx)->getVariable(this->funcName);
+            closure != nullptr && closure->value->isType(Closure)) {
             auto closureFunc = closure->value->as<Function>();
             if (closureFunc.params.size() != this->args.size()) {
                 panic(
-                        "ArgumentError: expects %d arguments but got %d at line "
-                        "%d, col %d\n",
-                        closureFunc.params.size(), this->args.size(), line, column);
+                    "ArgumentError: expects %d arguments but got %d at line "
+                    "%d, col %d\n",
+                    closureFunc.params.size(), this->args.size(), line, column);
             }
             return Interpreter::callFunction(rt, &closureFunc, ctxChain,
                                              this->args);
@@ -564,40 +550,37 @@ Object *FunCallExpr::eval(Runtime *rt,
 
     // Panicking since this function was not found
     panic(
-            "RuntimeError: can not find function definition of %s at line %d, col "
-            "%d",
-            this->funcName.c_str(), line, column);
+        "RuntimeError: can not find function definition of %s at line %d, col "
+        "%d",
+        this->funcName.c_str(), line, column);
 }
 
-Object *BinaryExpr::eval(Runtime *rt,
-                         std::deque<Context *> *ctxChain) {
-    Object *lhs =
-            this->lhs ? this->lhs->eval(rt, ctxChain) : rt->newNullObject();
-    Object *rhs =
-            this->rhs ? this->rhs->eval(rt, ctxChain) : rt->newNullObject();
+Object* BinaryExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
+    Object* lhs =
+        this->lhs ? this->lhs->eval(rt, ctxChain) : rt->newNullObject();
+    Object* rhs =
+        this->rhs ? this->rhs->eval(rt, ctxChain) : rt->newNullObject();
     Token opt = this->opt;
 
-    if (!lhs->isType<Null>() && rhs->isType<Null>()) {
+    if (!lhs->isType(Null) && rhs->isType(Null)) {
         return Interpreter::calcUnaryExpr(lhs, opt, line, column);
     }
 
     return Interpreter::calcBinaryExpr(lhs, opt, rhs, line, column);
 }
 
-Object *Expression::eval(Runtime *rt,
-                         std::deque<Context *> *ctxChain) {
+Object* Expression::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     panic(
-            "RuntimeError: can not evaluate abstract expression at line %d, "
-            "col "
-            "%d\n",
-            line, column);
+        "RuntimeError: can not evaluate abstract expression at line %d, "
+        "col "
+        "%d\n",
+        line, column);
 }
 
-ExecResult Statement::interpret(Runtime *rt,
-                                std::deque<Context *> *ctxChain) {
+ExecResult Statement::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     panic(
-            "RuntimeError: can not interpret abstract statement at line %d, "
-            "col"
-            "%d\n",
-            line, column);
+        "RuntimeError: can not interpret abstract statement at line %d, "
+        "col"
+        "%d\n",
+        line, column);
 }

@@ -23,33 +23,35 @@
 #pragma once
 
 #include <memory>
-#include "Runtime.hpp"
-#include "Parser.h"
 #include "Object.hpp"
+#include "Parser.h"
+#include "Runtime.hpp"
 
 class Interpreter {
 public:
-    Interpreter() : ctxChain(new std::deque<Context *>) {}
+    Interpreter() : ctxChain(new std::deque<Context*>) {}
 
-    void execute(Runtime *rt);
+    void execute(Runtime* rt);
 
 public:
-    static void newContext(std::deque<Context *> *ctxChain);
+    static void newContext(std::deque<Context*>* ctxChain);
 
-    static Object *callFunction(Runtime *rt, Function *f,
-                                std::deque<Context *> *previousCtxChain,
-                                std::vector<Expression *> args);
+    static Object* callFunction(Runtime* rt,
+                                Function* f,
+                                std::deque<Context*>* previousCtxChain,
+                                std::vector<Expression*> args);
 
-    static Object *calcBinaryExpr(Object *lhs, Token opt, Object *rhs,
-                                  int line, int column);
+    static Object* calcBinaryExpr(Object* lhs,
+                                  Token opt,
+                                  Object* rhs,
+                                  int line,
+                                  int column);
 
-    static Object *calcUnaryExpr(Object *lhs, Token opt, int line,
-                                 int column);
+    static Object* calcUnaryExpr(Object* lhs, Token opt, int line, int column);
 
-    static Object *assignSwitch(Token opt, Object *lhs, Object *rhs);
+    static Object* assignSwitch(Token opt, Object* lhs, Object* rhs);
 
 private:
-    std::deque<Context *> *ctxChain;
-    static Runtime *rt;
+    std::deque<Context*>* ctxChain;
+    static Runtime* rt;
 };
-

@@ -34,43 +34,42 @@
 
 struct Statement;
 struct Expression;
-
 struct Context;
+class Object;
 
-enum ExecutionResultType {
-    ExecNormal, ExecReturn, ExecBreak, ExecContinue
-};
+enum ExecutionResultType { ExecNormal, ExecReturn, ExecBreak, ExecContinue };
 
 struct Block {
     explicit Block() = default;
 
-    std::vector<Statement *> stmts;
+    std::vector<Statement*> stmts;
 };
 
 struct Function {
     explicit Function() = default;
 
     std::string name;
-    std::deque<Context *> *outerContext{};
+    std::deque<Context*>* outerContext{};
     std::vector<std::string> params;
-    Block *block{};
+    Block* block{};
 };
 
 struct ExecResult {
-    explicit ExecResult(ExecutionResultType execType) : execType(execType) {}
+    explicit ExecResult(ExecutionResultType execType)
+        : execType(execType), retValue(nullptr) {}
 
-    explicit ExecResult(ExecutionResultType execType, Object *retValue)
-            : execType(execType), retValue(retValue) {}
+    explicit ExecResult(ExecutionResultType execType, Object* retValue)
+        : execType(execType), retValue(retValue) {}
 
     ExecutionResultType execType;
-    Object *retValue;
+    Object* retValue;
 };
 
 struct Variable {
     explicit Variable() = default;
 
     std::string name;
-    Object *value;
+    Object* value;
 };
 
 class Context {
@@ -79,43 +78,46 @@ public:
 
     virtual ~Context();
 
-    bool hasVariable(const std::string &identName);
+    bool hasVariable(const std::string& identName);
 
-    void createVariable(const std::string &identName, Object *value);
+    void createVariable(const std::string& identName, Object* value);
 
-    Variable *getVariable(const std::string &identName);
+    Variable* getVariable(const std::string& identName);
 
-    void addFunction(const std::string &name, Function *f);
+    void addFunction(const std::string& name, Function* f);
 
-    bool hasFunction(const std::string &name);
+    bool hasFunction(const std::string& name);
 
-    Function *getFunction(const std::string &name);
+    Function* getFunction(const std::string& name);
 
 private:
-    std::unordered_map<std::string, Variable *> vars;
-    std::unordered_map<std::string, Function *> funcs;
+    std::unordered_map<std::string, Variable*> vars;
+    std::unordered_map<std::string, Function*> funcs;
 };
 
 class Runtime : public Context {
-    using BuiltinFuncType = Object *(*)(Runtime *, std::deque<Context *> *,
-                                        std::vector<Object *>);
+    using BuiltinFuncType = Object* (*)(Runtime*,
+                                        std::deque<Context*>*,
+                                        std::vector<Object*>);
 
 public:
     explicit Runtime();
 
-    bool hasBuiltinFunction(const std::string &name);
+    bool hasBuiltinFunction(const std::string& name);
 
-    BuiltinFuncType getBuiltinFunction(const std::string &name);
+    BuiltinFuncType getBuiltinFunction(const std::string& name);
 
-    void addStatement(Statement *stmt);
+    void addStatement(Statement* stmt);
 
-    std::vector<Statement *> &getStatements();
+    std::vector<Statement*>& getStatements();
 
-    Object *newObject(ValueType type, std::any data);
+    Object* newObject(ValueType type, std::any data);
 
-    Object *newNullObject();
+    Object* newNullObject();
 
 private:
     std::unordered_map<std::string, BuiltinFuncType> builtin;
-    std::vector<Statement *> stmts;
+    std::vector<Statement*> stmts;
 };
+
+extern Runtime* runtime;

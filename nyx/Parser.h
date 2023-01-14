@@ -35,44 +35,44 @@
 
 class Parser {
 public:
-    explicit Parser(const std::string &fileName);
+    explicit Parser(const std::string& fileName);
 
     ~Parser();
 
 public:
-    void parse(Runtime *rt);
+    void parse(Runtime* rt);
 
-    static void printLex(const std::string &fileName);
+    static void printLex(const std::string& fileName);
 
 private:
-    Expression *parsePrimaryExpr();
+    Expression* parsePrimaryExpr();
 
-    Expression *parseUnaryExpr();
+    Expression* parseUnaryExpr();
 
     // default to lowest precedence(0) + 1
-    Expression *parseExpression(short oldPrecedence = 1);
+    Expression* parseExpression(short oldPrecedence = 1);
 
-    SimpleStmt *parseExpressionStmt();
+    SimpleStmt* parseExpressionStmt();
 
-    IfStmt *parseIfStmt();
+    IfStmt* parseIfStmt();
 
-    WhileStmt *parseWhileStmt();
+    WhileStmt* parseWhileStmt();
 
-    Statement *parseForStmt();
+    Statement* parseForStmt();
 
-    MatchStmt *parseMatchStmt();
+    MatchStmt* parseMatchStmt();
 
-    ReturnStmt *parseReturnStmt();
+    ReturnStmt* parseReturnStmt();
 
-    Statement *parseStatement();
+    Statement* parseStatement();
 
-    std::vector<Statement *> parseStatementList();
+    std::vector<Statement*> parseStatementList();
 
-    Block *parseBlock();
+    Block* parseBlock();
 
     std::vector<std::string> parseParameterList();
 
-    Function *parseFuncDef(Context *context);
+    Function* parseFuncDef(Context* context);
 
 private:
     short precedence(Token op);

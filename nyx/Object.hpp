@@ -24,13 +24,11 @@
 #ifndef NYX_OBJECT_HPP
 #define NYX_OBJECT_HPP
 
-enum ValueType {
-    Int, Double, String, Bool, Char, Null, Array, Closure
-};
+enum ValueType { Int, Double, String, Bool, Char, Null, Array, Closure };
 
 #include <any>
-#include <vector>
 #include <deque>
+#include <vector>
 #include "Runtime.hpp"
 
 struct Statement;
@@ -40,59 +38,58 @@ class Object {
     friend class Runtime;
 
 public:
-    template<int _NyxType>
-    inline bool isType() const;
+    inline bool isType(ValueType t) const { return t == type; }
 
-    template<typename _CastingType>
+    template <typename _CastingType>
     inline _CastingType as();
 
-    template<typename _CastingType>
+    template <typename _CastingType>
     inline _CastingType as() const;
 
-    template<typename _DataType>
+    template <typename _DataType>
     inline void set(_DataType data);
 
-    Object *operator+(Object *rhs) const;
+    Object* operator+(Object* rhs) const;
 
-    Object *operator-(Object *rhs) const;
+    Object* operator-(Object* rhs) const;
 
-    Object *operator*(Object *rhs) const;
+    Object* operator*(Object* rhs) const;
 
-    Object *operator/(Object *rhs) const;
+    Object* operator/(Object* rhs) const;
 
-    Object *operator%(Object *rhs) const;
+    Object* operator%(Object* rhs) const;
 
-    Object *operator&&(Object *rhs) const;
+    Object* operator&&(Object* rhs) const;
 
-    Object *operator||(Object *rhs) const;
+    Object* operator||(Object* rhs) const;
 
-    Object *operator==(Object *rhs) const;
+    Object* operator==(Object* rhs) const;
 
-    Object *operator!=(Object *rhs) const;
+    Object* operator!=(Object* rhs) const;
 
-    Object *operator>(Object *rhs) const;
+    Object* operator>(Object* rhs) const;
 
-    Object *operator>=(Object *rhs) const;
+    Object* operator>=(Object* rhs) const;
 
-    Object *operator<(Object *rhs) const;
+    Object* operator<(Object* rhs) const;
 
-    Object *operator<=(Object *rhs) const;
+    Object* operator<=(Object* rhs) const;
 
-    Object *operator&(Object *rhs) const;
+    Object* operator&(Object* rhs) const;
 
-    Object *operator|(Object *rhs) const;
+    Object* operator|(Object* rhs) const;
 
-    Object *operator-() const;
+    Object* operator-() const;
 
-    Object *operator!() const;
+    Object* operator!() const;
 
-    Object *operator~() const;
+    Object* operator~() const;
 
-    bool equalsDeep(Object *b);
+    bool equalsDeep(Object* b) const;
 
     std::string toString() const;
 
-    Object *clone() const;
+    Object* clone() const;
 
     bool isPrimitive();
 
@@ -101,31 +98,24 @@ public:
 private:
     explicit Object() = default;
 
-    explicit Object(ValueType type) : type(type) {}
-
     explicit Object(ValueType type, std::any data)
-            : type(type), data(std::move(data)) {}
+        : type(type), data(std::move(data)) {}
 
     ValueType type;
     std::any data;
 };
 
-template<int _NyxType>
-inline bool Object::isType() const {
-    return this->type == _NyxType;
-}
-
-template<typename _CastingType>
+template <typename _CastingType>
 inline _CastingType Object::as() {
     return std::any_cast<_CastingType>(data);
 }
 
-template<typename _CastingType>
+template <typename _CastingType>
 inline _CastingType Object::as() const {
     return std::any_cast<_CastingType>(data);
 }
 
-template<typename _DataType>
+template <typename _DataType>
 inline void Object::set(_DataType data) {
     this->data = std::make_any<_DataType>(std::move(data));
 }
@@ -136,4 +126,4 @@ inline void Object::set(_DataType data) {
 #include <unordered_map>
 #include <vector>
 
-#endif //NYX_OBJECT_HPP
+#endif  // NYX_OBJECT_HPP

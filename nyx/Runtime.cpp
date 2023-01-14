@@ -21,13 +21,15 @@
 // THE SOFTWARE.
 //
 
-#include "Builtin.h"
 #include "Runtime.hpp"
-#include "Utils.hpp"
+#include "Builtin.h"
 #include "Object.hpp"
+#include "Utils.hpp"
+
+Runtime* runtime = new Runtime();
 
 Context::~Context() {
-    for (const auto &v: vars) {
+    for (const auto& v : vars) {
         delete v.second;
     }
 }
@@ -44,62 +46,64 @@ Runtime::Runtime() {
     builtin["assert"] = &nyx_builtin_assert;
 }
 
-bool Runtime::hasBuiltinFunction(const std::string &name) {
+bool Runtime::hasBuiltinFunction(const std::string& name) {
     return builtin.count(name) == 1;
 }
 
-Runtime::BuiltinFuncType Runtime::getBuiltinFunction(const std::string &name) {
+Runtime::BuiltinFuncType Runtime::getBuiltinFunction(const std::string& name) {
     if (auto res = builtin.find(name); res != builtin.end()) {
         return res->second;
     }
     return nullptr;
 }
 
-void Runtime::addStatement(Statement *stmt) { stmts.push_back(stmt); }
+void Runtime::addStatement(Statement* stmt) {
+    stmts.push_back(stmt);
+}
 
-std::vector<Statement *> &Runtime::getStatements() { return stmts; }
+std::vector<Statement*>& Runtime::getStatements() {
+    return stmts;
+}
 
-Object *Runtime::newObject(ValueType type, std::any data) {
+Object* Runtime::newObject(ValueType type, std::any data) {
     // TODO: create object in managed heap and support GC
     return new Object(type, std::move(data));
 }
 
-Object *Runtime::newNullObject() {
+Object* Runtime::newNullObject() {
     // TODO: create object in managed heap and support GC
     return new Object(Null, nullptr);
 }
 
-bool Context::hasVariable(const std::string &identName) {
+bool Context::hasVariable(const std::string& identName) {
     return vars.count(identName) == 1;
 }
 
-void Context::createVariable(const std::string &identName, Object *value) {
-    auto *var = new Variable();
+void Context::createVariable(const std::string& identName, Object* value) {
+    auto* var = new Variable();
     var->name = identName;
     var->value = value;
     vars.emplace(identName, var);
 }
 
-Variable *Context::getVariable(const std::string &identName) {
+Variable* Context::getVariable(const std::string& identName) {
     if (auto res = vars.find(identName); res != vars.end()) {
         return res->second;
     }
     return nullptr;
 }
 
-void Context::addFunction(const std::string &name, Function *f) {
+void Context::addFunction(const std::string& name, Function* f) {
     funcs.insert(std::make_pair(name, f));
 }
 
-bool Context::hasFunction(const std::string &name) {
+bool Context::hasFunction(const std::string& name) {
     return funcs.count(name) == 1;
 }
 
-Function *Context::getFunction(const std::string &name) {
+Function* Context::getFunction(const std::string& name) {
     if (auto f = funcs.find(name); f != funcs.end()) {
         return f->second;
     }
     return nullptr;
 }
-
-

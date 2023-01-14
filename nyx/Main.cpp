@@ -21,17 +21,16 @@
 // THE SOFTWARE.
 //
 
-#include <string.h>
 #include <iostream>
 #include "Interpreter.h"
 #include "Utils.hpp"
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     if (argc < 2) {
         panic("Feed your *.nyx source file to interpreter!\n");
     }
 
-    auto *rt = new Runtime;
+    auto* rt = new Runtime;
 
     Parser parser(argv[1]);
 #ifdef _DEBUG

@@ -21,12 +21,12 @@
 // THE SOFTWARE.
 //
 
-#include <cstdarg>
-#include "Runtime.hpp"
 #include "Utils.hpp"
+#include <cstdarg>
 #include "Object.hpp"
+#include "Runtime.hpp"
 
-std::string repeatString(int count, const std::string &str) {
+std::string repeatString(int count, const std::string& str) {
     std::string result;
     for (int i = 0; i < count; i++) {
         result += str;
@@ -34,10 +34,10 @@ std::string repeatString(int count, const std::string &str) {
     return result;
 }
 
-[[noreturn]] void panic(char const *const format, ...) {
+[[noreturn]] void panic(char const* const format, ...) {
     va_list args;
     va_start(args, format);
-    vfprintf(stdout, format, args);
+    vfprintf(stderr, format, args);
     va_end(args);
     exit(EXIT_FAILURE);
 }
@@ -65,4 +65,26 @@ std::string type2String(ValueType type) {
                   __func__);
     }
     return "<unknown>";
+}
+void checkArgsCount(int expectedCount, std::vector<Object*>* args) {
+    if (args->size() < expectedCount) {
+        panic("RuntimeError: expect %d arguments but received %d",
+              expectedCount, args->size());
+    }
+}
+void checkArgsType(int idx,
+                   std::vector<Object*>* args,
+                   ValueType expectedType) {
+    if (args->size() <= idx) {
+        panic("RuntimeError: missing arguments");
+    }
+    if (!args->at(idx)->isType(expectedType)) {
+        panic("TypeError: argument at %d has unexpected type", idx);
+    }
+}
+void checkObjectType(const Object* object, ValueType t) {
+    if (object == nullptr || object->getType() != t) {
+        panic("TypeError: object(%p) is expected %d but got %d", object,
+              object->getType(), t);
+    }
 }

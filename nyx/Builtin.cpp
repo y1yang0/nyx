@@ -20,41 +20,41 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 //
+#include "Builtin.h"
 #include <iostream>
 #include <vector>
 #include "Ast.h"
-#include "Builtin.h"
+#include "Object.hpp"
 #include "Runtime.hpp"
 #include "Utils.hpp"
-#include "Object.hpp"
 
-Object *nyx_builtin_print(Runtime *rt,
-                          std::deque<Context *> *ctxChain,
-                          std::vector<Object *> args) {
-    for (auto arg: args) {
+Object* nyx_builtin_print(Runtime* rt,
+                          std::deque<Context*>* ctxChain,
+                          std::vector<Object*> args) {
+    for (auto arg : args) {
         std::cout << arg->toString();
     }
-    return rt->newObject(Int, (int) args.size());
+    return rt->newObject(Int, (int)args.size());
 }
 
-Object *nyx_builtin_println(Runtime *rt,
-                            std::deque<Context *> *ctxChain,
-                            std::vector<Object *> args) {
+Object* nyx_builtin_println(Runtime* rt,
+                            std::deque<Context*>* ctxChain,
+                            std::vector<Object*> args) {
     if (!args.empty()) {
-        for (auto arg: args) {
+        for (auto arg : args) {
             std::cout << arg->toString() << "\n";
         }
     } else {
         std::cout << "\n";
     }
 
-    return rt->newObject(Int, (int) args.size());
+    return rt->newObject(Int, (int)args.size());
 }
 
-Object *nyx_builtin_input(Runtime *rt,
-                          std::deque<Context *> *ctxChain,
-                          std::vector<Object *> args) {
-    Object *result = rt->newObject(String, "");
+Object* nyx_builtin_input(Runtime* rt,
+                          std::deque<Context*>* ctxChain,
+                          std::vector<Object*> args) {
+    Object* result = rt->newObject(String, "");
 
     std::string str;
     std::cin >> str;
@@ -62,117 +62,92 @@ Object *nyx_builtin_input(Runtime *rt,
     return result;
 }
 
-Object *nyx_builtin_typeof(Runtime *rt,
-                           std::deque<Context *> *ctxChain,
-                           std::vector<Object *> args) {
-    if (args.size() != 1) {
-        panic("ArgumentError:function %s expects one argument but got %d",
-              __func__, args.size());
-    }
-    Object *result = rt->newObject(String, "");
+Object* nyx_builtin_typeof(Runtime* rt,
+                           std::deque<Context*>* ctxChain,
+                           std::vector<Object*> args) {
+    checkArgsCount(1, &args);
+
+    Object* result = rt->newObject(String, "");
     result->set<std::string>(type2String(args[0]->getType()));
     return result;
 }
 
-Object *nyx_builtin_length(Runtime *rt,
-                           std::deque<Context *> *ctxChain,
-                           std::vector<Object *> args) {
-    if (args.size() != 1) {
-        panic("ArgumentError:function %s expects one argument but got %d",
-              __func__, args.size());
-    }
+Object* nyx_builtin_length(Runtime* rt,
+                           std::deque<Context*>* ctxChain,
+                           std::vector<Object*> args) {
+    checkArgsCount(1, &args);
 
-    if (args[0]->isType<String>()) {
+    if (args[0]->isType(String)) {
         return rt->newObject(
-                Int, std::make_any<int>(args[0]->as<std::string>().length()));
+            Int, std::make_any<int>(args[0]->as<std::string>().length()));
     }
-    if (args[0]->isType<Array>()) {
+    if (args[0]->isType(Array)) {
         return rt->newObject(
-                Int,
-                std::make_any<int>(args[0]->as<std::vector<Object *>>().size()));
+            Int,
+            std::make_any<int>(args[0]->as<std::vector<Object*>>().size()));
     }
 
     panic(
-            "TypeError: unexpected type of arguments,function %s requires string "
-            "type or "
-            "array type",
-            __func__);
+        "TypeError: unexpected type of arguments,function %s requires string "
+        "type or "
+        "array type",
+        __func__);
 }
 
-Object *nyx_builtin_to_int(Runtime *rt,
-                           std::deque<Context *> *ctxChain,
-                           std::vector<Object *> args) {
-    if (args.size() != 1) {
-        panic("ArgumentError:function %s expects one argument but got %d",
-              __func__, args.size());
-    }
+Object* nyx_builtin_to_int(Runtime* rt,
+                           std::deque<Context*>* ctxChain,
+                           std::vector<Object*> args) {
+    checkArgsCount(1, &args);
+    checkArgsType(0, &args, Double);
 
-    if (args[0]->isType<Double>()) {
-        return rt->newObject(Int, std::make_any<int>(args[0]->as<double>()));
-    }
-    panic("TypeError:function %s unexpected type of arguments within to_int()",
-          __func__);
+    return rt->newObject(Int, std::make_any<int>(args[0]->as<double>()));
 }
 
-Object *nyx_builtin_to_double(Runtime *rt,
-                              std::deque<Context *> *ctxChain,
-                              std::vector<Object *> args) {
-    if (args.size() != 1) {
-        panic("ArgumentError:function %s expects one argument but got %d",
-              __func__, args.size());
-    }
+Object* nyx_builtin_to_double(Runtime* rt,
+                              std::deque<Context*>* ctxChain,
+                              std::vector<Object*> args) {
+    checkArgsCount(1, &args);
+    checkArgsType(0, &args, Int);
 
-    if (args[0]->isType<Int>()) {
-        return rt->newObject(Double,
-                             std::make_any<double>(args[0]->as<int>()));
-    }
-    panic("TypeError: unexpected type of arguments within to_double()");
+    return rt->newObject(Double, std::make_any<double>(args[0]->as<int>()));
 }
 
-Object *nyx_builtin_range(Runtime *rt,
-                          std::deque<Context *> *ctxChain,
-                          std::vector<Object *> args) {
-    if (args.size() > 2) {
-        panic("ArgumentError:function %s expects one or two argument but got %d",
-                __func__, args.size());
-    }
+Object* nyx_builtin_range(Runtime* rt,
+                          std::deque<Context*>* ctxChain,
+                          std::vector<Object*> args) {
+    checkArgsCount(1, &args);
 
-    if (args[0]->isType<Int>()) {
-        std::vector<Object *> vals;
-        if (args[0]->as<int>() <= 0) {
-            return rt->newObject(Array, vals);
-        }
-        int start = 0, stop = 0;
-        if (args.size() == 1) {
-            start = 0;
-            stop = args[0]->as<int>();
-        } else {
-            start = args[0]->as<int>();
-            stop = args[1]->as<int>();
-        }
-        for (; start < stop; start++) {
-            vals.push_back(rt->newObject(Int, start));
-        }
+    std::vector<Object*> vals;
+    if (args[0]->as<int>() <= 0) {
         return rt->newObject(Array, vals);
     }
-    panic("TypeError: unexpected type of arguments within %s", __func__);
+    int start = 0, stop = 0;
+    if (args.size() == 1) {
+        start = 0;
+        stop = args[0]->as<int>();
+    } else {
+        start = args[0]->as<int>();
+        stop = args[1]->as<int>();
+    }
+    for (; start < stop; start++) {
+        vals.push_back(rt->newObject(Int, start));
+    }
+    return rt->newObject(Array, vals);
 }
 
-
-Object *nyx_builtin_assert(Runtime *rt,
-                          std::deque<Context *> *ctxChain,
-                          std::vector<Object *> args) {
-    if (args.size() > 2) {
-        panic("ArgumentError:function %s expects one or two argument but got %d",
-                __func__, args.size());
-    }
-
-    if (args[0]->isType<Bool>() && args[1]->isType<String>()) {
-        if (args[0]->as<bool>() == false) {
-            std::cerr<<"AssertionFailure: "<< args[1]->as<std::string>()<<std::endl;
-            std::abort();
+Object* nyx_builtin_assert(Runtime* rt,
+                           std::deque<Context*>* ctxChain,
+                           std::vector<Object*> args) {
+    checkArgsType(0, &args, Bool);
+    if (!args[0]->as<bool>()) {
+        if (args.size() == 2) {
+            std::cerr << "AssertionFailure: " << args[1]->as<std::string>()
+                      << std::endl;
+        } else {
+            std::cerr << "AssertionFailure" << std::endl;
         }
-        return rt->newNullObject();
+
+        std::abort();
     }
-    panic("TypeError: unexpected type of arguments within %s", __func__);
+    return rt->newNullObject();
 }

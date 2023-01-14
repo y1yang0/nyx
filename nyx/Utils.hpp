@@ -25,18 +25,23 @@
 
 #include <any>
 #include <deque>
+#include <iostream>
 #include <string>
-#include "Runtime.hpp"
 #include "Object.hpp"
+#include "Runtime.hpp"
 
-std::string repeatString(int count, const std::string &str);
+std::string repeatString(int count, const std::string& str);
 
-template<typename _DesireType, typename... _ArgumentType>
+template <typename _DesireType, typename... _ArgumentType>
 inline bool anyone(_DesireType k, _ArgumentType... args) {
     return ((args == k) || ...);
 }
 
-[[noreturn]] void panic(char const *const format, ...);
-
+[[noreturn]] void panic(char const* const format, ...);
 
 std::string type2String(ValueType type);
+
+void checkArgsCount(int expectedCount, std::vector<Object*>* args);
+void checkArgsType(int idx, std::vector<Object*>* args, ValueType expectedType);
+
+void checkObjectType(const Object* object, ValueType t);
