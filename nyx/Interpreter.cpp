@@ -496,7 +496,7 @@ Object* AssignExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
                 auto&& temp = var->value->as<std::vector<Object*>>();
                 temp[index->as<int>()] = Interpreter::assignSwitch(
                     this->opt, temp[index->as<int>()], rhs);
-                var->value->set(std::move(temp));
+                rt->resetObject(var->value, std::move(temp));
                 return rhs;
             }
         }
@@ -556,22 +556,21 @@ Object* FunCallExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
 }
 
 Object* BinaryExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
-    Object* lhs =
+    Object* lhsObject =
         this->lhs ? this->lhs->eval(rt, ctxChain) : rt->newNullObject();
-    Object* rhs =
+    Object* rhsObject =
         this->rhs ? this->rhs->eval(rt, ctxChain) : rt->newNullObject();
-    Token opt = this->opt;
+    Token exprOpt = this->opt;
 
-    if (!lhs->isType(Null) && rhs->isType(Null)) {
-        return Interpreter::calcUnaryExpr(lhs, opt, line, column);
+    if (!lhsObject->isType(Null) && rhsObject->isType(Null)) {
+        return Interpreter::calcUnaryExpr(lhsObject, exprOpt, line, column);
     }
 
-    return Interpreter::calcBinaryExpr(lhs, opt, rhs, line, column);
+    return Interpreter::calcBinaryExpr(lhsObject, exprOpt, rhsObject, line, column);
 }
 
 Object* Expression::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
-    panic(
-        "RuntimeError: can not evaluate abstract expression at line %d, "
+    panic("RuntimeError: abstract expression at line %d, "
         "col "
         "%d\n",
         line, column);
@@ -579,7 +578,7 @@ Object* Expression::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
 
 ExecResult Statement::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     panic(
-        "RuntimeError: can not interpret abstract statement at line %d, "
+        "RuntimeError: abstract statement at line %d, "
         "col"
         "%d\n",
         line, column);

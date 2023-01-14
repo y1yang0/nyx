@@ -115,9 +115,12 @@ public:
 
     Object* newNullObject();
 
+    Object* resetObject(Object* object, std::any data);
+
 private:
     std::unordered_map<std::string, BuiltinFuncType> builtin;
     std::vector<Statement*> stmts;
+    std::vector<Object*> heap;  // TODO: make it a "real" heap
 };
 
 extern Runtime* runtime;

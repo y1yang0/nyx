@@ -46,9 +46,6 @@ public:
     template <typename _CastingType>
     inline _CastingType as() const;
 
-    template <typename _DataType>
-    inline void set(_DataType data);
-
     Object* operator+(Object* rhs) const;
 
     Object* operator-(Object* rhs) const;
@@ -91,7 +88,7 @@ public:
 
     Object* clone() const;
 
-    bool isPrimitive();
+    bool isPrimitive() const;
 
     ValueType getType() const { return type; }
 
@@ -113,11 +110,6 @@ inline _CastingType Object::as() {
 template <typename _CastingType>
 inline _CastingType Object::as() const {
     return std::any_cast<_CastingType>(data);
-}
-
-template <typename _DataType>
-inline void Object::set(_DataType data) {
-    this->data = std::make_any<_DataType>(std::move(data));
 }
 
 #include <any>

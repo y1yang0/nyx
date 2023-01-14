@@ -54,22 +54,18 @@ Object* nyx_builtin_println(Runtime* rt,
 Object* nyx_builtin_input(Runtime* rt,
                           std::deque<Context*>* ctxChain,
                           std::vector<Object*> args) {
-    Object* result = rt->newObject(String, "");
+    checkArgsCount(0, &args);
 
     std::string str;
     std::cin >> str;
-    result->set(std::make_any<std::string>(std::move(str)));
-    return result;
+    return rt->newObject(String, std::make_any<std::string>(std::move(str)));
 }
 
 Object* nyx_builtin_typeof(Runtime* rt,
                            std::deque<Context*>* ctxChain,
                            std::vector<Object*> args) {
     checkArgsCount(1, &args);
-
-    Object* result = rt->newObject(String, "");
-    result->set<std::string>(type2String(args[0]->getType()));
-    return result;
+    return rt->newObject(String, type2String(args[0]->getType()));
 }
 
 Object* nyx_builtin_length(Runtime* rt,

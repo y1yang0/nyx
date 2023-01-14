@@ -67,12 +67,20 @@ std::vector<Statement*>& Runtime::getStatements() {
 
 Object* Runtime::newObject(ValueType type, std::any data) {
     // TODO: create object in managed heap and support GC
-    return new Object(type, std::move(data));
+    Object* object = new Object(type, std::move(data));
+    heap.push_back(object);
+    return object;
 }
 
 Object* Runtime::newNullObject() {
     // TODO: create object in managed heap and support GC
-    return new Object(Null, nullptr);
+    Object* object = new Object(Null, nullptr);
+    heap.push_back(object);
+    return object;
+}
+Object* Runtime::resetObject(Object* object, std::any data) {
+    object->data = std::move(data);
+    return object;
 }
 
 bool Context::hasVariable(const std::string& identName) {

@@ -98,13 +98,10 @@ std::string Object::toString() const {
 }
 
 Object* Object::clone() const {
-    Object* n = new Object();
-    n->type = this->type;
-    n->data = this->data;
-    return n;
+    return runtime->newObject(type, data);
 }
 
-bool Object::isPrimitive() {
+bool Object::isPrimitive() const {
     if (anyone(type, Int, Double, String, Bool, Char)) {
         return true;
     }
