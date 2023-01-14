@@ -171,7 +171,7 @@ Object* Interpreter::assignSwitch(Token opt, Object* lhs, Object* rhs) {
 ExecResult IfStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     ExecResult ret(ExecNormal);
     Object* cond = this->cond->eval(rt, ctxChain);
-    if (!cond->isType(Bool)) {
+    if (!cond->isBool()) {
         panic(
             "TypeError: expects bool type in while condition at line %d, "
             "col %d\n",
@@ -230,7 +230,7 @@ ExecResult WhileStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
             }
         }
         cond = this->cond->eval(rt, ctxChain);
-        if (!cond->isType(Bool)) {
+        if (!cond->isBool()) {
             panic(
                 "TypeError: expects bool type in while condition at line %d, "
                 "col %d\n",
@@ -266,7 +266,7 @@ ExecResult ForStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
 
         this->post->eval(rt, ctxChain);
         cond = this->cond->eval(rt, ctxChain);
-        if (!cond->isType(Bool)) {
+        if (!cond->isBool()) {
             panic(
                 "TypeError: expects bool type in while condition at line %d, "
                 "col %d\n",
@@ -290,7 +290,7 @@ ExecResult ForEachStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     auto& currentCtx = ctxChain->back();
     currentCtx->createVariable(this->identName, rt->newObject());
     Object* listV = this->list->eval(rt, ctxChain);
-    if (!listV->isType(Array)) {
+    if (!listV->isArray()) {
         panic(
             "TypeError: expects array type within foreach statement at line "
             "%d, col %d\n",
@@ -446,7 +446,7 @@ Object* IndexExpr::eval(Runtime* rt, ContextChain* ctxChain) {
         auto* ctx = *p;
         if (auto* var = ctx->getVariable(this->identName); var != nullptr) {
             auto idx = this->index->eval(rt, ctxChain);
-            if (!idx->isType(Int)) {
+            if (!idx->isInt()) {
                 panic(
                     "TypeError: expects int type within indexing "
                     "expression at "
@@ -486,7 +486,7 @@ Object* AssignExpr::eval(Runtime* rt, ContextChain* ctxChain) {
         std::string identName = dynamic_cast<IndexExpr*>(lhs)->identName;
         Object* index =
             dynamic_cast<IndexExpr*>(lhs)->index->eval(rt, ctxChain);
-        if (!index->isType(Int)) {
+        if (!index->isInt()) {
             panic(
                 "TypeError: expects int type when applying indexing "
                 "to variable %s at line %d, col %d\n",
@@ -494,7 +494,7 @@ Object* AssignExpr::eval(Runtime* rt, ContextChain* ctxChain) {
         }
         for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
             if (auto* var = (*p)->getVariable(identName); var != nullptr) {
-                if (!var->value->isType(Array)) {
+                if (!var->value->isArray()) {
                     panic(
                         "TypeError: expects array type of variable %s "
                         "at line %d, col %d\n",
@@ -542,7 +542,7 @@ Object* FunCallExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     // Find it as a closure function
     for (auto ctx = ctxChain->crbegin(); ctx != ctxChain->crend(); ++ctx) {
         if (auto* closure = (*ctx)->getVariable(this->funcName);
-            closure != nullptr && closure->value->isType(Closure)) {
+            closure != nullptr && closure->value->isClosure()) {
             auto closureFunc = closure->value->asClosure();
             if (closureFunc.params.size() != this->args.size()) {
                 panic(
@@ -569,7 +569,7 @@ Object* BinaryExpr::eval(Runtime* rt, ContextChain* ctxChain) {
         this->rhs ? this->rhs->eval(rt, ctxChain) : rt->newObject();
     Token exprOpt = this->opt;
 
-    if (!lhsObject->isType(Null) && rhsObject->isType(Null)) {
+    if (!lhsObject->isNull() && rhsObject->isNull()) {
         return Interpreter::calcUnaryExpr(lhsObject, exprOpt, line, column);
     }
 

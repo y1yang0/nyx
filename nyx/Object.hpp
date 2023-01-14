@@ -52,7 +52,15 @@ public:
     ObjectArray asArray() const { return *(ObjectArray*)(data); }
     Func asClosure() const { return *(Func*)(data); }
 
-    inline bool isType(ValueType t) const { return t == type; }
+    bool isInt() const { return type == Int; }
+    bool isDouble() const { return type == Double; }
+    bool isString() const { return type == String; }
+    bool isBool() const { return type == Bool; }
+    bool isChar() const { return type == Char; }
+    bool isNull() const { return type == Null; }
+    bool isArray() const { return type == Array; }
+    bool isClosure() const { return type == Closure; }
+    bool isType(ValueType t) const { return t == type; }
 
     Object* operator+(Object* rhs) const;
 

@@ -73,10 +73,10 @@ Object* nyx_builtin_length(Runtime* rt,
                            ObjectArray args) {
     checkArgsCount(1, &args);
 
-    if (args[0]->isType(String)) {
+    if (args[0]->isString()) {
         return rt->newObject((int)args[0]->asString().length());
     }
-    if (args[0]->isType(Array)) {
+    if (args[0]->isArray()) {
         return rt->newObject((int)args[0]->asArray().size());
     }
 
