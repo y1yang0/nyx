@@ -45,5 +45,3 @@ void checkArgsCount(int expectedCount, ObjectArray* args);
 void checkArgsType(int idx, ObjectArray* args, ValueType expectedType);
 
 void checkObjectType(const Object* object, ValueType t);
-
-void dumpFuncAst(Func* func);

@@ -29,5 +29,5 @@
 
 arr= [4, -5, 9,15,-6,-2,0]
 print(arr)
-quickSort(arr,0,length(arr)-1)
+quickSort(arr,0,arr.length()-1)
 println(" => " + arr)

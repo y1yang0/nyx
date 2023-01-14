@@ -76,6 +76,7 @@ enum Token {
     TK_RBRACKET,   // ]
     TK_SEMICOLON,  // ;
     TK_COLON,      // :
+    TK_DOT,        // .
 
     KW_IF,        // if
     KW_ELSE,      // else
@@ -268,6 +269,7 @@ struct BinaryExpr : public Expression {
 struct FunCallExpr : public Expression {
     using Expression::Expression;
 
+    Expression* receiver{};
     std::string funcName;
     std::vector<Expression*> args;
 

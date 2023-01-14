@@ -1,6 +1,6 @@
 func sideeffect(arr, i){
   println(arr)
-  if(i==length(arr)){return}
+  if(i==arr.length()){return}
   arr[i] = 0
   sideeffect(arr,i+1)
 }

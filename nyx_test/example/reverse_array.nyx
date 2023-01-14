@@ -1,7 +1,7 @@
 func reverse_array(arr)
 {
     left = 0
-    right = length(arr)-1
+    right = arr.length()-1
 
     while(left<right){
         temp = arr[left]

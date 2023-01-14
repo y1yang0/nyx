@@ -277,7 +277,7 @@ Object* Object::operator==(Object* rhs) const {
         result = this->equalsDeep(rhs);
         return runtime->newObject(result);
     } else {
-        panic("TypeError: unexpected arguments of operator !=");
+        panic("TypeError: unexpected arguments of operator ==");
     }
     return nullptr;
 }

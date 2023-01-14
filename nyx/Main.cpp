@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     auto* rt = new Runtime;
 
     Parser parser(argv[1]);
-#ifdef _DEBUG
+#if NYX_DEBUG
     printLex(argv[1]);
 #endif
     parser.parse(rt);

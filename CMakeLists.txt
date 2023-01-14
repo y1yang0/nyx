@@ -1,11 +1,14 @@
 cmake_minimum_required(VERSION 3.5)
 project(nyx)
 
+# Enable debugging
+# add_definitions(-DNYX_DEBUG=true)
+
 set(CMAKE_CXX_STANDARD 17)
 file(GLOB NYX_SRC nyx/**.cpp)
 
-# Nyx compiler
-add_executable(nyx ${NYX_SRC} nyx/Debug.cpp nyx/Debug.cpp nyx/Debug.hpp)
+# Compile and link together
+add_executable(nyx ${NYX_SRC})
 
 enable_testing()
 file(GLOB test_file_namea ${PROJECT_SOURCE_DIR}/nyx_test/example/*.nyx)

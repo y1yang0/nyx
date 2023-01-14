@@ -170,16 +170,30 @@ Expression* Parser::parsePrimaryExpr() {
 }
 
 Expression* Parser::parseUnaryExpr() {
+    // !expr
     if (anyone(getCurrentToken(), TK_MINUS, TK_LOGNOT, TK_BITNOT)) {
         auto val = new BinaryExpr(line, column);
         val->opt = getCurrentToken();
         currentToken = next();
         val->lhs = parseUnaryExpr();
         return val;
-    } else if (anyone(getCurrentToken(), LIT_DOUBLE, LIT_INT, LIT_STR, LIT_CHAR,
-                      TK_IDENT, TK_LPAREN, TK_LBRACKET, KW_TRUE, KW_FALSE,
-                      KW_NULL, KW_FUNC)) {
-        return parsePrimaryExpr();
+    }
+    // 3.14,32,"foo",'c',name,[],true,null,func(){},name.foo()
+    else if (anyone(getCurrentToken(), LIT_DOUBLE, LIT_INT, LIT_STR, LIT_CHAR,
+                    TK_IDENT, TK_LPAREN, TK_LBRACKET, KW_TRUE, KW_FALSE,
+                    KW_NULL, KW_FUNC)) {
+        Expression* prim = parsePrimaryExpr();
+        if (getCurrentToken() == TK_DOT) {
+            currentToken = next();
+            Expression* call = parsePrimaryExpr();
+            if (typeid(*call) != typeid(FunCallExpr)) {
+                panic("SyntaxError: expected a object member function call");
+            }
+            ((FunCallExpr*)call)->receiver = prim;
+            return call;
+        } else {
+            return prim;
+        }
     }
     return nullptr;
 }
@@ -187,6 +201,7 @@ Expression* Parser::parseUnaryExpr() {
 Expression* Parser::parseExpression(short oldPrecedence) {
     auto* p = parseUnaryExpr();
 
+    // expr += expr
     if (anyone(getCurrentToken(), TK_ASSIGN, TK_PLUS_AGN, TK_MINUS_AGN,
                TK_TIMES_AGN, TK_DIV_AGN, TK_MOD_AGN)) {
         if (typeid(*p) != typeid(NameExpr) && typeid(*p) != typeid(IndexExpr)) {
@@ -200,6 +215,7 @@ Expression* Parser::parseExpression(short oldPrecedence) {
         return assignExpr;
     }
 
+    // expr % expr
     while (anyone(getCurrentToken(), TK_BITOR, TK_BITAND, TK_BITNOT, TK_LOGOR,
                   TK_LOGAND, TK_LOGNOT, TK_EQ, TK_NE, TK_GT, TK_GE, TK_LT,
                   TK_LE, TK_PLUS, TK_MINUS, TK_MOD, TK_TIMES, TK_DIV)) {
@@ -603,7 +619,9 @@ std::tuple<Token, std::string> Parser::next() {
         case '~': {
             return std::make_tuple(TK_BITNOT, "~");
         }
-
+        case '.': {
+            return std::make_tuple(TK_DOT, ".");
+        }
         case '=': {
             if (peekNextChar() == '=') {
                 c = getNextChar();

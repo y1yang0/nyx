@@ -39,20 +39,16 @@ public:
 public:
     static void newContext(ContextChain* ctxChain);
 
-    static Object* callFunction(Runtime* rt,
-                                Func* f,
-                                ContextChain* previousCtxChain,
-                                std::vector<Expression*> args);
+    static Object* callFunc(Runtime* rt,
+                            Func* f,
+                            ContextChain* lastCtxChain,
+                            std::vector<Expression*> args);
 
-    static Object* calcBinaryExpr(Object* lhs,
-                                  Token opt,
-                                  Object* rhs,
-                                  int line,
-                                  int column);
+    static Object* evalBinaryExpr(Object* lhs, Token opt, Object* rhs);
 
-    static Object* calcUnaryExpr(Object* lhs, Token opt, int line, int column);
+    static Object* evalUnaryExpr(Object* lhs, Token opt);
 
-    static Object* assignSwitch(Token opt, Object* lhs, Object* rhs);
+    static Object* assignment(Token opt, Object* lhs, Object* rhs);
 
 private:
     ContextChain* ctxChain;

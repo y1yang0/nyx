@@ -24,6 +24,7 @@
 #include <iostream>
 #include <vector>
 #include "Ast.h"
+#include "Debug.hpp"
 #include "Object.hpp"
 #include "Runtime.hpp"
 #include "Utils.hpp"
@@ -151,6 +152,14 @@ Object* nyx_builtin_dump_ast(Runtime* rt,
     checkArgsCount(1, &args);
     checkArgsType(0, &args, Closure);
     auto func = args[0]->asClosure();
-    dumpFuncAst(&func);
+
+    std::cout << "-Func[" << func.name << "]" << std::endl;
+    AstDumper d(2);
+    if (func.block != nullptr) {
+        for (const auto& item : func.block->stmts) {
+            item->visit(&d);
+        }
+    }
+
     return nullptr;
 }

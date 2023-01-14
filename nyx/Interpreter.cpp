@@ -25,7 +25,7 @@
 #include <memory>
 #include <vector>
 #include "Ast.h"
-#include "Builtin.h"
+#include "Debug.hpp"
 #include "Object.hpp"
 #include "Runtime.hpp"
 #include "Utils.hpp"
@@ -38,7 +38,12 @@
 
 void Interpreter::execute(Runtime* rt) {
     Interpreter::newContext(ctxChain);
+
+    AstDumper dumper;
     for (auto stmt : rt->getStatements()) {
+#if NYX_DEBUG
+        stmt->visit(&dumper);
+#endif
         stmt->interpret(rt, ctxChain);
     }
 }
@@ -48,10 +53,10 @@ void Interpreter::newContext(ContextChain* ctxChain) {
     ctxChain->push_back(tempContext);
 }
 
-Object* Interpreter::callFunction(Runtime* rt,
-                                  Func* f,
-                                  ContextChain* previousCtxChain,
-                                  std::vector<Expression*> args) {
+Object* Interpreter::callFunc(Runtime* rt,
+                              Func* f,
+                              ContextChain* lastCtxChain,
+                              std::vector<Expression*> args) {
     ContextChain* funcCtxChain = nullptr;
     if (!f->name.empty() || f->outerContext == nullptr) {
         funcCtxChain = new ContextChain();
@@ -65,7 +70,7 @@ Object* Interpreter::callFunction(Runtime* rt,
         std::string paramName = f->params[i];
         // Evaluate argument values from previous context chain and push them
         // into newly created context chain
-        Object* argValue = args[i]->eval(rt, previousCtxChain);
+        Object* argValue = args[i]->eval(rt, lastCtxChain);
         if (argValue->isPrimitive()) {
             // Pass by value
             funcCtx->createVariable(paramName, rt->cloneObject(argValue));
@@ -87,10 +92,7 @@ Object* Interpreter::callFunction(Runtime* rt,
     return ret.retValue;
 }
 
-Object* Interpreter::calcUnaryExpr(Object* lhs,
-                                   Token opt,
-                                   int line,
-                                   int column) {
+Object* Interpreter::evalUnaryExpr(Object* lhs, Token opt) {
     switch (opt) {
         case TK_MINUS:
             return lhs->operator-();
@@ -98,16 +100,14 @@ Object* Interpreter::calcUnaryExpr(Object* lhs,
             return lhs->operator!();
         case TK_BITNOT:
             return lhs->operator~();
+        default:
+            panic("RuntimeError: unexpected token %d", opt);
     }
 
     return lhs;
 }
 
-Object* Interpreter::calcBinaryExpr(Object* lhs,
-                                    Token opt,
-                                    Object* rhs,
-                                    int line,
-                                    int column) {
+Object* Interpreter::evalBinaryExpr(Object* lhs, Token opt, Object* rhs) {
     switch (opt) {
         case TK_PLUS:
             return lhs->operator+(rhs);
@@ -140,11 +140,13 @@ Object* Interpreter::calcBinaryExpr(Object* lhs,
             return lhs->operator&(rhs);
         case TK_BITOR:
             return lhs->operator|(rhs);
+        default:
+            panic("RuntimeError: unexpected token %d", opt);
     }
     return nullptr;
 }
 
-Object* Interpreter::assignSwitch(Token opt, Object* lhs, Object* rhs) {
+Object* Interpreter::assignment(Token opt, Object* lhs, Object* rhs) {
     switch (opt) {
         case TK_ASSIGN:
             return rhs;
@@ -170,14 +172,14 @@ Object* Interpreter::assignSwitch(Token opt, Object* lhs, Object* rhs) {
 //===----------------------------------------------------------------------===//
 ExecResult IfStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     ExecResult ret(ExecNormal);
-    Object* cond = this->cond->eval(rt, ctxChain);
-    if (!cond->isBool()) {
+    Object* condition = this->cond->eval(rt, ctxChain);
+    if (!condition->isBool()) {
         panic(
             "TypeError: expects bool type in while condition at line %d, "
             "col %d\n",
             line, column);
     }
-    if (true == cond->asBool()) {
+    if (condition->asBool()) {
         Interpreter::newContext(ctxChain);
         for (auto& stmt : block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
@@ -212,9 +214,9 @@ ExecResult WhileStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     ExecResult ret{ExecNormal};
 
     Interpreter::newContext(ctxChain);
-    Object* cond = this->cond->eval(rt, ctxChain);
+    Object* condition = this->cond->eval(rt, ctxChain);
 
-    while (true == cond->asBool()) {
+    while (condition->asBool()) {
         for (auto& stmt : block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == ExecReturn) {
@@ -229,8 +231,8 @@ ExecResult WhileStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
                 break;
             }
         }
-        cond = this->cond->eval(rt, ctxChain);
-        if (!cond->isBool()) {
+        condition = this->cond->eval(rt, ctxChain);
+        if (!condition->isBool()) {
             panic(
                 "TypeError: expects bool type in while condition at line %d, "
                 "col %d\n",
@@ -248,9 +250,9 @@ ExecResult ForStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
 
     Interpreter::newContext(ctxChain);
     this->init->eval(rt, ctxChain);
-    Object* cond = this->cond->eval(rt, ctxChain);
+    Object* condition = this->cond->eval(rt, ctxChain);
 
-    while (cond->asBool()) {
+    while (condition->asBool()) {
         for (auto& stmt : block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == ExecReturn) {
@@ -265,8 +267,8 @@ ExecResult ForStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
         }
 
         this->post->eval(rt, ctxChain);
-        cond = this->cond->eval(rt, ctxChain);
-        if (!cond->isBool()) {
+        condition = this->cond->eval(rt, ctxChain);
+        if (!condition->isBool()) {
             panic(
                 "TypeError: expects bool type in while condition at line %d, "
                 "col %d\n",
@@ -322,20 +324,15 @@ outside:
 ExecResult MatchStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     ExecResult ret{ExecNormal};
 
-    Object* cond;
-
-    if (this->cond != nullptr) {
-        cond = this->cond->eval(rt, ctxChain);
-    } else {
-        cond = rt->newObject(true);
-    }
+    Object* condition =
+        cond != nullptr ? this->cond->eval(rt, ctxChain) : rt->newObject(true);
 
     for (const auto& [theCase, theBranch, isAny] : this->matches) {
         // We must first check if it's an any(_) match because the later one
         // will actually evaluate the value of case expression, that is, the
         // identifier _ will be evaluated and might cause undefined variable
         // error.
-        if (isAny || cond->equalsDeep(theCase->eval(rt, ctxChain))) {
+        if (isAny || condition->equalsDeep(theCase->eval(rt, ctxChain))) {
             Interpreter::newContext(ctxChain);
             for (auto stmt : theBranch->stmts) {
                 ret = stmt->interpret(rt, ctxChain);
@@ -374,8 +371,8 @@ ExecResult ContinueStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
 }
 
 //===----------------------------------------------------------------------===//
-// Evaulate all expressions and return a Object structure, this object
-// contains evaulated data and corresponding data type, it represents sorts
+// Evaluate all expressions and return a Object structure, this object
+// contains evaluated data and corresponding data type, it represents sorts
 // of(also all) data type in nyx and can get value by interpreter directly.
 //===----------------------------------------------------------------------===//
 Object* NullExpr::eval(Runtime* rt, ContextChain* ctxChain) {
@@ -476,7 +473,7 @@ Object* AssignExpr::eval(Runtime* rt, ContextChain* ctxChain) {
         for (auto p = ctxChain->crbegin(); p != ctxChain->crend(); ++p) {
             if (auto* var = (*p)->getVariable(identName); var != nullptr) {
                 var->value =
-                    Interpreter::assignSwitch(this->opt, var->value, rhs);
+                    Interpreter::assignment(this->opt, var->value, rhs);
                 return rhs;
             }
         }
@@ -501,7 +498,7 @@ Object* AssignExpr::eval(Runtime* rt, ContextChain* ctxChain) {
                         identName.c_str(), line, column);
                 }
                 auto temp = var->value->asArray();
-                temp[index->asInt()] = Interpreter::assignSwitch(
+                temp[index->asInt()] = Interpreter::assignment(
                     this->opt, temp[index->asInt()], rhs);
                 var->value->resetObject(temp);
                 return rhs;
@@ -517,7 +514,25 @@ Object* AssignExpr::eval(Runtime* rt, ContextChain* ctxChain) {
 }
 
 Object* FunCallExpr::eval(Runtime* rt, ContextChain* ctxChain) {
-    // Find it as the builtin-in function firstly
+    if (this->receiver != nullptr) {
+        // A method call, find method from receiver type
+        Object* recv = receiver->eval(rt, ctxChain);
+        // TODO: this dirty hack should be refactor out once we implement OOP
+        // mechanism
+        if (recv->isArray()) {
+            if (funcName == "length") {
+                return rt->newObject((int)(recv->asArray().size()));
+            }
+        } else if (recv->isString()) {
+            if (funcName == "length") {
+                return rt->newObject((int)(recv->asString().length()));
+            }
+        }
+    }
+    // Otherwise, it's a function call, find it as the builtin-in function
+    // firstly then find it as user defined function, the lookup order implies
+    // builtin function has higher priority when we have the same name of user
+    // defined ones
     if (auto* builtinFunc = rt->getBuiltinFunction(this->funcName);
         builtinFunc != nullptr) {
         ObjectArray arguments;
@@ -536,7 +551,7 @@ Object* FunCallExpr::eval(Runtime* rt, ContextChain* ctxChain) {
                 "col %d\n",
                 normalFunc->params.size(), this->args.size(), line, column);
         }
-        return Interpreter::callFunction(rt, normalFunc, ctxChain, this->args);
+        return Interpreter::callFunc(rt, normalFunc, ctxChain, this->args);
     }
 
     // Find it as a closure function
@@ -550,16 +565,14 @@ Object* FunCallExpr::eval(Runtime* rt, ContextChain* ctxChain) {
                     "%d, col %d\n",
                     closureFunc.params.size(), this->args.size(), line, column);
             }
-            return Interpreter::callFunction(rt, &closureFunc, ctxChain,
-                                             this->args);
+            return Interpreter::callFunc(rt, &closureFunc, ctxChain,
+                                         this->args);
         }
     }
 
     // Panicking since this function was not found
-    panic(
-        "RuntimeError: can not find function definition of %s at line %d, col "
-        "%d",
-        this->funcName.c_str(), line, column);
+    panic("RuntimeError: can not find function %s at line %d, col %d",
+          this->funcName.c_str(), line, column);
 }
 
 Object* BinaryExpr::eval(Runtime* rt, ContextChain* ctxChain) {
@@ -570,11 +583,10 @@ Object* BinaryExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     Token exprOpt = this->opt;
 
     if (!lhsObject->isNull() && rhsObject->isNull()) {
-        return Interpreter::calcUnaryExpr(lhsObject, exprOpt, line, column);
+        return Interpreter::evalUnaryExpr(lhsObject, exprOpt);
     }
 
-    return Interpreter::calcBinaryExpr(lhsObject, exprOpt, rhsObject, line,
-                                       column);
+    return Interpreter::evalBinaryExpr(lhsObject, exprOpt, rhsObject);
 }
 
 Object* Expression::eval(Runtime* rt, ContextChain* ctxChain) {

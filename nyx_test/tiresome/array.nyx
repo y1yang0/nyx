@@ -4,9 +4,10 @@ println(a)
 println(b)
 print([1,23,4,5])
 c = [[1,2,3],[4,5,6],[7,8,9]]
+assert(c.length()==3)
 print(c)
 f = [3.24,678,"composite",["array",null,true],'c']
-println(f)
+assert(f.length() ==5)
 assert(f[0]==3.24)
 assert(false==(f[0]==3.23))
 assert(f[4]=='c')
@@ -30,3 +31,7 @@ assert(b==[3   ,
 c=b+[3,4,6]
 println(c)
 assert(c==[3,4,5,[3,4,6]])
+a = [3,5,6].length()
+assert(a==3)
+b = [].length()
+assert(b==0)

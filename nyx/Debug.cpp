@@ -22,7 +22,10 @@
 //
 
 #include "Debug.hpp"
+#include <iostream>
 #include "Parser.h"
+#include "Runtime.hpp"
+#include "Utils.hpp"
 
 void printLex(const std::string& fileName) {
     Parser p(fileName);
@@ -31,4 +34,8 @@ void printLex(const std::string& fileName) {
         tk = p.next();
         std::cout << "[" << std::get<0>(tk) << "," << std::get<1>(tk) << "]\n";
     } while (std::get<0>(tk) != TK_EOF);
+}
+void dumpAst(AstNode* node) {
+    AstDumper dumper;
+    node->visit(&dumper);
 }
