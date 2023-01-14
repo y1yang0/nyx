@@ -74,10 +74,10 @@ Object* nyx_builtin_length(Runtime* rt,
     checkArgsCount(1, &args);
 
     if (args[0]->isType(String)) {
-        return rt->newObject((int)args[0]->as<std::string>().length());
+        return rt->newObject((int)args[0]->asString().length());
     }
     if (args[0]->isType(Array)) {
-        return rt->newObject((int)args[0]->as<std::vector<Object*>>().size());
+        return rt->newObject((int)args[0]->asArray().size());
     }
 
     panic(
@@ -93,7 +93,7 @@ Object* nyx_builtin_to_int(Runtime* rt,
     checkArgsCount(1, &args);
     checkArgsType(0, &args, Double);
 
-    return rt->newObject((int)args[0]->as<double>());
+    return rt->newObject((int)args[0]->asDouble());
 }
 
 Object* nyx_builtin_to_double(Runtime* rt,
@@ -102,7 +102,7 @@ Object* nyx_builtin_to_double(Runtime* rt,
     checkArgsCount(1, &args);
     checkArgsType(0, &args, Int);
 
-    return rt->newObject((double)args[0]->as<int>());
+    return rt->newObject((double)args[0]->asInt());
 }
 
 Object* nyx_builtin_range(Runtime* rt,
@@ -111,16 +111,16 @@ Object* nyx_builtin_range(Runtime* rt,
     checkArgsCount(1, &args);
 
     std::vector<Object*> vals;
-    if (args[0]->as<int>() <= 0) {
+    if (args[0]->asInt() <= 0) {
         return rt->newObject(vals);
     }
     int start = 0, stop = 0;
     if (args.size() == 1) {
         start = 0;
-        stop = args[0]->as<int>();
+        stop = args[0]->asInt();
     } else {
-        start = args[0]->as<int>();
-        stop = args[1]->as<int>();
+        start = args[0]->asInt();
+        stop = args[1]->asInt();
     }
     for (; start < stop; start++) {
         vals.push_back(rt->newObject(start));
@@ -132,9 +132,9 @@ Object* nyx_builtin_assert(Runtime* rt,
                            std::deque<Context*>* ctxChain,
                            std::vector<Object*> args) {
     checkArgsType(0, &args, Bool);
-    if (!args[0]->as<bool>()) {
+    if (!args[0]->asBool()) {
         if (args.size() == 2) {
-            std::cerr << "AssertionFailure: " << args[1]->as<std::string>()
+            std::cerr << "AssertionFailure: " << args[1]->asString()
                       << std::endl;
         } else {
             std::cerr << "AssertionFailure" << std::endl;
@@ -142,5 +142,5 @@ Object* nyx_builtin_assert(Runtime* rt,
 
         std::abort();
     }
-    return rt->newNullObject();
+    return rt->newObject();
 }

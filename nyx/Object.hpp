@@ -26,7 +26,6 @@
 
 enum ValueType { Int, Double, String, Bool, Char, Null, Array, Closure };
 
-#include <any>
 #include <deque>
 #include <string>
 #include <unordered_map>
@@ -44,13 +43,18 @@ class Object {
     friend class Runtime;
 
 public:
+    int asInt() const { return *(int*)(data); }
+    double asDouble() const { return *(double*)(data); }
+    std::string asString() const { return *(std::string*)(data); }
+    bool asBool() const { return *(bool*)(data); }
+    char asChar() const { return *(char*)(data); }
+    std::nullptr_t asNull() const { return nullptr; }
+    std::vector<Object*> asArray() const {
+        return *(std::vector<Object*>*)(data);
+    }
+    Function asClosure() const { return *(Function*)(data); }
+
     inline bool isType(ValueType t) const { return t == type; }
-
-    template <typename _CastingType>
-    inline _CastingType as();
-
-    template <typename _CastingType>
-    inline _CastingType as() const;
 
     Object* operator+(Object* rhs) const;
 
@@ -96,6 +100,11 @@ public:
 
     ValueType getType() const { return type; }
 
+    template <typename T>
+    void resetObject(T data) {
+        *(T*)(this->data) = data;
+    }
+
 private:
     explicit Object() = default;
 
@@ -104,15 +113,5 @@ private:
     ValueType type;
     void* data;
 };
-
-template <typename _CastingType>
-inline _CastingType Object::as() {
-    return *(_CastingType*)(data);
-}
-
-template <typename _CastingType>
-inline _CastingType Object::as() const {
-    return *(_CastingType*)(data);
-}
 
 #endif  // NYX_OBJECT_HPP

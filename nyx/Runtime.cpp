@@ -67,8 +67,7 @@ std::vector<Statement*>& Runtime::getStatements() {
     return stmts;
 }
 
-Object* Runtime::newNullObject() {
-    // TODO: create object in managed heap and support GC
+Object* Runtime::newObject() {
     auto* object = new Object(Null, nullptr);
     heap.push_back(object);
     return object;
@@ -129,19 +128,19 @@ Object* Runtime::newObject(Function data) {
 Object* Runtime::cloneObject(Object* object) {
     switch (object->getType()) {
         case Int:
-            return newObject(object->as<int>());
+            return newObject(object->asInt());
         case Double:
-            return newObject(object->as<double>());
+            return newObject(object->asDouble());
         case String:
-            return newObject(object->as<std::string>());
+            return newObject(object->asString());
         case Bool:
-            return newObject(object->as<bool>());
+            return newObject(object->asBool());
         case Char:
-            return newObject(object->as<char>());
+            return newObject(object->asChar());
         case Array:
-            return newObject(object->as<std::vector<Object*>>());
+            return newObject(object->asArray());
         case Closure:
-            return newObject(object->as<Function>());
+            return newObject(object->asClosure());
         default:
             panic("TypeError: unknown object type (%p)", object->type,
                   object->data);
@@ -179,4 +178,9 @@ Function* Context::getFunction(const std::string& name) {
         return f->second;
     }
     return nullptr;
+}
+
+template <typename T>
+void Runtime::resetObject(Object* object, T data) {
+    *(T*)(object->data) = data;
 }

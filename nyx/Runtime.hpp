@@ -25,12 +25,10 @@
 
 #undef _DEBUG
 
-#include <any>
 #include <deque>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "Object.hpp"
 
 struct Statement;
 struct Expression;
@@ -118,7 +116,7 @@ public:
     Object* newObject(char c);
     Object* newObject(std::vector<Object*> data);
     Object* newObject(Function data);
-    Object* newNullObject();
+    Object* newObject();
     Object* cloneObject(Object* object);
 
     template <typename T>
@@ -127,12 +125,9 @@ public:
 private:
     std::unordered_map<std::string, BuiltinFuncType> builtin;
     std::vector<Statement*> stmts;
-    std::vector<Object*> heap;  // TODO: make it a "real" heap
+    // TODO: create object in managed heap and support GC to make it a "real
+    // heap"
+    std::vector<Object*> heap;
 };
-
-template <typename T>
-void Runtime::resetObject(Object* object, T data) {
-    *(T*)(object->data) = data;
-}
 
 extern Runtime* runtime;

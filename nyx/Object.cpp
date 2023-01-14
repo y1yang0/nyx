@@ -32,20 +32,20 @@ bool Object::equalsDeep(Object* b) const {
     }
     switch (type) {
         case Bool:
-            return as<bool>() == b->as<bool>();
+            return asBool() == b->asBool();
         case Double:
-            return as<double>() == b->as<double>();
+            return asDouble() == b->asDouble();
         case Int:
-            return as<int>() == b->as<int>();
+            return asInt() == b->asInt();
         case Null:
             return true;
         case String:
-            return as<std::string>() == b->as<std::string>();
+            return asString() == b->asString();
         case Char:
-            return as<char>() == b->as<char>();
+            return asChar() == b->asChar();
         case Array: {
-            auto elements1 = as<std::vector<Object*>>();
-            auto elements2 = b->as<std::vector<Object*>>();
+            auto elements1 = asArray();
+            auto elements2 = b->asArray();
             if (elements1.size() != elements2.size()) {
                 return false;
             }
@@ -63,23 +63,23 @@ bool Object::equalsDeep(Object* b) const {
 std::string Object::toString() const {
     switch (type) {
         case Bool:
-            return as<bool>() ? "true" : "false";
+            return asBool() ? "true" : "false";
         case Double:
-            return std::to_string(as<double>());
+            return std::to_string(asDouble());
         case Int:
-            return std::to_string(as<int>());
+            return std::to_string(asInt());
         case Null:
             return "null";
         case String:
-            return as<std::string>();
+            return asString();
         case Char: {
             std::string str;
-            str += as<char>();
+            str += asChar();
             return str;
         }
         case Array: {
             std::string str = "[";
-            auto elements = as<std::vector<Object*>>();
+            auto elements = asArray();
             for (int i = 0; i < elements.size(); i++) {
                 str += elements[i]->toString();
 
@@ -107,25 +107,25 @@ bool Object::isPrimitive() const {
 Object* Object::operator+(Object* rhs) const {
     // Basic
     if (isType(Int) && rhs->isType(Int)) {
-        int result = as<int>() + rhs->as<int>();
+        int result = asInt() + rhs->asInt();
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Double)) {
-        double result = as<double>() + rhs->as<double>();
+        double result = asDouble() + rhs->asDouble();
         return runtime->newObject(result);
     } else if (isType(Int) && rhs->isType(Double)) {
-        double result = as<int>() + rhs->as<double>();
+        double result = asInt() + rhs->asDouble();
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Int)) {
-        double result = as<double>() + rhs->as<int>();
+        double result = asDouble() + rhs->asInt();
         return runtime->newObject(result);
     } else if (isType(Char) && rhs->isType(Int)) {
-        char result = static_cast<char>(as<char>() + rhs->as<int>());
+        char result = static_cast<char>(asChar() + rhs->asInt());
         return runtime->newObject(result);
     } else if (isType(Int) && rhs->isType(Char)) {
-        char result = static_cast<char>(as<int>() + rhs->as<char>());
+        char result = static_cast<char>(asInt() + rhs->asChar());
         return runtime->newObject(result);
     } else if (isType(Char) && rhs->isType(Char)) {
-        char result = static_cast<char>(as<char>() + rhs->as<char>());
+        char result = static_cast<char>(asChar() + rhs->asChar());
         return runtime->newObject(result);
     }
     // String
@@ -136,11 +136,11 @@ Object* Object::operator+(Object* rhs) const {
     }
     // Array
     else if (isType(Array)) {
-        auto result = this->as<std::vector<Object*>>();
+        auto result = this->asArray();
         result.push_back(rhs);
         return runtime->newObject(result);
     } else if (rhs->isType(Array)) {
-        auto result = rhs->as<std::vector<Object*>>();
+        auto result = rhs->asArray();
         result.push_back(const_cast<Object*>(this));
         return runtime->newObject(result);
     }
@@ -153,25 +153,25 @@ Object* Object::operator+(Object* rhs) const {
 
 Object* Object::operator-(Object* rhs) const {
     if (isType(Int) && rhs->isType(Int)) {
-        int result = as<int>() - rhs->as<int>();
+        int result = asInt() - rhs->asInt();
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Double)) {
-        double result = as<double>() - rhs->as<double>();
+        double result = asDouble() - rhs->asDouble();
         return runtime->newObject(result);
     } else if (isType(Int) && rhs->isType(Double)) {
-        double result = as<int>() - rhs->as<double>();
+        double result = asInt() - rhs->asDouble();
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Int)) {
-        double result = as<double>() - rhs->as<int>();
+        double result = asDouble() - rhs->asInt();
         return runtime->newObject(result);
     } else if (isType(Char) && rhs->isType(Int)) {
-        char result = static_cast<char>(as<char>() - rhs->as<int>());
+        char result = static_cast<char>(asChar() - rhs->asInt());
         return runtime->newObject(result);
     } else if (isType(Int) && rhs->isType(Char)) {
-        char result = static_cast<char>(as<int>() - rhs->as<char>());
+        char result = static_cast<char>(asInt() - rhs->asChar());
         return runtime->newObject(result);
     } else if (isType(Char) && rhs->isType(Char)) {
-        char result = static_cast<char>(as<char>() - rhs->as<char>());
+        char result = static_cast<char>(asChar() - rhs->asChar());
         return runtime->newObject(result);
     } else {
         panic("TypeError: unexpected arguments of operator -");
@@ -183,24 +183,24 @@ Object* Object::operator-(Object* rhs) const {
 Object* Object::operator*(Object* rhs) const {
     // Basic
     if (isType(Int) && rhs->isType(Int)) {
-        int result = as<int>() * rhs->as<int>();
+        int result = asInt() * rhs->asInt();
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Double)) {
-        double result = as<double>() * rhs->as<double>();
+        double result = asDouble() * rhs->asDouble();
         return runtime->newObject(result);
     } else if (isType(Int) && rhs->isType(Double)) {
-        double result = as<int>() * rhs->as<double>();
+        double result = asInt() * rhs->asDouble();
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Int)) {
-        double result = as<double>() * rhs->as<int>();
+        double result = asDouble() * rhs->asInt();
         return runtime->newObject(result);
     }
     // String
     else if (isType(String) && rhs->isType(Int)) {
-        std::string result = repeatString(rhs->as<int>(), as<std::string>());
+        std::string result = repeatString(rhs->asInt(), asString());
         return runtime->newObject(result);
     } else if (isType(Int) && rhs->isType(String)) {
-        std::string result = repeatString(as<int>(), rhs->as<std::string>());
+        std::string result = repeatString(asInt(), rhs->asString());
         return runtime->newObject(result);
     }
     // Invalid
@@ -212,16 +212,16 @@ Object* Object::operator*(Object* rhs) const {
 
 Object* Object::operator/(Object* rhs) const {
     if (isType(Int) && rhs->isType(Int)) {
-        int result = as<int>() / rhs->as<int>();
+        int result = asInt() / rhs->asInt();
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Double)) {
-        double result = as<double>() / rhs->as<double>();
+        double result = asDouble() / rhs->asDouble();
         return runtime->newObject(result);
     } else if (isType(Int) && rhs->isType(Double)) {
-        double result = as<int>() / rhs->as<double>();
+        double result = asInt() / rhs->asDouble();
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Int)) {
-        double result = as<double>() / rhs->as<int>();
+        double result = asDouble() / rhs->asInt();
         return runtime->newObject(result);
     } else {
         panic("TypeError: unexpected arguments of operator /");
@@ -232,31 +232,31 @@ Object* Object::operator/(Object* rhs) const {
 Object* Object::operator%(Object* rhs) const {
     checkObjectType(this, Int);
     checkObjectType(rhs, Int);
-    int result = (int)as<int>() % rhs->as<int>();
+    int result = (int)asInt() % rhs->asInt();
     return runtime->newObject(result);
 }
 
 Object* Object::operator&&(Object* rhs) const {
     checkObjectType(this, Bool);
     checkObjectType(rhs, Bool);
-    bool result = (as<bool>() && rhs->as<bool>());
+    bool result = (asBool() && rhs->asBool());
     return runtime->newObject(result);
 }
 
 Object* Object::operator||(Object* rhs) const {
     checkObjectType(this, Bool);
     checkObjectType(rhs, Bool);
-    bool result = (as<bool>() || rhs->as<bool>());
+    bool result = (asBool() || rhs->asBool());
     return runtime->newObject(result);
 }
 
 Object* Object::operator==(Object* rhs) const {
     bool result = false;
     if (isType(Int) && rhs->isType(Int)) {
-        result = (as<int>() == rhs->as<int>());
+        result = (asInt() == rhs->asInt());
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Double)) {
-        result = (as<double>() == rhs->as<double>());
+        result = (asDouble() == rhs->asDouble());
         return runtime->newObject(result);
     } else if (isType(String) && rhs->isType(String)) {
         std::string lhsStr, rhsStr;
@@ -265,13 +265,13 @@ Object* Object::operator==(Object* rhs) const {
         result = (lhsStr == rhsStr);
         return runtime->newObject(result);
     } else if (isType(Bool) && rhs->isType(Bool)) {
-        result = (as<bool>() == rhs->as<bool>());
+        result = (asBool() == rhs->asBool());
         return runtime->newObject(result);
     } else if (this->type == Null && rhs->type == Null) {
         result = true;
         return runtime->newObject(result);
     } else if (isType(Char) && rhs->isType(Char)) {
-        result = (as<char>() == rhs->as<char>());
+        result = (asChar() == rhs->asChar());
         return runtime->newObject(result);
     } else if (isType(Array) && rhs->isType(Array)) {
         result = this->equalsDeep(rhs);
@@ -285,10 +285,10 @@ Object* Object::operator==(Object* rhs) const {
 Object* Object::operator!=(Object* rhs) const {
     bool result = false;
     if (isType(Int) && rhs->isType(Int)) {
-        result = (as<int>() != rhs->as<int>());
+        result = (asInt() != rhs->asInt());
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Double)) {
-        result = (as<double>() != rhs->as<double>());
+        result = (asDouble() != rhs->asDouble());
         return runtime->newObject(result);
     } else if (isType(String) && rhs->isType(String)) {
         std::string lhsStr, rhsStr;
@@ -297,13 +297,13 @@ Object* Object::operator!=(Object* rhs) const {
         result = (lhsStr != rhsStr);
         return runtime->newObject(result);
     } else if (isType(Bool) && rhs->isType(Bool)) {
-        result = (as<bool>() != rhs->as<bool>());
+        result = (asBool() != rhs->asBool());
         return runtime->newObject(result);
     } else if (this->type == Null && rhs->type == Null) {
         result = false;
         return runtime->newObject(result);
     } else if (isType(Char) && rhs->isType(Char)) {
-        result = (as<char>() != rhs->as<char>());
+        result = (asChar() != rhs->asChar());
         return runtime->newObject(result);
     } else if (isType(Array) && rhs->isType(Array)) {
         result = !this->equalsDeep(rhs);
@@ -317,10 +317,10 @@ Object* Object::operator!=(Object* rhs) const {
 Object* Object::operator>(Object* rhs) const {
     bool result = false;
     if (isType(Int) && rhs->isType(Int)) {
-        result = (as<int>() > rhs->as<int>());
+        result = (asInt() > rhs->asInt());
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Double)) {
-        result = (as<double>() > rhs->as<double>());
+        result = (asDouble() > rhs->asDouble());
         return runtime->newObject(result);
     } else if (isType(String) && rhs->isType(String)) {
         std::string lhsStr, rhsStr;
@@ -329,7 +329,7 @@ Object* Object::operator>(Object* rhs) const {
         result = (lhsStr > rhsStr);
         return runtime->newObject(result);
     } else if (isType(Char) && rhs->isType(Char)) {
-        result = (as<char>() > rhs->as<char>());
+        result = (asChar() > rhs->asChar());
         return runtime->newObject(result);
     } else {
         panic("TypeError: unexpected arguments of operator <=");
@@ -340,10 +340,10 @@ Object* Object::operator>(Object* rhs) const {
 Object* Object::operator>=(Object* rhs) const {
     bool result = false;
     if (isType(Int) && rhs->isType(Int)) {
-        result = (as<int>() >= rhs->as<int>());
+        result = (asInt() >= rhs->asInt());
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Double)) {
-        result = (as<double>() >= rhs->as<double>());
+        result = (asDouble() >= rhs->asDouble());
         return runtime->newObject(result);
     } else if (isType(String) && rhs->isType(String)) {
         std::string lhsStr, rhsStr;
@@ -352,7 +352,7 @@ Object* Object::operator>=(Object* rhs) const {
         result = (lhsStr >= rhsStr);
         return runtime->newObject(result);
     } else if (isType(Char) && rhs->isType(Char)) {
-        result = (as<char>() >= rhs->as<char>());
+        result = (asChar() >= rhs->asChar());
         return runtime->newObject(result);
     } else {
         panic("TypeError: unexpected arguments of operator <=");
@@ -363,10 +363,10 @@ Object* Object::operator>=(Object* rhs) const {
 Object* Object::operator<(Object* rhs) const {
     bool result = false;
     if (isType(Int) && rhs->isType(Int)) {
-        result = (as<int>() < rhs->as<int>());
+        result = (asInt() < rhs->asInt());
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Double)) {
-        result = (as<double>() < rhs->as<double>());
+        result = (asDouble() < rhs->asDouble());
         return runtime->newObject(result);
     } else if (isType(String) && rhs->isType(String)) {
         std::string lhsStr, rhsStr;
@@ -375,7 +375,7 @@ Object* Object::operator<(Object* rhs) const {
         result = (lhsStr < rhsStr);
         return runtime->newObject(result);
     } else if (isType(Char) && rhs->isType(Char)) {
-        result = (as<char>() < rhs->as<char>());
+        result = (asChar() < rhs->asChar());
         return runtime->newObject(result);
     } else {
         panic("TypeError: unexpected arguments of operator <=");
@@ -386,10 +386,10 @@ Object* Object::operator<(Object* rhs) const {
 Object* Object::operator<=(Object* rhs) const {
     bool result = false;
     if (isType(Int) && rhs->isType(Int)) {
-        result = (as<int>() <= rhs->as<int>());
+        result = (asInt() <= rhs->asInt());
         return runtime->newObject(result);
     } else if (isType(Double) && rhs->isType(Double)) {
-        result = (as<double>() <= rhs->as<double>());
+        result = (asDouble() <= rhs->asDouble());
         return runtime->newObject(result);
     } else if (isType(String) && rhs->isType(String)) {
         std::string lhsStr, rhsStr;
@@ -398,7 +398,7 @@ Object* Object::operator<=(Object* rhs) const {
         result = (lhsStr <= rhsStr);
         return runtime->newObject(result);
     } else if (isType(Char) && rhs->isType(Char)) {
-        result = (as<char>() <= rhs->as<char>());
+        result = (asChar() <= rhs->asChar());
         return runtime->newObject(result);
     } else {
         panic("TypeError: unexpected arguments of operator <=");
@@ -410,7 +410,7 @@ Object* Object::operator&(Object* rhs) const {
     checkObjectType(this, Int);
     checkObjectType(rhs, Int);
 
-    int result = (as<int>() & rhs->as<int>());
+    int result = (asInt() & rhs->asInt());
     return runtime->newObject(result);
 }
 
@@ -418,7 +418,7 @@ Object* Object::operator|(Object* rhs) const {
     checkObjectType(this, Int);
     checkObjectType(rhs, Int);
 
-    int result = (as<int>() | rhs->as<int>());
+    int result = (asInt() | rhs->asInt());
     return runtime->newObject(result);
 }
 

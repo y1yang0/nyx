@@ -177,7 +177,7 @@ ExecResult IfStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
             "col %d\n",
             line, column);
     }
-    if (true == cond->as<bool>()) {
+    if (true == cond->asBool()) {
         Interpreter::newContext(ctxChain);
         for (auto& stmt : block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
@@ -214,7 +214,7 @@ ExecResult WhileStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     Interpreter::newContext(ctxChain);
     Object* cond = this->cond->eval(rt, ctxChain);
 
-    while (true == cond->as<bool>()) {
+    while (true == cond->asBool()) {
         for (auto& stmt : block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == ExecReturn) {
@@ -250,7 +250,7 @@ ExecResult ForStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     this->init->eval(rt, ctxChain);
     Object* cond = this->cond->eval(rt, ctxChain);
 
-    while (cond->as<bool>()) {
+    while (cond->asBool()) {
         for (auto& stmt : block->stmts) {
             ret = stmt->interpret(rt, ctxChain);
             if (ret.execType == ExecReturn) {
@@ -288,7 +288,7 @@ ExecResult ForEachStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
     // to call deque.back() to get this since later statement interpretation
     // might push new context into context chain
     auto& currentCtx = ctxChain->back();
-    currentCtx->createVariable(this->identName, rt->newNullObject());
+    currentCtx->createVariable(this->identName, rt->newObject());
     Object* listV = this->list->eval(rt, ctxChain);
     if (!listV->isType(Array)) {
         panic(
@@ -296,7 +296,7 @@ ExecResult ForEachStmt::interpret(Runtime* rt, std::deque<Context*>* ctxChain) {
             "%d, col %d\n",
             line, column);
     }
-    auto listValues = listV->as<std::vector<Object*>>();
+    auto listValues = listV->asArray();
     for (auto val : listValues) {
         currentCtx->getVariable(identName)->value = val;
 
@@ -380,7 +380,7 @@ ExecResult ContinueStmt::interpret(Runtime* rt,
 // of(also all) data type in nyx and can get value by interpreter directly.
 //===----------------------------------------------------------------------===//
 Object* NullExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
-    return rt->newNullObject();
+    return rt->newObject();
 }
 
 Object* BoolExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
@@ -445,14 +445,13 @@ Object* IndexExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
                     "line %d, col %d\n",
                     line, column);
             }
-            if (idx->as<int>() >=
-                var->value->as<std::vector<Object*>>().size()) {
+            if (idx->asInt() >= var->value->asArray().size()) {
                 panic(
                     "IndexError: index %d out of range at line %d, col "
                     "%d\n",
-                    idx->as<int>(), line, column);
+                    idx->asInt(), line, column);
             }
-            return var->value->as<std::vector<Object*>>()[idx->as<int>()];
+            return var->value->asArray()[idx->asInt()];
         }
     }
     panic(
@@ -493,10 +492,10 @@ Object* AssignExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
                         "at line %d, col %d\n",
                         identName.c_str(), line, column);
                 }
-                auto temp = var->value->as<std::vector<Object*>>();
-                temp[index->as<int>()] = Interpreter::assignSwitch(
-                    this->opt, temp[index->as<int>()], rhs);
-                rt->resetObject(var->value, temp);
+                auto temp = var->value->asArray();
+                temp[index->asInt()] = Interpreter::assignSwitch(
+                    this->opt, temp[index->asInt()], rhs);
+                var->value->resetObject(temp);
                 return rhs;
             }
         }
@@ -536,7 +535,7 @@ Object* FunCallExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     for (auto ctx = ctxChain->crbegin(); ctx != ctxChain->crend(); ++ctx) {
         if (auto* closure = (*ctx)->getVariable(this->funcName);
             closure != nullptr && closure->value->isType(Closure)) {
-            auto closureFunc = closure->value->as<Function>();
+            auto closureFunc = closure->value->asClosure();
             if (closureFunc.params.size() != this->args.size()) {
                 panic(
                     "ArgumentError: expects %d arguments but got %d at line "
@@ -557,9 +556,9 @@ Object* FunCallExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
 
 Object* BinaryExpr::eval(Runtime* rt, std::deque<Context*>* ctxChain) {
     Object* lhsObject =
-        this->lhs ? this->lhs->eval(rt, ctxChain) : rt->newNullObject();
+        this->lhs ? this->lhs->eval(rt, ctxChain) : rt->newObject();
     Object* rhsObject =
-        this->rhs ? this->rhs->eval(rt, ctxChain) : rt->newNullObject();
+        this->rhs ? this->rhs->eval(rt, ctxChain) : rt->newObject();
     Token exprOpt = this->opt;
 
     if (!lhsObject->isType(Null) && rhsObject->isType(Null)) {
