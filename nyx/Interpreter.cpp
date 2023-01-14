@@ -157,7 +157,7 @@ Object* Interpreter::assignSwitch(Token opt, Object* lhs, Object* rhs) {
         case TK_DIV_AGN:
             return lhs->operator/(rhs);
         case TK_MOD_AGN:
-            return lhs->operator&(rhs);
+            return lhs->operator%(rhs);
         default:
             panic("InternalError: unexpected branch reached");
     }

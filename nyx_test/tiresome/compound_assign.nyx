@@ -1,14 +1,14 @@
 a = 1
 a += 1
-println(a==2)
+assert(a==2)
 a -= 3
-println(a==-1)
+assert(a==-1)
 a *= 4
-println(a==-4)
+assert(a==-4)
 a /= 2
-println(a==-2)
+assert(a==-2)
 a %= 2
-println(a==0)
+assert(a==0)
 a = 2.718
 a += 1
 a -= 3
@@ -17,4 +17,4 @@ a /= 2
 println(a)
 b = [1,2,4]
 b += 3
-println(b+"==[1,2,4,3]")
+assert(b==[1,2,4,3])
