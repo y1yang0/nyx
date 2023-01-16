@@ -30,12 +30,6 @@
 #include "Runtime.hpp"
 #include "Utils.hpp"
 
-//===----------------------------------------------------------------------===//
-// Interpreter, as its name described, will interpret all statements within
-// top-level source file. This part defines internal functions of interpreter
-// and leaves actually statement performing later.
-//===----------------------------------------------------------------------===//
-
 void Interpreter::execute(Runtime* rt) {
     Interpreter::newContext(ctxChain);
 
@@ -101,7 +95,7 @@ Object* Interpreter::evalUnaryExpr(Object* lhs, Token opt) {
         case TK_BITNOT:
             return lhs->operator~();
         default:
-            panic("RuntimeError: unexpected token %d", opt);
+            panic("unexpected token %d", opt);
     }
 
     return lhs;
@@ -141,7 +135,7 @@ Object* Interpreter::evalBinaryExpr(Object* lhs, Token opt, Object* rhs) {
         case TK_BITOR:
             return lhs->operator|(rhs);
         default:
-            panic("RuntimeError: unexpected token %d", opt);
+            panic("unexpected token %d", opt);
     }
     return nullptr;
 }
@@ -161,7 +155,7 @@ Object* Interpreter::assignment(Token opt, Object* lhs, Object* rhs) {
         case TK_MOD_AGN:
             return lhs->operator%(rhs);
         default:
-            panic("InternalError: unexpected branch reached");
+            panic("unexpected branch reached");
     }
 }
 
@@ -175,7 +169,7 @@ ExecResult IfStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     Object* condition = this->cond->eval(rt, ctxChain);
     if (!condition->isBool()) {
         panic(
-            "TypeError: expects bool type in while condition at line %d, "
+            "expects bool type in while condition at line %d, "
             "col %d\n",
             line, column);
     }
@@ -234,7 +228,7 @@ ExecResult WhileStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
         condition = this->cond->eval(rt, ctxChain);
         if (!condition->isBool()) {
             panic(
-                "TypeError: expects bool type in while condition at line %d, "
+                "expects bool type in while condition at line %d, "
                 "col %d\n",
                 line, column);
         }
@@ -270,7 +264,7 @@ ExecResult ForStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
         condition = this->cond->eval(rt, ctxChain);
         if (!condition->isBool()) {
             panic(
-                "TypeError: expects bool type in while condition at line %d, "
+                "expects bool type in while condition at line %d, "
                 "col %d\n",
                 line, column);
         }
@@ -294,7 +288,7 @@ ExecResult ForEachStmt::interpret(Runtime* rt, ContextChain* ctxChain) {
     Object* listV = this->list->eval(rt, ctxChain);
     if (!listV->isArray()) {
         panic(
-            "TypeError: expects array type within foreach statement at line "
+            "expects array type within foreach statement at line "
             "%d, col %d\n",
             line, column);
     }
@@ -433,7 +427,7 @@ Object* NameExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     }
 
     panic(
-        "RuntimeError: use of undefined variable \"%s\" at line %d, col "
+        "use of undefined variable \"%s\" at line %d, col "
         "%d\n",
         identName.c_str(), this->line, this->column);
 }
@@ -445,14 +439,14 @@ Object* IndexExpr::eval(Runtime* rt, ContextChain* ctxChain) {
             auto idx = this->index->eval(rt, ctxChain);
             if (!idx->isInt()) {
                 panic(
-                    "TypeError: expects int type within indexing "
+                    "expects int type within indexing "
                     "expression at "
                     "line %d, col %d\n",
                     line, column);
             }
             if (idx->asInt() >= var->value->asArray().size()) {
                 panic(
-                    "IndexError: index %d out of range at line %d, col "
+                    "index %d out of range at line %d, col "
                     "%d\n",
                     idx->asInt(), line, column);
             }
@@ -460,7 +454,7 @@ Object* IndexExpr::eval(Runtime* rt, ContextChain* ctxChain) {
         }
     }
     panic(
-        "RuntimeError: use of undefined variable \"%s\" at line %d, col "
+        "use of undefined variable \"%s\" at line %d, col "
         "%d\n",
         identName.c_str(), this->line, this->column);
 }
@@ -485,7 +479,7 @@ Object* AssignExpr::eval(Runtime* rt, ContextChain* ctxChain) {
             dynamic_cast<IndexExpr*>(lhs)->index->eval(rt, ctxChain);
         if (!index->isInt()) {
             panic(
-                "TypeError: expects int type when applying indexing "
+                "expects int type when applying indexing "
                 "to variable %s at line %d, col %d\n",
                 identName.c_str(), line, column);
         }
@@ -493,7 +487,7 @@ Object* AssignExpr::eval(Runtime* rt, ContextChain* ctxChain) {
             if (auto* var = (*p)->getVariable(identName); var != nullptr) {
                 if (!var->value->isArray()) {
                     panic(
-                        "TypeError: expects array type of variable %s "
+                        "expects array type of variable %s "
                         "at line %d, col %d\n",
                         identName.c_str(), line, column);
                 }
@@ -507,8 +501,8 @@ Object* AssignExpr::eval(Runtime* rt, ContextChain* ctxChain) {
 
         (ctxChain->back())->createVariable(identName, rhs);
     } else {
-        panic("SyntaxError: can not assign to %s at line %d, col %d\n",
-              typeid(lhs).name(), line, column);
+        panic("can not assign to %s at line %d, col %d\n", typeid(lhs).name(),
+              line, column);
     }
     return rhs;
 }
@@ -547,7 +541,7 @@ Object* FunCallExpr::eval(Runtime* rt, ContextChain* ctxChain) {
         normalFunc != nullptr) {
         if (normalFunc->params.size() != this->args.size()) {
             panic(
-                "ArgumentError: expects %d arguments but got %d at line %d, "
+                "expects %d arguments but got %d at line %d, "
                 "col %d\n",
                 normalFunc->params.size(), this->args.size(), line, column);
         }
@@ -561,7 +555,7 @@ Object* FunCallExpr::eval(Runtime* rt, ContextChain* ctxChain) {
             auto closureFunc = closure->value->asClosure();
             if (closureFunc.params.size() != this->args.size()) {
                 panic(
-                    "ArgumentError: expects %d arguments but got %d at line "
+                    "expects %d arguments but got %d at line "
                     "%d, col %d\n",
                     closureFunc.params.size(), this->args.size(), line, column);
             }
@@ -571,8 +565,8 @@ Object* FunCallExpr::eval(Runtime* rt, ContextChain* ctxChain) {
     }
 
     // Panicking since this function was not found
-    panic("RuntimeError: can not find function %s at line %d, col %d",
-          this->funcName.c_str(), line, column);
+    panic("can not find function %s at line %d, col %d", this->funcName.c_str(),
+          line, column);
 }
 
 Object* BinaryExpr::eval(Runtime* rt, ContextChain* ctxChain) {
@@ -591,7 +585,7 @@ Object* BinaryExpr::eval(Runtime* rt, ContextChain* ctxChain) {
 
 Object* Expression::eval(Runtime* rt, ContextChain* ctxChain) {
     panic(
-        "RuntimeError: abstract expression at line %d, "
+        "abstract expression at line %d, "
         "col "
         "%d\n",
         line, column);
@@ -599,7 +593,7 @@ Object* Expression::eval(Runtime* rt, ContextChain* ctxChain) {
 
 ExecResult Statement::interpret(Runtime* rt, ContextChain* ctxChain) {
     panic(
-        "RuntimeError: abstract statement at line %d, "
+        "abstract statement at line %d, "
         "col"
         "%d\n",
         line, column);

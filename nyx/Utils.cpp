@@ -64,28 +64,27 @@ std::string type2String(ValueType type) {
         case Closure:
             return "closure";
         default:
-            panic("TypeError: arguments with unknown type passed into %s",
-                  __func__);
+            panic("arguments with unknown type passed into %s", __func__);
     }
     return "<unknown>";
 }
 void checkArgsCount(int expectedCount, ObjectArray* args) {
     if (args->size() < expectedCount) {
-        panic("RuntimeError: expect %d arguments but received %d",
-              expectedCount, args->size());
+        panic("expect %d arguments but received %d", expectedCount,
+              args->size());
     }
 }
 void checkArgsType(int idx, ObjectArray* args, ValueType expectedType) {
     if (args->size() <= idx) {
-        panic("RuntimeError: missing arguments");
+        panic("missing arguments");
     }
     if (!args->at(idx)->isType(expectedType)) {
-        panic("TypeError: argument at %d has unexpected type", idx);
+        panic("argument at %d has unexpected type", idx);
     }
 }
 void checkObjectType(const Object* object, ValueType t) {
     if (object == nullptr || object->getType() != t) {
-        panic("TypeError: object(%p) is expected %d but got %d", object,
-              object->getType(), t);
+        panic("object(%p) is expected %d but got %d", object, object->getType(),
+              t);
     }
 }

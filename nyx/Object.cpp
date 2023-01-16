@@ -146,7 +146,7 @@ Object* Object::operator+(Object* rhs) const {
     }
     // Invalid
     else {
-        panic("TypeError: unexpected arguments of operator +");
+        panic("unexpected arguments of operator +");
     }
     return nullptr;
 }
@@ -174,7 +174,7 @@ Object* Object::operator-(Object* rhs) const {
         char result = static_cast<char>(asChar() - rhs->asChar());
         return runtime->newObject(result);
     } else {
-        panic("TypeError: unexpected arguments of operator -");
+        panic("unexpected arguments of operator -");
     }
 
     return nullptr;
@@ -205,7 +205,7 @@ Object* Object::operator*(Object* rhs) const {
     }
     // Invalid
     else {
-        panic("TypeError: unexpected arguments of operator *");
+        panic("unexpected arguments of operator *");
     }
     return nullptr;
 }
@@ -224,7 +224,7 @@ Object* Object::operator/(Object* rhs) const {
         double result = asDouble() / rhs->asInt();
         return runtime->newObject(result);
     } else {
-        panic("TypeError: unexpected arguments of operator /");
+        panic("unexpected arguments of operator /");
     }
     return nullptr;
 }
@@ -277,7 +277,7 @@ Object* Object::operator==(Object* rhs) const {
         result = this->equalsDeep(rhs);
         return runtime->newObject(result);
     } else {
-        panic("TypeError: unexpected arguments of operator ==");
+        panic("unexpected arguments of operator ==");
     }
     return nullptr;
 }
@@ -309,7 +309,7 @@ Object* Object::operator!=(Object* rhs) const {
         result = !this->equalsDeep(rhs);
         return runtime->newObject(result);
     } else {
-        panic("TypeError: unexpected arguments of operator !=");
+        panic("unexpected arguments of operator !=");
     }
     return nullptr;
 }
@@ -332,7 +332,7 @@ Object* Object::operator>(Object* rhs) const {
         result = (asChar() > rhs->asChar());
         return runtime->newObject(result);
     } else {
-        panic("TypeError: unexpected arguments of operator <=");
+        panic("unexpected arguments of operator <=");
     }
     return nullptr;
 }
@@ -355,7 +355,7 @@ Object* Object::operator>=(Object* rhs) const {
         result = (asChar() >= rhs->asChar());
         return runtime->newObject(result);
     } else {
-        panic("TypeError: unexpected arguments of operator <=");
+        panic("unexpected arguments of operator <=");
     }
     return nullptr;
 }
@@ -378,7 +378,7 @@ Object* Object::operator<(Object* rhs) const {
         result = (asChar() < rhs->asChar());
         return runtime->newObject(result);
     } else {
-        panic("TypeError: unexpected arguments of operator <=");
+        panic("unexpected arguments of operator <=");
     }
     return nullptr;
 }
@@ -401,7 +401,7 @@ Object* Object::operator<=(Object* rhs) const {
         result = (asChar() <= rhs->asChar());
         return runtime->newObject(result);
     } else {
-        panic("TypeError: unexpected arguments of operator <=");
+        panic("unexpected arguments of operator <=");
     }
     return nullptr;
 }
@@ -429,7 +429,7 @@ Object* Object::operator-() const {
         case Double:
             return runtime->newObject(-(*(double*)data));
         default:
-            panic("TypeError: invalid operand type for operator -(negative)");
+            panic("invalid operand type for operator -(negative)");
     }
     return nullptr;
 }

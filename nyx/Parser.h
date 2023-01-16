@@ -34,7 +34,7 @@
 #include "Runtime.hpp"
 
 //===----------------------------------------------------------------------===//
-// Parse source file to AST nodes for further use
+// Parse source file to AST nodes
 //===----------------------------------------------------------------------===//
 class Parser {
 public:

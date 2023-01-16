@@ -35,7 +35,7 @@ static const std::unordered_map<std::string, Token> KEYWORDS = {
 Parser::Parser(const std::string& fileName) {
     fs.open(fileName);
     if (!fs.is_open()) {
-        panic("ParserError: can not open source file");
+        panic("can not open source file");
     }
 }
 
@@ -114,7 +114,7 @@ Expression* Parser::parsePrimaryExpr() {
                 ret->block = new Block;
                 ret->block->stmts.push_back(parseStatement());
             } else {
-                panic("SyntaxError: expects => or { after closure declaration");
+                panic("expects => or { after closure declaration");
             }
             return ret;
         }
@@ -187,7 +187,7 @@ Expression* Parser::parseUnaryExpr() {
             currentToken = next();
             Expression* call = parsePrimaryExpr();
             if (typeid(*call) != typeid(FunCallExpr)) {
-                panic("SyntaxError: expected a object member function call");
+                panic("expected a object member function call");
             }
             ((FunCallExpr*)call)->receiver = prim;
             return call;
@@ -205,7 +205,7 @@ Expression* Parser::parseExpression(short oldPrecedence) {
     if (anyone(getCurrentToken(), TK_ASSIGN, TK_PLUS_AGN, TK_MINUS_AGN,
                TK_TIMES_AGN, TK_DIV_AGN, TK_MOD_AGN)) {
         if (typeid(*p) != typeid(NameExpr) && typeid(*p) != typeid(IndexExpr)) {
-            panic("SyntaxError: can not assign to %s", typeid(*p).name());
+            panic("can not assign to %s", typeid(*p).name());
         }
         auto* assignExpr = new AssignExpr(line, column);
         assignExpr->opt = getCurrentToken();
@@ -428,7 +428,7 @@ Func* Parser::parseFuncDef(Context* context) {
 
     // Check if function was already be defined
     if (context->hasFunction(getCurrentLexeme())) {
-        panic("SyntaxError: multiply function definitions of %s found",
+        panic("multiply function definitions of %s found",
               getCurrentLexeme().c_str());
     }
 
@@ -536,7 +536,7 @@ std::tuple<Token, std::string> Parser::next() {
                 lexeme += nextChar;
                 if (peekNextChar() != '\'') {
                     panic(
-                        "SynxaxError: a character literal should surround with "
+                        "a character literal should surround with "
                         "single-quote");
                 }
                 c = getNextChar();
@@ -668,7 +668,7 @@ std::tuple<Token, std::string> Parser::next() {
             return std::make_tuple(TK_LT, "<");
         }
         default: {
-            panic("SyntaxError: unknown token %c", c);
+            panic("unknown token %c", c);
         }
     }
 }

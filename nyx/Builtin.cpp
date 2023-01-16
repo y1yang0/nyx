@@ -82,7 +82,7 @@ Object* nyx_builtin_length(Runtime* rt,
     }
 
     panic(
-        "TypeError: unexpected type of arguments,function %s requires string "
+        "unexpected type of arguments,function %s requires string "
         "type or "
         "array type",
         __func__);

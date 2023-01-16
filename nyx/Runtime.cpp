@@ -143,8 +143,7 @@ Object* Runtime::cloneObject(Object* object) {
         case Closure:
             return newObject(object->asClosure());
         default:
-            panic("TypeError: unknown object type (%p)", object->type,
-                  object->data);
+            panic("unknown object type (%p)", object->type, object->data);
     }
 }
 
